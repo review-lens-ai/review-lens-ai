@@ -25,11 +25,11 @@ jobs:
         run: |
           case "$ASSIGNEE" in
             502john)        AID="712020:a99484dd-97d9-4d61-bc02-b068560586e0" ;;
-            Andy-MG2)       AID="" ;;
+            Andy-MG2)       AID="712020:13455303-1d87-4431-bc5f-14e6806852c9" ;;
             dhy-ani)        AID="712020:67b98b22-9558-4a5e-b65d-fd30a5b11b60" ;;
             DeekshithaOku)  AID="" ;;
             dharaa12)       AID="" ;;
-            melnaabraham)   AID="" ;;
+            melnaabraham)   AID="712020:4c1aa176-d80a-40d6-8b63-532b5be93fc0" ;;
             *)              AID="" ;;
           esac
           jq -n --arg p "$PROJECT" --arg t "$TITLE" --arg b "$BODY" --arg u "$URL" --arg a "$ASSIGNEE" --arg aid "$AID" \
