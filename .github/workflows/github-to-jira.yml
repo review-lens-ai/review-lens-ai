@@ -1,0 +1,45 @@
+name: github-to-jira
+on:
+  issues:
+    types: [assigned]
+permissions:
+  issues: write
+jobs:
+  create:
+    if: ${{ !contains(github.event.issue.labels.*.name, 'jira-created') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Jira ticket
+        env:
+          TITLE: ${{ github.event.issue.title }}
+          BODY: ${{ github.event.issue.body }}
+          URL: ${{ github.event.issue.html_url }}
+          NUM: ${{ github.event.issue.number }}
+          ASSIGNEE: ${{ github.event.assignee.login }}
+          REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+          BASE: ${{ secrets.JIRA_BASE_URL }}
+          EMAIL: ${{ secrets.JIRA_EMAIL }}
+          TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          PROJECT: ${{ secrets.JIRA_PROJECT_KEY }}
+        run: |
+          case "$ASSIGNEE" in
+            502john)        AID="712020:a99484dd-97d9-4d61-bc02-b068560586e0" ;;
+            Andy-MG2)       AID="" ;;
+            dhy-ani)        AID="712020:67b98b22-9558-4a5e-b65d-fd30a5b11b60" ;;
+            DeekshithaOku)  AID="" ;;
+            dharaa12)       AID="" ;;
+            melnaabraham)   AID="" ;;
+            *)              AID="" ;;
+          esac
+          jq -n --arg p "$PROJECT" --arg t "$TITLE" --arg b "$BODY" --arg u "$URL" --arg a "$ASSIGNEE" --arg aid "$AID" \
+            '{fields:({project:{key:$p},issuetype:{name:"Task"},summary:$t,
+              description:{type:"doc",version:1,content:[{type:"paragraph",content:[{type:"text",text:($b + "\n\nGitHub: " + $u + "\nAssignee: " + $a)}]}]}}
+              + (if $aid != "" then {assignee:{accountId:$aid}} else {} end))}' > payload.json
+          RES=$(curl -sS -u "$EMAIL:$TOKEN" -X POST "$BASE/rest/api/3/issue" \
+            -H "Content-Type: application/json" -d @payload.json)
+          KEY=$(echo "$RES" | jq -r .key)
+          if [ "$KEY" = "null" ]; then echo "$RES"; exit 1; fi
+          gh label create jira-created --repo "$REPO" 2>/dev/null || true
+          gh issue edit "$NUM" --repo "$REPO" --add-label jira-created
+          gh issue comment "$NUM" --repo "$REPO" --body "Jira ticket: $BASE/browse/$KEY"
