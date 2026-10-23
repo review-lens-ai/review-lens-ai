@@ -1,0 +1,17 @@
+# Next.js
+**/node_modules/
+**/.next/
+**/.env.local
+
+# Python
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
