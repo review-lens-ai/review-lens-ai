@@ -34,15 +34,6 @@ export default function LoginPage() {
     }
   }
 
-  async function signInWithGoogle() {
-    setMessage(null);
-    const { error } = await createClient().auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/dashboard` },
-    });
-    if (error) setMessage("Google sign-in is unavailable right now. Please try again.");
-  }
-
   return (
     <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-6">
       <h1 className="text-2xl font-semibold">
@@ -83,13 +74,6 @@ export default function LoginPage() {
           {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Sign up"}
         </button>
       </form>
-      <button
-        type="button"
-        onClick={signInWithGoogle}
-        className="rounded border px-4 py-2"
-      >
-        Continue with Google
-      </button>
       <button
         type="button"
         className="text-sm underline"
