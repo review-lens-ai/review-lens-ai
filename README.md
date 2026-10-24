@@ -2,9 +2,13 @@
 
 ## Stack
 
-- `frontend/` — Next.js (React 19, Tailwind 4)
-- `backend/` — FastAPI, managed with [uv](https://docs.astral.sh/uv/)
-- `supabase/` — database/auth backing both apps
+| Part | Role | Tech |
+|---|---|---|
+| `frontend/` | UI | Next.js, React 19, Tailwind 4 |
+| `backend/` | API, background worker | FastAPI, [uv](https://docs.astral.sh/uv/) |
+| `supabase/` | Database, auth, migrations | Supabase |
+
+Supabase connection settings live in `backend/.env` and `frontend/.env.local`.
 
 ## Prerequisites
 
