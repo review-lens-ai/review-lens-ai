@@ -1,0 +1,428 @@
+{
+  "search_metadata": {
+    "id": "6add081271c54254fff3d8bc",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/hzKMDl3_2sVp5w6fkq8lZ5eRRDTA5mGWY7iq37I3uyI/6add081271c54254fff3d8bc.json",
+    "markdown_endpoint": "https://serpapi.com/searches/hzKMDl3_2sVp5w6fkq8lZ5eRRDTA5mGWY7iq37I3uyI/6add081271c54254fff3d8bc.md",
+    "created_at": "2026-10-24 19:33:38 UTC",
+    "processed_at": "2026-10-24 19:33:38 UTC",
+    "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c259af336b3341:0xa4969e07ce3108de!5m2!4m1!1i2!9m1!1b1?hl=en",
+    "raw_html_file": "https://serpapi.com/searches/hzKMDl3_2sVp5w6fkq8lZ5eRRDTA5mGWY7iq37I3uyI/6add081271c54254fff3d8bc.html",
+    "prettify_html_file": "https://serpapi.com/searches/hzKMDl3_2sVp5w6fkq8lZ5eRRDTA5mGWY7iq37I3uyI/6add081271c54254fff3d8bc.prettify",
+    "total_time_taken": 0.26
+  },
+  "search_parameters": {
+    "engine": "google_maps_reviews",
+    "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+    "hl": "en",
+    "sort_by": "ratingLow"
+  },
+  "place_info": {
+    "title": "Gregorys Coffee",
+    "address": "874 6th Ave, New York, NY 10001",
+    "rating": 4.1,
+    "reviews": 1518,
+    "type": "Coffee shop"
+  },
+  "topics": [
+    {
+      "keyword": "cold brew",
+      "mentions": 26,
+      "id": "DW_Q69Z5YFg"
+    },
+    {
+      "keyword": "vegan options",
+      "mentions": 31,
+      "id": "BdHbkKiYdQA"
+    },
+    {
+      "keyword": "friendly staff",
+      "mentions": 166,
+      "id": "BP8_dBsAxLY"
+    },
+    {
+      "keyword": "croissant",
+      "mentions": 10,
+      "id": "EB7gbKwaNW8"
+    },
+    {
+      "keyword": "salted caramel cold brew",
+      "mentions": 4,
+      "id": "wy7Ub98SkJY"
+    },
+    {
+      "keyword": "vegan deluxe",
+      "mentions": 4,
+      "id": "LeB7kA-ofRA"
+    },
+    {
+      "keyword": "almond croissant",
+      "mentions": 4,
+      "id": "hR4wKm8Qle4"
+    },
+    {
+      "keyword": "oat milk",
+      "mentions": 4,
+      "id": "D2SQA6I0CNg"
+    },
+    {
+      "keyword": "matcha",
+      "mentions": 8,
+      "id": "IV-Ey_IEZEY"
+    },
+    {
+      "keyword": "protein coffee",
+      "mentions": 2,
+      "id": "H6QwIdA4aBw"
+    }
+  ],
+  "reviews": [
+    {
+      "position": 1,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pFMlJXMVlTMHhOTmtaTk5VZE1PRVZ2UkdadGJWRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjE2RW1YS0xNNkZNNUdMOEVvRGZtbVE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 months ago",
+      "iso_date": "2026-03-01T15:24:01Z",
+      "iso_date_of_last_edit": "2026-03-01T15:24:01Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfsdt5-dZx8bFoZnbLYH-iLLrBuJPANtrWX5ZOI4X-gdBdY-1r5Z8Dk0x5JXWFR2811JmWwrBm0ZN09S9JmOahPmJSqWriw1ODi5j13E_oa82W5k_jVk4bUFdvELeALzie7MFGxAgTn_3Yf=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pFMlJXMVlTMHhOTmtaTk5VZE1PRVZ2UkdadGJWRRAB",
+      "user": {
+        "name": "Metehan Canbakis",
+        "link": "https://www.google.com/maps/contrib/114887835267658582471?hl=en",
+        "contributor_id": "114887835267658582471",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjW_SnB_srfd_RL66_q4dRuWbetQsxWMI9KqmLj8ZOY4l55hhNSn=s120-c-rp-mo-br100",
+        "reviews": 10,
+        "photos": 4
+      },
+      "snippet": "Overpriced and disappointing.\nThe prices here are way too high for what you actually get. The coffee is average at best, and the food doesn’t justify the cost in any way. Nothing stood out in terms of quality, taste, or service to explain these inflated prices. You’re basically paying for the name or the location, not the experience. There are plenty of cafés nearby offering much better quality for a more reasonable price. Definitely not worth it, and I won’t be coming back.",
+      "extracted_snippet": {
+        "original": "Overpriced and disappointing.\nThe prices here are way too high for what you actually get. The coffee is average at best, and the food doesn’t justify the cost in any way. Nothing stood out in terms of quality, taste, or service to explain these inflated prices. You’re basically paying for the name or the location, not the experience. There are plenty of cafés nearby offering much better quality for a more reasonable price. Definitely not worth it, and I won’t be coming back."
+      },
+      "details": {
+        "food": 3,
+        "service": 1,
+        "atmosphere": 2
+      },
+      "likes": 0
+    },
+    {
+      "position": 2,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25neWNqTXRRazl5WkV4SE5qUTBaa1JQYTBNNWFrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOngycjMtQk9yZExHNjQ0ZkRPa0M5akE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "4 months ago",
+      "iso_date": "2026-06-10T23:29:37Z",
+      "iso_date_of_last_edit": "2026-06-11T15:14:29Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfGFF2vZElGLlMyj0eIwjMZfDR9i1AL_uSv0VeqNb2mu_6-rOnYV45kL0D9LXd23GcSeDLkmL0IFvP4bkCo5IkuIDDnMWJbmvLbeaL6iqPT-ftd1xW5v3RgQiqw3USvHjQPkpz7AYZRyHk=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25neWNqTXRRazl5WkV4SE5qUTBaa1JQYTBNNWFrRRAB",
+      "user": {
+        "name": "SERGIO MOTA",
+        "link": "https://www.google.com/maps/contrib/116644768426053798025?hl=en",
+        "contributor_id": "116644768426053798025",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWzjKn5CuPwitJVah6wPdYa073XC8-mYsXITsvlwvsvPLWPloip=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 87,
+        "photos": 130
+      },
+      "snippet": "The lady that made this is somewhat inattentive and totally disrespectful.\nShe's has little experienced in the way she heated up the decaf latte about 200°.\nIs African-American lady and she ask one of her co-workers how to get something done that  she was messing up the order and the steamer was so high that's what led to 200 degrees because she didn't know how to turn it off  I was there when she said it and she shouldn't be dealing with steamers if she can't handle the pressure",
+      "extracted_snippet": {
+        "original": "The lady that made this is somewhat inattentive and totally disrespectful.\nShe's has little experienced in the way she heated up the decaf latte about 200°.\nIs African-American lady and she ask one of her co-workers how to get something done that  she was messing up the order and the steamer was so high that's what led to 200 degrees because she didn't know how to turn it off  I was there when she said it and she shouldn't be dealing with steamers if she can't handle the pressure"
+      },
+      "likes": 0,
+      "response": {
+        "date": "4 months ago",
+        "iso_date": "2026-06-12T13:22:46Z",
+        "iso_date_of_last_edit": "2026-06-12T13:22:46Z",
+        "snippet": "Hi Sergio,, thank you for taking the time to share this feedback with us. We’re really bummed to hear about your experience, and we appreciate you bringing it to our attention. What you described isn’t the level of quality or service we aim to provide, and we’ll be addressing this with the store’s leadership team to ensure proper training and support are in place. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
+        "extracted_snippet": {
+          "original": "Hi Sergio,, thank you for taking the time to share this feedback with us. We’re really bummed to hear about your experience, and we appreciate you bringing it to our attention. What you described isn’t the level of quality or service we aim to provide, and we’ll be addressing this with the store’s leadership team to ensure proper training and support are in place. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
+        }
+      }
+    },
+    {
+      "position": 3,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21jMmJIaHhSMmhwZERSUlRUQlJkV1JoVFd4TlZtYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmc2bHhxR2hpdDRRTTBRdWRhTWxNVmc%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "4 months ago",
+      "iso_date": "2026-06-06T22:35:56Z",
+      "iso_date_of_last_edit": "2026-06-06T22:35:56Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21jMmJIaHhSMmhwZERSUlRUQlJkV1JoVFd4TlZtYxAB",
+      "user": {
+        "name": "Queen Made",
+        "link": "https://www.google.com/maps/contrib/103485081704178607880?hl=en",
+        "contributor_id": "103485081704178607880",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJGpvgRrRS5g3uYB0XHF-C_pLrRhl4W-wfH_JGZ58OvqN5gXA=s120-c-rp-mo-br100",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "I’ve given this location multiple chances, and this was my last visit. The coffee has gone downhill, and the atmosphere wasn’t much better. I overheard who appeared to be a manager speaking rudely to employees, which made for an uncomfortable experience.\n\nWhen I politely asked for a little more syrup because my latte tasted bland, the attitude I received was unnecessary. The only reason this isn’t a complete 0/10 is because the cashier was polite and professional.\n\nOver priced + Food not fresh\nI would rather walk to 787 Coffee Co. for the same price but better quality.\n\nWould not recommend Gregorys.",
+      "extracted_snippet": {
+        "original": "I’ve given this location multiple chances, and this was my last visit. The coffee has gone downhill, and the atmosphere wasn’t much better. I overheard who appeared to be a manager speaking rudely to employees, which made for an uncomfortable experience.\n\nWhen I politely asked for a little more syrup because my latte tasted bland, the attitude I received was unnecessary. The only reason this isn’t a complete 0/10 is because the cashier was polite and professional.\n\nOver priced + Food not fresh\nI would rather walk to 787 Coffee Co. for the same price but better quality.\n\nWould not recommend Gregorys."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0,
+      "response": {
+        "date": "4 months ago",
+        "iso_date": "2026-06-07T11:27:14Z",
+        "iso_date_of_last_edit": "2026-06-07T11:27:14Z",
+        "snippet": "Hi Queen Made, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
+        "extracted_snippet": {
+          "original": "Hi Queen Made, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
+        }
+      }
+    },
+    {
+      "position": 4,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tWb1FtZHZNbWgxWmtwVE9ERlFVMGgwUmpkYU0xRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkVoQmdvMmh1ZkpTODFQU0h0RjdaM1E%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 months ago",
+      "iso_date": "2026-03-22T23:44:51Z",
+      "iso_date_of_last_edit": "2026-03-23T02:14:27Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tWb1FtZHZNbWgxWmtwVE9ERlFVMGgwUmpkYU0xRRAB",
+      "user": {
+        "name": "Pamela",
+        "link": "https://www.google.com/maps/contrib/116916156241979908213?hl=en",
+        "contributor_id": "116916156241979908213",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjUpuzpEpBCSyWRkn_uhbzN7vhWlU_aa-ZQ-B-2y06JoDPz-SqA=s120-c-rp-mo-br100",
+        "reviews": 31,
+        "photos": 5
+      },
+      "snippet": "This is usually one of my favorite spots, but I was terribly disappointed by my experience today. I arrived around 7:00 PM to order a Vegan Deluxe Sandwich. Priscilla told me they were about to close and the register was already shut down for cash transactions, so she couldn't take my $10 bill.\n\nI was shocked because the posted closing time is 8:00 PM. Shutting down service and refusing cash an hour before closing is really frustrating for loyal customers. I hope management can address this so regulars can enjoy the food up until the actual closing time.",
+      "extracted_snippet": {
+        "original": "This is usually one of my favorite spots, but I was terribly disappointed by my experience today. I arrived around 7:00 PM to order a Vegan Deluxe Sandwich. Priscilla told me they were about to close and the register was already shut down for cash transactions, so she couldn't take my $10 bill.\n\nI was shocked because the posted closing time is 8:00 PM. Shutting down service and refusing cash an hour before closing is really frustrating for loyal customers. I hope management can address this so regulars can enjoy the food up until the actual closing time."
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20",
+        "service": 1
+      },
+      "likes": 1
+    },
+    {
+      "position": 5,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xaSE9GOHhWbUkzVFZKa2MwZDVOR05aU1MxRFRrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOlZHOF8xVmI3TVJkc0d5NGNZSS1DTkE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 months ago",
+      "iso_date": "2026-03-13T15:31:19Z",
+      "iso_date_of_last_edit": "2026-03-13T15:31:19Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xaSE9GOHhWbUkzVFZKa2MwZDVOR05aU1MxRFRrRRAB",
+      "user": {
+        "name": "Aoki Mi",
+        "link": "https://www.google.com/maps/contrib/103745255032489599379?hl=en",
+        "contributor_id": "103745255032489599379",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjXDFhKHQs3wFD5PdAgx8DEVNuPMGakIWGY-89g8hUF1e89qXq8=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 11,
+        "photos": 0
+      },
+      "snippet": "How a 5 star review and a good regular customer who use to come to this spot for years to lose, hire a guy whos mocking how customers talks, around 10:30-35 am this morning at this spot i ordered regular large coffee and asked for a little bit of cream, im soft spoken person, so when he asked again - and cream? i replied again - yes just a little bit of cream plz, the girl who knows me helped him by pouring my cup, idk why chubby latin guy who took my order decided to openly mock the way i talk right in front of me by saying - \"just a little bit of cream\" in a goofy, mocking way...two times, when she was making my cup. Anyone can recognize mocking energy, noone would like that tone for no reason...And the fact that the girl who always there, and knows me as a loyal non problematic customer didn't correct the guy in any way, and just continued talking to him and laugh...\nill go few blocks further next time, to not deal with this kind of customer service to a loyal always quick-nonissue customer.",
+      "extracted_snippet": {
+        "original": "How a 5 star review and a good regular customer who use to come to this spot for years to lose, hire a guy whos mocking how customers talks, around 10:30-35 am this morning at this spot i ordered regular large coffee and asked for a little bit of cream, im soft spoken person, so when he asked again - and cream? i replied again - yes just a little bit of cream plz, the girl who knows me helped him by pouring my cup, idk why chubby latin guy who took my order decided to openly mock the way i talk right in front of me by saying - \"just a little bit of cream\" in a goofy, mocking way...two times, when she was making my cup. Anyone can recognize mocking energy, noone would like that tone for no reason...And the fact that the girl who always there, and knows me as a loyal non problematic customer didn't correct the guy in any way, and just continued talking to him and laugh...\nill go few blocks further next time, to not deal with this kind of customer service to a loyal always quick-nonissue customer."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 6,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnTURJal9mM3ZBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgMDIj_f3vAE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-04-13T20:48:24Z",
+      "iso_date_of_last_edit": "2025-04-13T20:48:24Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLcSroTIlS5mplkZGT-nehziZwHxOEcVFN9owOpldDmv5v6pn9lFuqfNMebcjJDlOZGc3JPddNOs_E4bM-neDRlMhvCA2MPL12yaKgn5sDz7yl4Ld80gpc5IoeuVSQdH5bFpSTmp=k-no"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnTURJal9mM3ZBRRAB",
+      "user": {
+        "name": "Adrianna Rekas",
+        "link": "https://www.google.com/maps/contrib/107521280375875782116?hl=en",
+        "contributor_id": "107521280375875782116",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIGZlKJaIr1SjU4u9euGSnGJUF0JwD0nyb6AE0MaugUZyq_YI0=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 30,
+        "photos": 19
+      },
+      "snippet": "This coffee shop looks promising and has a nice interior design, but if you actually like the taste of coffee don't come here. The double espresso I ordered had not enough head and tasted extremely sour and one dimensional, and then when I ordered the almond croissant they picked out the smallest one which was hard and burnt. The sweet drinks might taste ok if they cover up the taste of this coffee....",
+      "extracted_snippet": {
+        "original": "This coffee shop looks promising and has a nice interior design, but if you actually like the taste of coffee don't come here. The double espresso I ordered had not enough head and tasted extremely sour and one dimensional, and then when I ordered the almond croissant they picked out the smallest one which was hard and burnt. The sweet drinks might taste ok if they cover up the taste of this coffee...."
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 2,
+        "atmosphere": 5
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-04-14T05:35:53Z",
+        "iso_date_of_last_edit": "2025-04-14T05:35:53Z",
+        "snippet": "Hey Adrianna,\n\nWe appreciate the review! If there is anything we can do to assist, feel free to reach out to us at info@gregoryscoffee.com!\n\n-Gregorys Team ",
+        "extracted_snippet": {
+          "original": "Hey Adrianna,\n\nWe appreciate the review! If there is anything we can do to assist, feel free to reach out to us at info@gregoryscoffee.com!\n\n-Gregorys Team "
+        }
+      }
+    },
+    {
+      "position": 7,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT201NFVEQkpXbVZNTURoWVNsSm1SM3BHY2tSc2FrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOm54UDBJWmVMMDhYSlJmR3pGckRsakE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 months ago",
+      "iso_date": "2026-02-28T19:56:18Z",
+      "iso_date_of_last_edit": "2026-02-28T19:56:18Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfVml2TOGdcKkPshXB3JdMwqjqpVExoCDHKfKP8CxwydrKpgMIM0sBVUI5_jHwoIPBTABJdT-QuLKyeOadDSTh0ubLUdU04ozunvNmQYxBgqqFGbZFaHsaapue9ldTpRSEYe-V_xPwphOo=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT201NFVEQkpXbVZNTURoWVNsSm1SM3BHY2tSc2FrRRAB",
+      "user": {
+        "name": "A",
+        "link": "https://www.google.com/maps/contrib/110554200001275838905?hl=en",
+        "contributor_id": "110554200001275838905",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocI0ByoJKuqBAHhwAFFr6JBmQXWKAhjyQkm4nNkPGevNB1VmMw=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 14,
+        "photos": 4
+      },
+      "snippet": "The coffee is so light and no ice, wouldn't recommend 😔there's supposed to be two shots in here....",
+      "extracted_snippet": {
+        "original": "The coffee is so light and no ice, wouldn't recommend 😔there's supposed to be two shots in here...."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 8,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT20wd1RUQnJWMFpDTTBOR1ZuZEpkMnRxTTJabWNVRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOm0wTTBrV0ZCM0NGVndJd2tqM2ZmcUE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-07-22T12:51:59Z",
+      "iso_date_of_last_edit": "2025-07-22T12:51:59Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLepj49MynOE9p_hagmuHsjgohcMjMoEDd3ltNdQ5ztuRMoTC3oZpQaIAmD9owU3Xt67pwDUarBUZF9wUnSZBL95d7iCZDxrXEXrAOPCAOIQcVHhD2s6bO1KVykZbp3_-sz_fJvzaVSmQu2Z=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT20wd1RUQnJWMFpDTTBOR1ZuZEpkMnRxTTJabWNVRRAB",
+      "user": {
+        "name": "Andrea Brown",
+        "link": "https://www.google.com/maps/contrib/107084802222300053231?hl=en",
+        "contributor_id": "107084802222300053231",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLu4DnpDQ4NWrJLsbsfjMfrauEyf56JMejAPQ3b3kXci1FLTQ=s120-c-rp-mo-br100",
+        "reviews": 1,
+        "photos": 1
+      },
+      "snippet": "I just visited Gregorys Coffee at 6th Avenue and 31st Street in Manhattan and was extremely disappointed with the service and value. Here’s why:\n\nAfter waiting patiently in line, I ordered a small decaf coffee and a walnut scone. When asked if I wanted drip, I said, “Whatever is quickest.” Despite this, I stood watching as the staff prepared drinks for multiple people who ordered after me before finally handing me mine.\n\nWhen I did receive my coffee, it was only half full. Yes—half a cup. (see photo)\n\nAs for the food, the walnut scone and coffee were fine but absolutely not worth the $9 I paid for this underwhelming combo.\n\nI'm glad I didn’t leave a tip, and even more relieved that there are plenty of other coffee options nearby. I’ll be taking my business to one of them instead of returning to a place with such poor service and portion sizes.",
+      "extracted_snippet": {
+        "original": "I just visited Gregorys Coffee at 6th Avenue and 31st Street in Manhattan and was extremely disappointed with the service and value. Here’s why:\n\nAfter waiting patiently in line, I ordered a small decaf coffee and a walnut scone. When asked if I wanted drip, I said, “Whatever is quickest.” Despite this, I stood watching as the staff prepared drinks for multiple people who ordered after me before finally handing me mine.\n\nWhen I did receive my coffee, it was only half full. Yes—half a cup. (see photo)\n\nAs for the food, the walnut scone and coffee were fine but absolutely not worth the $9 I paid for this underwhelming combo.\n\nI'm glad I didn’t leave a tip, and even more relieved that there are plenty of other coffee options nearby. I’ll be taking my business to one of them instead of returning to a place with such poor service and portion sizes."
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Breakfast",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1,
+        "wait_time": "10-30 min"
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-07-27T15:10:54Z",
+        "iso_date_of_last_edit": "2025-07-27T15:10:54Z",
+        "snippet": "Hey Andrea,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations, and we would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team",
+        "extracted_snippet": {
+          "original": "Hey Andrea,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations, and we would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team"
+        }
+      }
+    },
+    {
+      "position": 9,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25OalZEWmxVelpmU0RoWFNWUllRbWxvVWpNemJrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnNjVDZlUzZfSDhXSVRYQmloUjMzbkE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "6 months ago",
+      "iso_date": "2026-04-13T19:41:00Z",
+      "iso_date_of_last_edit": "2026-04-13T19:41:00Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25OalZEWmxVelpmU0RoWFNWUllRbWxvVWpNemJrRRAB",
+      "user": {
+        "name": "Ji H J",
+        "link": "https://www.google.com/maps/contrib/110084460872635882370?hl=en",
+        "contributor_id": "110084460872635882370",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocKY7CONedIwLPp_K0pqzuLWuysARHiEwnEHRBFFzW6vgtHhaOWb=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 42,
+        "photos": 8
+      },
+      "snippet": "Girl in the front made a very passive aggressive comment while it was her fault for not paying attention to the customer that's waiting to order. It is YOUR duty to take orders and be attentive who is in front!!!! That's your job and shame on you for blaming and making comments to other customers. Talking crap about customer to other customer isn't very kind as a worker. This is the place to come and pay for your drinks and receive rudeness. 🤷‍♀️",
+      "extracted_snippet": {
+        "original": "Girl in the front made a very passive aggressive comment while it was her fault for not paying attention to the customer that's waiting to order. It is YOUR duty to take orders and be attentive who is in front!!!! That's your job and shame on you for blaming and making comments to other customers. Talking crap about customer to other customer isn't very kind as a worker. This is the place to come and pay for your drinks and receive rudeness. 🤷‍♀️"
+      },
+      "details": {
+        "food": 2,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 10,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnTUN3Mkl2TDFnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgMCw2IvL1gE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-03-16T12:59:44Z",
+      "iso_date_of_last_edit": "2025-03-16T12:59:44Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLdrjPpmONplsUNLJ2eJoaug_kAn5ypD0JqiqmXg25KzR1gXstZLz67HqLAx_tZ6X21L9trX7MZJSK0VV0c6VyrfqTf8Rr9rZomVQkyLxvycr7ZE5mZB_Fu_XDjTJure0t2O06rU=k-no"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnTUN3Mkl2TDFnRRAB",
+      "user": {
+        "name": "Property Seeker",
+        "link": "https://www.google.com/maps/contrib/112693577610655185807?hl=en",
+        "contributor_id": "112693577610655185807",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjXvTOUGLEtSG3CRfRWG7ozmIRfox_y5tX4Zm8-kPcEu1HkGqkQ=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 43,
+        "photos": 22
+      },
+      "snippet": "Both coffees were not hot. Bitter taste in the latte. There was a group of 5 “people” in their late 20’s that were so loud! One girl was laughing every second that you can hear her in the restroom. It was march 15th at 8am! They were clearly bothering everyone in such a tiny place. Yet the empire nothing!",
+      "extracted_snippet": {
+        "original": "Both coffees were not hot. Bitter taste in the latte. There was a group of 5 “people” in their late 20’s that were so loud! One girl was laughing every second that you can hear her in the restroom. It was march 15th at 8am! They were clearly bothering everyone in such a tiny place. Yet the empire nothing!"
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    }
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?data_id=0x89c259af336b3341%3A0xa4969e07ce3108de&engine=google_maps_reviews&hl=en&next_page_token=CjEIARIpCgoAP7-mwPHE____EhDPzQXXI1zkjnfgPfMAAAAAGgn92YMCamD2CykYACIA%3A10&sort_by=ratingLow",
+    "next_page_token": "CjEIARIpCgoAP7-mwPHE____EhDPzQXXI1zkjnfgPfMAAAAAGgn92YMCamD2CykYACIA:10"
+  }
+}

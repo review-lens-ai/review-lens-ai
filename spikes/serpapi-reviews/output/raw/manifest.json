@@ -1,0 +1,110 @@
+[
+  {
+    "file": "ratingLow/page_1.json",
+    "sort_by": "ratingLow",
+    "page": 1,
+    "request_params": {
+      "engine": "google_maps_reviews",
+      "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+      "sort_by": "ratingLow",
+      "hl": "en",
+      "output": "json"
+    },
+    "cursor_in": null,
+    "cursor_out": "CjEIARIpCgoAP7-mwPHE____EhDPzQXXI1zkjnfgPfMAAAAAGgn92YMCamD2CykYACIA:10",
+    "search_id": "6add081271c54254fff3d8bc",
+    "fetched_at": "2026-10-24T19:33:39.107536+00:00",
+    "review_count": 10
+  },
+  {
+    "file": "ratingLow/page_2.json",
+    "sort_by": "ratingLow",
+    "page": 2,
+    "request_params": {
+      "engine": "google_maps_reviews",
+      "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+      "sort_by": "ratingLow",
+      "hl": "en",
+      "output": "json",
+      "next_page_token": "CjEIARIpCgoAP7-mwPHE____EhDPzQXXI1zkjnfgPfMAAAAAGgn92YMCamD2CykYACIA:10",
+      "num": 20
+    },
+    "cursor_in": "CjEIARIpCgoAP7-mwPHE____EhDPzQXXI1zkjnfgPfMAAAAAGgn92YMCamD2CykYACIA:10",
+    "cursor_out": "CjEIARIpCgoAP7-myNcJf___EhB6kr5S8n9oJBVwIEUAAAAAGgn93lQCd7LXGGUYACIA:30",
+    "search_id": "6add0813aefbb42516507300",
+    "fetched_at": "2026-10-24T19:33:39.418308+00:00",
+    "review_count": 20
+  },
+  {
+    "file": "newestFirst/page_1.json",
+    "sort_by": "newestFirst",
+    "page": 1,
+    "request_params": {
+      "engine": "google_maps_reviews",
+      "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+      "sort_by": "newestFirst",
+      "hl": "en",
+      "output": "json"
+    },
+    "cursor_in": null,
+    "cursor_out": "Ci8IARInCgoAP72F-wMwwj__EhAklQ_lrLxGWcSNFkcAAAAAGgf_Al-wMwwjGAAiAA:10",
+    "search_id": "6add081328b1115f5ea53cb2",
+    "fetched_at": "2026-10-24T19:33:40.194025+00:00",
+    "review_count": 10
+  },
+  {
+    "file": "newestFirst/page_2.json",
+    "sort_by": "newestFirst",
+    "page": 2,
+    "request_params": {
+      "engine": "google_maps_reviews",
+      "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+      "sort_by": "newestFirst",
+      "hl": "en",
+      "output": "json",
+      "next_page_token": "Ci8IARInCgoAP72F-wMwwj__EhAklQ_lrLxGWcSNFkcAAAAAGgf_Al-wMwwjGAAiAA:10",
+      "num": 20
+    },
+    "cursor_in": "Ci8IARInCgoAP72F-wMwwj__EhAklQ_lrLxGWcSNFkcAAAAAGgf_Al-wMwwjGAAiAA:10",
+    "cursor_out": "Ci8IARInCgoAP72GEK0slB__EhA861en0ubxbV3aIHMAAAAAGgf_AmEK0slBGAAiAA:30",
+    "search_id": "6add0814b69cbecce1dd6527",
+    "fetched_at": "2026-10-24T19:33:41.384617+00:00",
+    "review_count": 20
+  },
+  {
+    "file": "qualityScore/page_1.json",
+    "sort_by": "qualityScore",
+    "page": 1,
+    "request_params": {
+      "engine": "google_maps_reviews",
+      "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+      "sort_by": "qualityScore",
+      "hl": "en",
+      "output": "json"
+    },
+    "cursor_in": null,
+    "cursor_out": "CjEIARIpCgoAP7_LAOhA____EhCCf-hXYTP0eERKBvgAAAAAGgn92RICa8nmLNcYACIA:10",
+    "search_id": "6add08156a1f1145b6b803bb",
+    "fetched_at": "2026-10-24T19:33:43.334578+00:00",
+    "review_count": 10
+  },
+  {
+    "file": "qualityScore/page_2.json",
+    "sort_by": "qualityScore",
+    "page": 2,
+    "request_params": {
+      "engine": "google_maps_reviews",
+      "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+      "sort_by": "qualityScore",
+      "hl": "en",
+      "output": "json",
+      "next_page_token": "CjEIARIpCgoAP7_LAOhA____EhCCf-hXYTP0eERKBvgAAAAAGgn92RICa8nmLNcYACIA:10",
+      "num": 20
+    },
+    "cursor_in": "CjEIARIpCgoAP7_LAOhA____EhCCf-hXYTP0eERKBvgAAAAAGgn92RICa8nmLNcYACIA:10",
+    "cursor_out": "CjEIARIpCgoAP7_LApqG____EhBCsoqWggNd31cD4K8AAAAAGgn92VUCYgfRQCAYACIA:30",
+    "search_id": "6add08175c50d10093f6246f",
+    "fetched_at": "2026-10-24T19:33:44.056906+00:00",
+    "review_count": 20
+  }
+]

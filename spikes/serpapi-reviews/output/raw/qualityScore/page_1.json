@@ -1,0 +1,500 @@
+{
+  "search_metadata": {
+    "id": "6add08156a1f1145b6b803bb",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/eyo6MfjV0aP4aaoC-yav1of1PlEowci4ONz7Lg9hdHw/6add08156a1f1145b6b803bb.json",
+    "markdown_endpoint": "https://serpapi.com/searches/eyo6MfjV0aP4aaoC-yav1of1PlEowci4ONz7Lg9hdHw/6add08156a1f1145b6b803bb.md",
+    "created_at": "2026-10-24 19:33:41 UTC",
+    "processed_at": "2026-10-24 19:33:41 UTC",
+    "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c259af336b3341:0xa4969e07ce3108de!5m2!4m1!1i2!9m1!1b1?hl=en",
+    "raw_html_file": "https://serpapi.com/searches/eyo6MfjV0aP4aaoC-yav1of1PlEowci4ONz7Lg9hdHw/6add08156a1f1145b6b803bb.html",
+    "prettify_html_file": "https://serpapi.com/searches/eyo6MfjV0aP4aaoC-yav1of1PlEowci4ONz7Lg9hdHw/6add08156a1f1145b6b803bb.prettify",
+    "total_time_taken": 1.85
+  },
+  "search_parameters": {
+    "engine": "google_maps_reviews",
+    "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+    "hl": "en",
+    "sort_by": "qualityScore"
+  },
+  "place_info": {
+    "title": "Gregorys Coffee",
+    "address": "874 6th Ave, New York, NY 10001",
+    "rating": 4.1,
+    "reviews": 1518,
+    "type": "Coffee shop"
+  },
+  "topics": [
+    {
+      "keyword": "cold brew",
+      "mentions": 26,
+      "id": "DW_Q69Z5YFg"
+    },
+    {
+      "keyword": "vegan options",
+      "mentions": 31,
+      "id": "BdHbkKiYdQA"
+    },
+    {
+      "keyword": "friendly staff",
+      "mentions": 166,
+      "id": "BP8_dBsAxLY"
+    },
+    {
+      "keyword": "croissant",
+      "mentions": 10,
+      "id": "EB7gbKwaNW8"
+    },
+    {
+      "keyword": "salted caramel cold brew",
+      "mentions": 4,
+      "id": "wy7Ub98SkJY"
+    },
+    {
+      "keyword": "vegan deluxe",
+      "mentions": 4,
+      "id": "LeB7kA-ofRA"
+    },
+    {
+      "keyword": "almond croissant",
+      "mentions": 4,
+      "id": "hR4wKm8Qle4"
+    },
+    {
+      "keyword": "oat milk",
+      "mentions": 4,
+      "id": "D2SQA6I0CNg"
+    },
+    {
+      "keyword": "matcha",
+      "mentions": 8,
+      "id": "IV-Ey_IEZEY"
+    },
+    {
+      "keyword": "protein coffee",
+      "mentions": 2,
+      "id": "H6QwIdA4aBw"
+    }
+  ],
+  "reviews": [
+    {
+      "position": 1,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21OSU0yNVhTbkZsZWxKNlRucEtNR3g2WkVKUFMyYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmNIM25XSnFlelJ6TnpKMGx6ZEJPS2c%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "6 months ago",
+      "iso_date": "2026-04-03T13:42:09Z",
+      "iso_date_of_last_edit": "2026-04-03T13:42:09Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLcb0-Eca2ECa9IEQKNqNVBSIwlPJRAPqZiXIy0dVNgJXvJz67EWTteN6F7uqNW5lx1hImPzLXt1GIuj4yAgd135LgdSYDc9iWIwEC016vTqsz_GIeFP052K3mCNq-QLeJRjiYOqq1QfKXU=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLeeSWXchURK2F0ILh7aqI08kjazRFannQcYa7LStNBn_-esfha5I2svWvgvBX-gj2wCJSHHyzHpraFHYZ_DVusTOAJAfpKnlQohzUF1LfSIRJwkVtuCqoaS0PpJdWW9JuR9x53AUDsWDZwj=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLeZLET8eq3tWJa_fatDyT2jRrIG6Kt7RzGmO1u-747BYvob9kHpzqgwEfbuk7skSQCtYrXGitcHUHZsaczzUdyQIWL2tdpTrCYdEh7NHY_heFbEBzIefVN7lIyYCB1g50FO9wFTSA-nkE8L=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21OSU0yNVhTbkZsZWxKNlRucEtNR3g2WkVKUFMyYxAB",
+      "user": {
+        "name": "HARPREET SINGH",
+        "link": "https://www.google.com/maps/contrib/109195308302848521638?hl=en",
+        "contributor_id": "109195308302848521638",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLGMcXBnwHKfpZ8ugYfn227zac32HDBOFQw9fbtzLGugNJdUxY=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 108,
+        "photos": 168
+      },
+      "snippet": "Had a great experience at Gregorys Coffee. The coffee was absolutely delicious—perfectly made and very refreshing.\n\nThe staff was super friendly and welcoming, which made the whole visit even better. The ambience is really cool and modern, a nice place to relax or just enjoy your drink.\n\nAlso, the restroom was very clean, which is always a big plus.\n\nDefinitely coming back again! ☕👌",
+      "extracted_snippet": {
+        "original": "Had a great experience at Gregorys Coffee. The coffee was absolutely delicious—perfectly made and very refreshing.\n\nThe staff was super friendly and welcoming, which made the whole visit even better. The ambience is really cool and modern, a nice place to relax or just enjoy your drink.\n\nAlso, the restroom was very clean, which is always a big plus.\n\nDefinitely coming back again! ☕👌"
+      },
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "likes": 2,
+      "response": {
+        "date": "6 months ago",
+        "iso_date": "2026-04-03T20:03:05Z",
+        "iso_date_of_last_edit": "2026-04-03T20:03:05Z",
+        "snippet": "Hey Harpreet, \n\nWe're thrilled that you enjoyed your visit with us and appreciate you taking the time to share your feedback. We can't wait to have you back again at a Gregorys Coffee :) \n\n- Gregorys Fam",
+        "extracted_snippet": {
+          "original": "Hey Harpreet, \n\nWe're thrilled that you enjoyed your visit with us and appreciate you taking the time to share your feedback. We can't wait to have you back again at a Gregorys Coffee :) \n\n- Gregorys Fam"
+        }
+      }
+    },
+    {
+      "position": 2,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2t4Q2RYUjZZa3RXV2t0c1l6bHJRMDE1UjNCT2QwRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkxCdXR6YktWWktsYzlrQ015R3BOd0E%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-09-21T02:05:43Z",
+      "iso_date_of_last_edit": "2025-09-21T02:05:43Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfoG_E8T9cTca3w877As9ETPJiLrfTu9fDdjXF-bNuynKUYixo_D9ZzYhixfl7fd9VISj5Kl42bDKPPuNTl107htgFn0UnKzAfghhdsE_6owM4rw24XK5CoSm9k8PtICr0ggSjjSH05Yqwf=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfmOueJwV3xRUm1xtUyXxathh8RKgXU7qO-_K1unGyShg2cIuMgbqlewQ9M3A_d4UEHRPRAdznU3dcuab6oY3Lrf0r8EnS3Lk7NFdaRZekEHYKdoIJHs7R3ta3QhvSYEifJgHWNvsd-9D6G=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLdd-p7RgC8ubwbEQkc3O8bJN9qir5Zzx7QXUv0F1gwf1TiHX3DPtmK-uuEJRTxbZFwvIKUbftf9hFUgxsY7gLBmBVePAA87Bh9RD95m526ne4KJ3CZrGs0BeGtMcxRF5kHhzbWRlV-H9mSW=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfaiDg9iDOch8MABzPIcQ-HezqupOwqgFSoIO00xpEcwFZzCCdeNy5f78W3Cs3ommFNqLQgrgMaOCyyhizQr7ZPRILczgwQugTffQHbQhNh0eIsbUFVEnRqkeSL8QMLeqHvOBCzNrdQGRla=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLcBDEkTghGFP0u1IdzlOJ2tC6xvenRWFlgO-jiyxCqMjM9m0Krdgp6okGakEPn5oo3epohTRemG5kZmZK-GuMDM655JJwF2pHJEi55n6gqBhCyLobM4BOWfewfaFBmP-ocYaSm8zmUDvtyU=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2t4Q2RYUjZZa3RXV2t0c1l6bHJRMDE1UjNCT2QwRRAB",
+      "user": {
+        "name": "J",
+        "link": "https://www.google.com/maps/contrib/118216203329265721320?hl=en",
+        "contributor_id": "118216203329265721320",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVPaowYXWZlL5LVT6DWf3J0rokOo5CQ3PKeN-UZ8zRaBh8AhJQ=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 32,
+        "photos": 137
+      },
+      "snippet": "Such a cozy and stylish spot right near Herald Square. The interior was super clean and aesthetic, with greenery and warm lighting that gave it a chill vibe. I got the iced coffee and my boyfriend tried the Fall Oat Boy — both were delicious. The pastries looked tempting and fresh too. The staff was really helpful and friendly, which made the experience even better. Definitely a great spot for a midday coffee run or quick bite in Midtown.",
+      "extracted_snippet": {
+        "original": "Such a cozy and stylish spot right near Herald Square. The interior was super clean and aesthetic, with greenery and warm lighting that gave it a chill vibe. I got the iced coffee and my boyfriend tried the Fall Oat Boy — both were delicious. The pastries looked tempting and fresh too. The staff was really helpful and friendly, which made the experience even better. Definitely a great spot for a midday coffee run or quick bite in Midtown."
+      },
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-09-22T03:43:52Z",
+        "iso_date_of_last_edit": "2025-09-22T03:43:52Z",
+        "snippet": "Hey Glicy, \n\nWe're thrilled that you enjoyed your visit with us and appreciate you taking the time to share your feedback. We can't wait to have you back again at a Gregorys Coffee :) \n\n- Gregorys Fam",
+        "extracted_snippet": {
+          "original": "Hey Glicy, \n\nWe're thrilled that you enjoyed your visit with us and appreciate you taking the time to share your feedback. We can't wait to have you back again at a Gregorys Coffee :) \n\n- Gregorys Fam"
+        }
+      }
+    },
+    {
+      "position": 3,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pFMlJXMVlTMHhOTmtaTk5VZE1PRVZ2UkdadGJWRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjE2RW1YS0xNNkZNNUdMOEVvRGZtbVE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 months ago",
+      "iso_date": "2026-03-01T15:24:01Z",
+      "iso_date_of_last_edit": "2026-03-01T15:24:01Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfsdt5-dZx8bFoZnbLYH-iLLrBuJPANtrWX5ZOI4X-gdBdY-1r5Z8Dk0x5JXWFR2811JmWwrBm0ZN09S9JmOahPmJSqWriw1ODi5j13E_oa82W5k_jVk4bUFdvELeALzie7MFGxAgTn_3Yf=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pFMlJXMVlTMHhOTmtaTk5VZE1PRVZ2UkdadGJWRRAB",
+      "user": {
+        "name": "Metehan Canbakis",
+        "link": "https://www.google.com/maps/contrib/114887835267658582471?hl=en",
+        "contributor_id": "114887835267658582471",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjW_SnB_srfd_RL66_q4dRuWbetQsxWMI9KqmLj8ZOY4l55hhNSn=s120-c-rp-mo-br100",
+        "reviews": 10,
+        "photos": 4
+      },
+      "snippet": "Overpriced and disappointing.\nThe prices here are way too high for what you actually get. The coffee is average at best, and the food doesn’t justify the cost in any way. Nothing stood out in terms of quality, taste, or service to explain these inflated prices. You’re basically paying for the name or the location, not the experience. There are plenty of cafés nearby offering much better quality for a more reasonable price. Definitely not worth it, and I won’t be coming back.",
+      "extracted_snippet": {
+        "original": "Overpriced and disappointing.\nThe prices here are way too high for what you actually get. The coffee is average at best, and the food doesn’t justify the cost in any way. Nothing stood out in terms of quality, taste, or service to explain these inflated prices. You’re basically paying for the name or the location, not the experience. There are plenty of cafés nearby offering much better quality for a more reasonable price. Definitely not worth it, and I won’t be coming back."
+      },
+      "details": {
+        "food": 3,
+        "service": 1,
+        "atmosphere": 2
+      },
+      "likes": 0
+    },
+    {
+      "position": 4,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25WYVRIb3dWemsyVlRaMVZETXpMV3RoTmw5Q05rRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnVaTHowVzk2VTZ1VDMzLWthNl9CNkE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-08-20T15:40:57Z",
+      "iso_date_of_last_edit": "2025-08-20T15:40:57Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLe_ZzZ472ygA6c0to4k4lk6OONgeBbB9twfiMeovpRlqBQWSyI1ES_rIG-7K9p8FVfVjSD7BQo8r1-f6Wh3EErl5S2oT85FqYni3ud_L1Oj55pzuzkq6QRnQXecYwwNRnEV996UIytz1L5T=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLe8HL29gRarI2-QI2lyKa2cDlyoEEBOeNj-v3QBHbJzTZeAv8hzJSwQOtNOUVMCplu4DkM4B6F4X5CF8pK2q34pYgFmX5DPeCJx1GZVWy66affr2zTDGTwsg5dw7JYDQFwwO-zYzblxetAH=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25WYVRIb3dWemsyVlRaMVZETXpMV3RoTmw5Q05rRRAB",
+      "user": {
+        "name": "Vanessa Pace",
+        "link": "https://www.google.com/maps/contrib/106538592776419291637?hl=en",
+        "contributor_id": "106538592776419291637",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIt_MUHCrDHLI-hzL5350M2o9gzaP15hAw3qgiOCwbKfJezkA=s120-c-rp-mo-br100",
+        "reviews": 3,
+        "photos": 2
+      },
+      "snippet": "Cute place with great lighting! Perfect place to people watch. Baristas are super kind and funny. The chocolate croissant and blue steel are great! Will definitely be coming back.",
+      "extracted_snippet": {
+        "original": "Cute place with great lighting! Perfect place to people watch. Baristas are super kind and funny. The chocolate croissant and blue steel are great! Will definitely be coming back."
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$10–20",
+        "recommended_dishes": "Pastries"
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-08-23T19:41:01Z",
+        "iso_date_of_last_edit": "2025-08-23T19:41:01Z",
+        "snippet": "Hey Vanessa, \n\nWe're thrilled that you enjoyed your visit with us and appreciate you taking the time to share your feedback. We can't wait to have you back again at a Gregorys Coffee :) \n\n- Gregorys Fam",
+        "extracted_snippet": {
+          "original": "Hey Vanessa, \n\nWe're thrilled that you enjoyed your visit with us and appreciate you taking the time to share your feedback. We can't wait to have you back again at a Gregorys Coffee :) \n\n- Gregorys Fam"
+        }
+      }
+    },
+    {
+      "position": 5,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21KellXMDRkV2N0TVhKRldHOUZkMWhaUzFndGMxRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmJzYW04dWctMXJFWG9Fd1hZS1gtc1E%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "2 weeks ago",
+      "iso_date": "2026-10-08T23:55:41Z",
+      "iso_date_of_last_edit": "2026-10-08T23:55:41Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21KellXMDRkV2N0TVhKRldHOUZkMWhaUzFndGMxRRAB",
+      "user": {
+        "name": "Laura McEwen",
+        "link": "https://www.google.com/maps/contrib/115719137794106592785?hl=en",
+        "contributor_id": "115719137794106592785",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVyl3nD9oGVmwa6OTmJwZ3HigC8ty7w2o6WGSk9cHLEvh4dpJ3b=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 51,
+        "photos": 42
+      },
+      "snippet": "The coffee was good, and they had a nice selection of baked goods and yogurt cups. The prices were fair, and the service was quick with no long wait. A great spot!",
+      "extracted_snippet": {
+        "original": "The coffee was good, and they had a nice selection of baked goods and yogurt cups. The prices were fair, and the service was quick with no long wait. A great spot!"
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$1–10",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "noise_level": "Quiet, easy to talk"
+      },
+      "likes": 0,
+      "response": {
+        "date": "a week ago",
+        "iso_date": "2026-10-13T15:12:23Z",
+        "iso_date_of_last_edit": "2026-10-13T15:12:23Z",
+        "snippet": "Hey Laura McEwen,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)   \n\n- Gregorys Fam",
+        "extracted_snippet": {
+          "original": "Hey Laura McEwen,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)   \n\n- Gregorys Fam"
+        }
+      }
+    },
+    {
+      "position": 6,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25neWNqTXRRazl5WkV4SE5qUTBaa1JQYTBNNWFrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOngycjMtQk9yZExHNjQ0ZkRPa0M5akE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "4 months ago",
+      "iso_date": "2026-06-10T23:29:37Z",
+      "iso_date_of_last_edit": "2026-06-11T15:14:29Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfGFF2vZElGLlMyj0eIwjMZfDR9i1AL_uSv0VeqNb2mu_6-rOnYV45kL0D9LXd23GcSeDLkmL0IFvP4bkCo5IkuIDDnMWJbmvLbeaL6iqPT-ftd1xW5v3RgQiqw3USvHjQPkpz7AYZRyHk=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25neWNqTXRRazl5WkV4SE5qUTBaa1JQYTBNNWFrRRAB",
+      "user": {
+        "name": "SERGIO MOTA",
+        "link": "https://www.google.com/maps/contrib/116644768426053798025?hl=en",
+        "contributor_id": "116644768426053798025",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWzjKn5CuPwitJVah6wPdYa073XC8-mYsXITsvlwvsvPLWPloip=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 87,
+        "photos": 130
+      },
+      "snippet": "The lady that made this is somewhat inattentive and totally disrespectful.\nShe's has little experienced in the way she heated up the decaf latte about 200°.\nIs African-American lady and she ask one of her co-workers how to get something done that  she was messing up the order and the steamer was so high that's what led to 200 degrees because she didn't know how to turn it off  I was there when she said it and she shouldn't be dealing with steamers if she can't handle the pressure",
+      "extracted_snippet": {
+        "original": "The lady that made this is somewhat inattentive and totally disrespectful.\nShe's has little experienced in the way she heated up the decaf latte about 200°.\nIs African-American lady and she ask one of her co-workers how to get something done that  she was messing up the order and the steamer was so high that's what led to 200 degrees because she didn't know how to turn it off  I was there when she said it and she shouldn't be dealing with steamers if she can't handle the pressure"
+      },
+      "likes": 0,
+      "response": {
+        "date": "4 months ago",
+        "iso_date": "2026-06-12T13:22:46Z",
+        "iso_date_of_last_edit": "2026-06-12T13:22:46Z",
+        "snippet": "Hi Sergio,, thank you for taking the time to share this feedback with us. We’re really bummed to hear about your experience, and we appreciate you bringing it to our attention. What you described isn’t the level of quality or service we aim to provide, and we’ll be addressing this with the store’s leadership team to ensure proper training and support are in place. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
+        "extracted_snippet": {
+          "original": "Hi Sergio,, thank you for taking the time to share this feedback with us. We’re really bummed to hear about your experience, and we appreciate you bringing it to our attention. What you described isn’t the level of quality or service we aim to provide, and we’ll be addressing this with the store’s leadership team to ensure proper training and support are in place. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
+        }
+      }
+    },
+    {
+      "position": 7,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25ob1VtaEtSRVZWZVdOM1lYSlRhazFtU0c1UlEwRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnhoUmhKREVVeWN3YXJTak1mSG5RQ0E%7C%7C?hl=en",
+      "rating": 2.0,
+      "date": "a month ago",
+      "iso_date": "2026-09-03T23:41:50Z",
+      "iso_date_of_last_edit": "2026-09-03T23:41:50Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25ob1VtaEtSRVZWZVdOM1lYSlRhazFtU0c1UlEwRRAB",
+      "user": {
+        "name": "Hager Alshaif",
+        "link": "https://www.google.com/maps/contrib/105088490866424760195?hl=en",
+        "contributor_id": "105088490866424760195",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIB2CYLGCki-YCgM06XsoXQqN-CxPsFPHvKhn9zHH2sygjIew=s120-c-rp-mo-br100",
+        "reviews": 1,
+        "photos": 0
+      },
+      "snippet": "It is absolutely critical for this\" cafe to ensure that specific\ncustomer order modifications are followed precisely Many people order certain options, like sugar-free or decat, for serious medical\nand dietary reasons Any\ncarelessness in preparing these drinks can lead to real health\nissues for the customers.\nManagement must emphasize to the staff the importance of accuracy regarding medical restrictions to ensure everyone's\n\" safety",
+      "extracted_snippet": {
+        "original": "It is absolutely critical for this\" cafe to ensure that specific\ncustomer order modifications are followed precisely Many people order certain options, like sugar-free or decat, for serious medical\nand dietary reasons Any\ncarelessness in preparing these drinks can lead to real health\nissues for the customers.\nManagement must emphasize to the staff the importance of accuracy regarding medical restrictions to ensure everyone's\n\" safety"
+      },
+      "details": {
+        "service": 1
+      },
+      "likes": 0,
+      "response": {
+        "date": "a month ago",
+        "iso_date": "2026-09-11T17:14:55Z",
+        "iso_date_of_last_edit": "2026-09-11T17:14:55Z",
+        "snippet": "We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
+        "extracted_snippet": {
+          "original": "We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
+        }
+      }
+    },
+    {
+      "position": 8,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNfa0piSGpBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIC_kJbHjAE%7C%7C?hl=en",
+      "rating": 4.0,
+      "date": "a year ago",
+      "iso_date": "2025-01-12T00:22:13Z",
+      "iso_date_of_last_edit": "2025-01-12T00:22:13Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLcJh6XkEfWt_cEjF1owMVrTd-gnTl4NK7NbKX_9zy_h_dQd43NQs8gPxTt5J0tkyMyXvjjgbN9Th0-mQkWrvB32Jp9Sa8e3TyWvc6Ma7xlbukkpf8baGVi-gFKCXxLuagyOpPfz=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLcDeF6vvaKJ5q53sQWKmpijJBwHUXL_aRMxM5xTonzih05DRv5-YcMGQDOtbQjNPJCgclYf7jpiNJCymSL7lpT2GYQv7fuLoGj-LTBa1F-rLhqWDRSv6T4jyEc4DL2_4f8c5_johQ=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfO0uw-2JpL9NzEkNNWVcIwpY0OFM1NjfNq_sck-tlmgGby916MKNj4lKRJeVi_vfCFcr9BETzBLyxzkT9IjoV-AODGZNNkIhBTqMKt3-CBmobKKZ-RUq2_eZWWosq9J_OUAruP=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfYkXWxr6bPSe3rBcjJPakWbe2S7ZGenH7DEKVt4202TzjGNzC7duWiI1xGFylO3gHuqv8BDyuqwO59zReIS64oXRARIdbFh_Z7LO00dYnv_Xj91ZPNXlmcIqosjO3orha2Iwud=k-no"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNfa0piSGpBRRAB",
+      "user": {
+        "name": "Andrea Garcia",
+        "link": "https://www.google.com/maps/contrib/109923212523266750633?hl=en",
+        "contributor_id": "109923212523266750633",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjXIxTLJxxjQOUiwtf3tVNbhU_stNE_huo3o9VaxVKOTiN4Wex-RZw=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 299,
+        "photos": 1212
+      },
+      "snippet": "Really liked the coffee, they have coffee combinations with cold brew that looked very interesting. Would definitely come back. I tasted the fall oat boy latte which was has a very spiced flavor but really good. The people that take your order are really nice and it’s also pet friendly.",
+      "extracted_snippet": {
+        "original": "Really liked the coffee, they have coffee combinations with cold brew that looked very interesting. Would definitely come back. I tasted the fall oat boy latte which was has a very spiced flavor but really good. The people that take your order are really nice and it’s also pet friendly."
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$10–20",
+        "food": 4,
+        "service": 4,
+        "atmosphere": 4
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-01-15T18:06:07Z",
+        "iso_date_of_last_edit": "2025-01-15T18:06:07Z",
+        "snippet": "Hey Andrea, thanks for stopping in! I definitely suggest coming back in for one of our cold brew concoctions, my favorite is Hall & Oats! \n\n-Jessica",
+        "extracted_snippet": {
+          "original": "Hey Andrea, thanks for stopping in! I definitely suggest coming back in for one of our cold brew concoctions, my favorite is Hall & Oats! \n\n-Jessica"
+        }
+      }
+    },
+    {
+      "position": 9,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25WT1V6RjJXWEZMV2tkUWFVSnpUV3B4TmsxMk0zYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnVOUzF2WXFLWkdQaUJzTWpxNk12M3c%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "7 months ago",
+      "iso_date": "2026-02-24T23:04:47Z",
+      "iso_date_of_last_edit": "2026-02-24T23:04:47Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfCwqgwYwMyVjqdqav2eFPa-wt25LEyTHbi3mqlZMD2LWfUVqXPz8Qa-gvaKtGwrlzp-5XMs0sqJgIKHs5yg3KueqJ0oZlYxg0LZI1p3tG85qPfcwJw1a2JhhhpgSln-LL8faASh4hRKyeW=k-no"
+      ],
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25WT1V6RjJXWEZMV2tkUWFVSnpUV3B4TmsxMk0zYxAB",
+      "user": {
+        "name": "Megha Bajaj",
+        "link": "https://www.google.com/maps/contrib/109312335292960994966?hl=en",
+        "contributor_id": "109312335292960994966",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVDQUUuZGOQ_8X2JIATkLwPSXNj_rdSQM4oMZsc00wVfcpVAyY1rA=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 71,
+        "photos": 169
+      },
+      "snippet": "Love every single coffee and matcha drink that I’ve tried at this café, also their cookies are absolutely amazing! Also, a special shout out to the Baristas, they’re always so nice ❤️",
+      "extracted_snippet": {
+        "original": "Love every single coffee and matcha drink that I’ve tried at this café, also their cookies are absolutely amazing! Also, a special shout out to the Baristas, they’re always so nice ❤️"
+      },
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "likes": 0,
+      "response": {
+        "date": "7 months ago",
+        "iso_date": "2026-02-25T00:19:06Z",
+        "iso_date_of_last_edit": "2026-02-25T00:19:06Z",
+        "snippet": "Hey Megha, \n\nWe're thrilled that you enjoyed your visit with us and appreciate you taking the time to share your feedback. We can't wait to have you back again at a Gregorys Coffee :) \n\n- Gregorys Fam",
+        "extracted_snippet": {
+          "original": "Hey Megha, \n\nWe're thrilled that you enjoyed your visit with us and appreciate you taking the time to share your feedback. We can't wait to have you back again at a Gregorys Coffee :) \n\n- Gregorys Fam"
+        }
+      }
+    },
+    {
+      "position": 10,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURmaXBlazFnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIDfipek1gE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-01-05T10:54:09Z",
+      "iso_date_of_last_edit": "2025-01-05T10:54:09Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLej9KzoTUViqtR-iM3Z1LqvymoXuNZizty1mT_gEM1ya8JiX8RznNSCQfnHClmz9R-E0PqmhPE6zYFLWcixSVgWb63PekHgQZFDU85Sy-qWfxRRNoOgMKefYbPcMp0ZoQKknC_z=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLd41qrF6R40Hhp3FJ-uhsPA_-jH1vlXH7sx82zXV1i-h961X08Q_ukhV6XZr60fO_AIGkwxXbs84yV2a--tu0lgzNFfkkvDisSKoW3dii-Mj2_lx74tK3L6q21dHEOxeA4Jlc8C=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLcROo_Y1YS8jy3w3kwzqG0aMG3AmaxvpFcVJRO7C7dNHbq-7rjIKBAgHqdeVWvNXPbYohFaS3P67DOZRpoG_fFqDTsjdj_LNy5JxB0Amp5s7UDdjwMTmUOnYIQc1NWU6_GNG_zh=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfB_NVamMAPgljsWDe0kSFlsrwiCrnm1x0qhRbPOgF1T-vmY3syFX1BRRv2FI-BvQ5l_EWtO3fLBgtQs3JxEpYbBVoHN3IYeG2tcq0K-_LxvgbfDE_PZAGgqgnENNTFsfcZNJ63lw=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLehAFtZitUfxpwbc9hr_ox8GHRQ-tY06GeFUHUYqKGgGgwVIg49PAwURTT4egeTGGbd-uLrl8SjoRPDcqtJR6cYCK5YWS_Ty7kYZ6RZNWInlEqU2SuAPlAHyheCt_kFkjet-gvz=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLdsooHexn_Yd11FsC7GosbQUMVZnwkEcmM6CidSxxlgQcLpaW4CJLY19SZKZcfETfhw289zh_ntyqAOBjkqOElRxuuPrCaV-zGr-lGs4q-Y9NWsgqBIGVqshS8Qjf7kYQG8RjHIFw=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLcd4F4kyyOUwfb8U_Lv1bw4le2ny544S5vTXoJt4fXnuP6u9LMxqmYRJEg-OMgBN16BuIkHo83JGq0g4ZaHPjL6CgzpunuU7ypG05ns9VQ-TmVSFAcPyBQXgomTqf4yqthz_zH1=k-no",
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLfXlY2WuTYp5GLTRq17sDXBBOLRCjKPt2E34eHEj1EWUAo1LDnwkeD7GMWnAdQaez-a8mJqMKTP8Eveo3q5xzDA68sS32kSbjvnlKLqpmGwpvoaAoiaBWOlZR_xcNPZe3lkLfwY6g=k-no"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURmaXBlazFnRRAB",
+      "user": {
+        "name": "Kara Citarella",
+        "link": "https://www.google.com/maps/contrib/100520045602314326417?hl=en",
+        "contributor_id": "100520045602314326417",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVyU_69251MbOf1Wl3Vn4Xo41zINLI4Ep1D84q_HPNhfX7HNG0=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 136,
+        "photos": 859
+      },
+      "snippet": "I was so happy this place was right around the corner from our hotel! They even have vegan breakfast options. I loved my chai tea latte, the tuna melt and the smoothies I tried. But the best thing? That sourdough bread! Omg! Best I’ve ever had! I asked if they could make my avocado toast with it and they did. Awesome customer service too! Loved the atmosphere.",
+      "extracted_snippet": {
+        "original": "I was so happy this place was right around the corner from our hotel! They even have vegan breakfast options. I loved my chai tea latte, the tuna melt and the smoothies I tried. But the best thing? That sourdough bread! Omg! Best I’ve ever had! I asked if they could make my avocado toast with it and they did. Awesome customer service too! Loved the atmosphere."
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommendation_for_vegetarians": "Highly recommend",
+        "vegetarian_offerings": "Vegetarian menu or section"
+      },
+      "likes": 2,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-01-06T06:51:08Z",
+        "iso_date_of_last_edit": "2025-01-06T06:51:08Z",
+        "snippet": "Kara, we’re honored to hear that you enjoyed our vegan breakfast options and avocado toast! Thank you so much for your review and feedback, and we can’t wait to see you again at our Sixth Avenue location!",
+        "extracted_snippet": {
+          "original": "Kara, we’re honored to hear that you enjoyed our vegan breakfast options and avocado toast! Thank you so much for your review and feedback, and we can’t wait to see you again at our Sixth Avenue location!"
+        }
+      }
+    }
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?data_id=0x89c259af336b3341%3A0xa4969e07ce3108de&engine=google_maps_reviews&hl=en&next_page_token=CjEIARIpCgoAP7_LAOhA____EhCCf-hXYTP0eERKBvgAAAAAGgn92RICa8nmLNcYACIA%3A10&sort_by=qualityScore",
+    "next_page_token": "CjEIARIpCgoAP7_LAOhA____EhCCf-hXYTP0eERKBvgAAAAAGgn92RICa8nmLNcYACIA:10"
+  }
+}

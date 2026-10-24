@@ -1,0 +1,1789 @@
+[
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pFMlJXMVlTMHhOTmtaTk5VZE1PRVZ2UkdadGJWRRAB",
+    "content": "Overpriced and disappointing.\nThe prices here are way too high for what you actually get. The coffee is average at best, and the food doesn’t justify the cost in any way. Nothing stood out in terms of quality, taste, or service to explain these inflated prices. You’re basically paying for the name or the location, not the experience. There are plenty of cafés nearby offering much better quality for a more reasonable price. Definitely not worth it, and I won’t be coming back.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-03-01T15:24:01Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pFMlJXMVlTMHhOTmtaTk5VZE1PRVZ2UkdadGJWRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjE2RW1YS0xNNkZNNUdMOEVvRGZtbVE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-03-01T15:24:01Z",
+      "likes": 0,
+      "details": {
+        "food": 3,
+        "service": 1,
+        "atmosphere": 2
+      },
+      "reviewer": {
+        "reviews": 10,
+        "photos": 4
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25neWNqTXRRazl5WkV4SE5qUTBaa1JQYTBNNWFrRRAB",
+    "content": "The lady that made this is somewhat inattentive and totally disrespectful.\nShe's has little experienced in the way she heated up the decaf latte about 200°.\nIs African-American lady and she ask one of her co-workers how to get something done that  she was messing up the order and the steamer was so high that's what led to 200 degrees because she didn't know how to turn it off  I was there when she said it and she shouldn't be dealing with steamers if she can't handle the pressure",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-06-10T23:29:37Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25neWNqTXRRazl5WkV4SE5qUTBaa1JQYTBNNWFrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOngycjMtQk9yZExHNjQ0ZkRPa0M5akE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-06-11T15:14:29Z",
+      "likes": 0,
+      "details": {},
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 87,
+        "photos": 130
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21jMmJIaHhSMmhwZERSUlRUQlJkV1JoVFd4TlZtYxAB",
+    "content": "I’ve given this location multiple chances, and this was my last visit. The coffee has gone downhill, and the atmosphere wasn’t much better. I overheard who appeared to be a manager speaking rudely to employees, which made for an uncomfortable experience.\n\nWhen I politely asked for a little more syrup because my latte tasted bland, the attitude I received was unnecessary. The only reason this isn’t a complete 0/10 is because the cashier was polite and professional.\n\nOver priced + Food not fresh\nI would rather walk to 787 Coffee Co. for the same price but better quality.\n\nWould not recommend Gregorys.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-06-06T22:35:56Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21jMmJIaHhSMmhwZERSUlRUQlJkV1JoVFd4TlZtYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmc2bHhxR2hpdDRRTTBRdWRhTWxNVmc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-06-06T22:35:56Z",
+      "likes": 0,
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "reviews": 3,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tWb1FtZHZNbWgxWmtwVE9ERlFVMGgwUmpkYU0xRRAB",
+    "content": "This is usually one of my favorite spots, but I was terribly disappointed by my experience today. I arrived around 7:00 PM to order a Vegan Deluxe Sandwich. Priscilla told me they were about to close and the register was already shut down for cash transactions, so she couldn't take my $10 bill.\n\nI was shocked because the posted closing time is 8:00 PM. Shutting down service and refusing cash an hour before closing is really frustrating for loyal customers. I hope management can address this so regulars can enjoy the food up until the actual closing time.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-03-22T23:44:51Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tWb1FtZHZNbWgxWmtwVE9ERlFVMGgwUmpkYU0xRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkVoQmdvMmh1ZkpTODFQU0h0RjdaM1E%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-03-23T02:14:27Z",
+      "likes": 1,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20",
+        "service": 1
+      },
+      "reviewer": {
+        "reviews": 31,
+        "photos": 5
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xaSE9GOHhWbUkzVFZKa2MwZDVOR05aU1MxRFRrRRAB",
+    "content": "How a 5 star review and a good regular customer who use to come to this spot for years to lose, hire a guy whos mocking how customers talks, around 10:30-35 am this morning at this spot i ordered regular large coffee and asked for a little bit of cream, im soft spoken person, so when he asked again - and cream? i replied again - yes just a little bit of cream plz, the girl who knows me helped him by pouring my cup, idk why chubby latin guy who took my order decided to openly mock the way i talk right in front of me by saying - \"just a little bit of cream\" in a goofy, mocking way...two times, when she was making my cup. Anyone can recognize mocking energy, noone would like that tone for no reason...And the fact that the girl who always there, and knows me as a loyal non problematic customer didn't correct the guy in any way, and just continued talking to him and laugh...\nill go few blocks further next time, to not deal with this kind of customer service to a loyal always quick-nonissue customer.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-03-13T15:31:19Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xaSE9GOHhWbUkzVFZKa2MwZDVOR05aU1MxRFRrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOlZHOF8xVmI3TVJkc0d5NGNZSS1DTkE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-03-13T15:31:19Z",
+      "likes": 0,
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 11,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnTURJal9mM3ZBRRAB",
+    "content": "This coffee shop looks promising and has a nice interior design, but if you actually like the taste of coffee don't come here. The double espresso I ordered had not enough head and tasted extremely sour and one dimensional, and then when I ordered the almond croissant they picked out the smallest one which was hard and burnt. The sweet drinks might taste ok if they cover up the taste of this coffee....",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-04-13T20:48:24Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnTURJal9mM3ZBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgMDIj_f3vAE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-04-13T20:48:24Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 2,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 30,
+        "photos": 19
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT201NFVEQkpXbVZNTURoWVNsSm1SM3BHY2tSc2FrRRAB",
+    "content": "The coffee is so light and no ice, wouldn't recommend 😔there's supposed to be two shots in here....",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-02-28T19:56:18Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT201NFVEQkpXbVZNTURoWVNsSm1SM3BHY2tSc2FrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOm54UDBJWmVMMDhYSlJmR3pGckRsakE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-02-28T19:56:18Z",
+      "likes": 0,
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 14,
+        "photos": 4
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT20wd1RUQnJWMFpDTTBOR1ZuZEpkMnRxTTJabWNVRRAB",
+    "content": "I just visited Gregorys Coffee at 6th Avenue and 31st Street in Manhattan and was extremely disappointed with the service and value. Here’s why:\n\nAfter waiting patiently in line, I ordered a small decaf coffee and a walnut scone. When asked if I wanted drip, I said, “Whatever is quickest.” Despite this, I stood watching as the staff prepared drinks for multiple people who ordered after me before finally handing me mine.\n\nWhen I did receive my coffee, it was only half full. Yes—half a cup. (see photo)\n\nAs for the food, the walnut scone and coffee were fine but absolutely not worth the $9 I paid for this underwhelming combo.\n\nI'm glad I didn’t leave a tip, and even more relieved that there are plenty of other coffee options nearby. I’ll be taking my business to one of them instead of returning to a place with such poor service and portion sizes.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-07-22T12:51:59Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT20wd1RUQnJWMFpDTTBOR1ZuZEpkMnRxTTJabWNVRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOm0wTTBrV0ZCM0NGVndJd2tqM2ZmcUE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-07-22T12:51:59Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Breakfast",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1,
+        "wait_time": "10-30 min"
+      },
+      "reviewer": {
+        "reviews": 1,
+        "photos": 1
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25OalZEWmxVelpmU0RoWFNWUllRbWxvVWpNemJrRRAB",
+    "content": "Girl in the front made a very passive aggressive comment while it was her fault for not paying attention to the customer that's waiting to order. It is YOUR duty to take orders and be attentive who is in front!!!! That's your job and shame on you for blaming and making comments to other customers. Talking crap about customer to other customer isn't very kind as a worker. This is the place to come and pay for your drinks and receive rudeness. 🤷‍♀️",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-04-13T19:41:00Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25OalZEWmxVelpmU0RoWFNWUllRbWxvVWpNemJrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnNjVDZlUzZfSDhXSVRYQmloUjMzbkE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-04-13T19:41:00Z",
+      "likes": 0,
+      "details": {
+        "food": 2,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 42,
+        "photos": 8
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnTUN3Mkl2TDFnRRAB",
+    "content": "Both coffees were not hot. Bitter taste in the latte. There was a group of 5 “people” in their late 20’s that were so loud! One girl was laughing every second that you can hear her in the restroom. It was march 15th at 8am! They were clearly bothering everyone in such a tiny place. Yet the empire nothing!",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-03-16T12:59:44Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnTUN3Mkl2TDFnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgMCw2IvL1gE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-03-16T12:59:44Z",
+      "likes": 0,
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 43,
+        "photos": 22
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2toeFJqQmpiMU5VWmpkb1ZHdFlRMnM1U21sM2NVRRAB",
+    "content": "I came in today today 10 minutes before there closing time looking to buy a coffee and use the bathroom and the workers were nothing but rude, they told me the store was closed even thought they weren’t, and after I explain that I would buy a coffee and me needing to use the bathroom was an emergency they ignored me, than I told them again it was emergency and they replied “ the store is closed” some time later they asked me to leave, I left and they locked the door",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-09-07T00:21:45Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2toeFJqQmpiMU5VWmpkb1ZHdFlRMnM1U21sM2NVRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkhxRjBjb1NUZjdoVGtYQ2s5Sml3cUE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-09-07T00:21:45Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Dinner",
+        "price_per_person": "$10–20",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1,
+        "group_size": "1 person",
+        "recommendation_for_vegetarians": "Would not recommend",
+        "vegetarian_offerings": "Not sure",
+        "vegetarian_options": "Customer service training while training your workers! Don’t just hire anyone",
+        "parking_space": "Difficult to find parking",
+        "parking_options": "Paid parking garage, Parking is unavailable",
+        "parking": "Seems like the worked don’t care about the customers",
+        "kid_friendliness": "Workers were not friendly at all, it seemed like they just wanted to get the day over with and just go home, customer satisfaction is not their main priority!",
+        "wheelchair_accessibility": "Yes"
+      },
+      "reviewer": {
+        "reviews": 6,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNwZ2VDRGhBRRAB",
+    "content": "I’ve been coming to this place for a year now everyday but recently, with the new staff the service has been below par. The new lady with the long hair and bandana, idk her name, is extremely rude and always has an attitude. The previous staff was extremely warm and welcoming but the new staff doesn’t even know how to make coffee.\nThis place now also provides the worst matcha in midtown.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-08-04T19:53:14Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNwZ2VDRGhBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICpgeCDhAE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-08-04T19:53:14Z",
+      "likes": 1,
+      "details": {
+        "food": 3,
+        "service": 1,
+        "atmosphere": 4
+      },
+      "reviewer": {
+        "reviews": 12,
+        "photos": 2
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xkNWIyMVFWSEZuTmpaYVNrTklUbVJmVDBSSlNFRRAB",
+    "content": "Ordered a 13 dollar avocado smoothie after I got my smoothie I was told that the chia banana and strawberry was out so they just made it without. So the smoothie wasn’t even complete or full.  Definitely tasted weird.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-10-22T17:02:48Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xkNWIyMVFWSEZuTmpaYVNrTklUbVJmVDBSSlNFRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOld5b21QVHFnNjZaSkNITmRfT0RJSEE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-10-22T17:02:48Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "price_per_person": "$10–20"
+      },
+      "reviewer": {
+        "reviews": 5,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT20xUU1GaGlUSFUxZDNaVk5HZFdaRlpCYW5odFJIYxAB",
+    "content": "I like the coffee shop but wifi is very very unstable! I can't even open Google! if you are looking for a place to work, it will be a disappointment 😔",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-03-28T12:48:38Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT20xUU1GaGlUSFUxZDNaVk5HZFdaRlpCYW5odFJIYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOm1QMFhiTHU1d3ZVNGdWZFZBanhtRHc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-03-28T12:48:38Z",
+      "likes": 0,
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 13,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VNYm5zLTYweTVTZnBRRRAB",
+    "content": "I came to this location for an Iced Mocha coffee. I ordered it and waited for a long time. After I saw everyone that ordered after me left, I asked for my order and this guy said \"Oh I forgot\" and I asked him \"You forgot?\" And he said \"Yes, I'm being honest, I completely forgot your order\" what kind of bad service is this? Never coming back",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-06-04T19:17:55Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VNYm5zLTYweTVTZnBRRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEMbns-60y5SfpQE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-06-04T19:20:46Z",
+      "likes": 0,
+      "details": {
+        "food": 4,
+        "service": 1,
+        "atmosphere": 2
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 88,
+        "photos": 26
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnTUNZeHFxMzZBRRAB",
+    "content": "Worst Matcha Latte ever it tastes like water and all I got was ice",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-05-03T22:29:51Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnTUNZeHFxMzZBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgMCYxqq36AE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-05-03T22:29:51Z",
+      "likes": 0,
+      "details": {},
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 48,
+        "photos": 1
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25adFlYVk9ORzVDTUZoMVozSjBXRVZLYkRWRVduYxAB",
+    "content": "This was texted to Gregory’s customer service: There is an employee that works the afternoon/evenings, a woman with glasses. I stop by and buy the same order every Tuesday at 6:30, a pastry and an iced coffee. And last week she had asked if I wanted the buy one, get 50% off, mentioned it was okay, that I just wanted the one and if I got two one would go to waste. Asked if I was sure, said yes. Yesterday, it was very visible she was having a bad day or whatever, but she was from the start rude and dismissive, interrupting me while ordering. That went ignored, but when she gave me my order, i saw two of them, and when I asked for attention, without looking at me she interrupted me again jus blurting out that it is a buy one get one free (incorrect), I told her I didnt want the second one and got extremely frustrated and confrontational at having to do a transaction. I repeated I didn't want it and that just last week she at least had asked me about it and just replied she didnt rememeber (ofc not), and proceeded to reimburse two dollars- so NOT buy one get one free. It’s NY and midtown, so the miserable vibes are understandable, but a line should be drawn at unnecessary confrontation with your own customers and misleading them to consume more.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-07-02T15:34:16Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25adFlYVk9ORzVDTUZoMVozSjBXRVZLYkRWRVduYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnZtYXVONG5CMFh1Z3J0WEVKbDVEWnc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-07-02T15:34:16Z",
+      "likes": 0,
+      "details": {},
+      "reviewer": {
+        "reviews": 3,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChZDSUhNMG9nS0VJQ0FnTURRbGRxckh3EAE",
+    "content": "The girl with short black hair and glasses is arrogant, rude, and dismissive. I had high expectations because it seemed like an alternative coffee shop with a fairly authentic concept, but I'll never go back because of the terrible service.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-03-12T16:14:53Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnTURRbGRxckh3EAE!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgMDQldqrHw%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-03-12T16:15:10Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Other",
+        "price_per_person": "$10–20",
+        "food": 4,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "reviews": 8,
+        "photos": 3
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSURadnUtejFnRRAB",
+    "content": "This review is primarily about the service.\n\nArrived with a group of 4 on a Sunday morning around 11am. Two of the four of us were going to order a drink before going back out to check out NYC (we were visiting). We’d seen good things about Gregory’s, so we decided to try it out since it was right by a different shop we were getting breakfast from.\n\nService: terrible. Person at the register didn’t greet us, we initiated the conversation, and began ordering. Simple order, two drinks. State the first one, person seemed like they didn’t want to be there, begin ordering the second drink and person completely ignores us and walks away to their right to assist their coworker with something. They didn’t even tell us to hold on or anything, just a complete walk away as we’re mid sentence. We were shocked at the lack of customer service. They came back after a minute, at which point they input the FIRST drink, then ask for the rest of our order. At this point we’re disappointed and over it, so we give the second drink order and brush it off.\nNo have a nice day, no thank you for ordering, nothing. Idk if this is just NYC but other places in the city we tried were friendlier.\n\nCustomer service is tough, I get it, been there, done that myself for years. At least fake it or something. Don’t expect excellent customer service if you come here, and the coffee was just ok.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-10-02T01:48:55Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURadnUtejFnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIDZvu-z1gE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-10-02T01:48:55Z",
+      "likes": 1,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 3,
+        "service": 1,
+        "atmosphere": 3
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 15,
+        "photos": 5
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChZDSUhNMG9nS0VJQ0FnSUNPdlByVWFREAE",
+    "content": "Horrible staff at this place right now: they made me latte burning hot. Steam was coming out.\nNo one does burning hot coffee. I could have burned my mouth if won’t notice myself and ask for cold milk on top. And the lady was not\nEven nice she did\nAs I owe her something. And told me rolling eyes that hot latte supposed to be like that. I know what hot latte should be like. Definitely not burning peoples mouth. No sorry no excuse me. Coffee is good but staff is horrible. This business will loose business with this kind of horrible workers.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2022-06-04T16:03:16Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNPdlByVWFREAE!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICOvPrUaQ%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2022-06-04T16:03:16Z",
+      "likes": 2,
+      "details": {},
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 74,
+        "photos": 13
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNMdEk2V3Z3RRAB",
+    "content": "I went in to first use the restroom then purchase a drink because obviously I wouldn’t take it in the restroom with me. I asked someone behind the counter about the restroom and she just said “no”. Not the restrooms are out of order or they are only for customers just “no” very rudely. Honestly if the employees are that rude and think it’s ok to casually speak to any human that way than I believe I’ll take my business to Starbucks or any other coffee shop in the vicinity and will literally never stop foot in another store again. I’ve gone to other coffee shops in the city before never had that experience.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2024-06-15T20:08:54Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNMdEk2V3Z3RRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICLtI6WvwE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2024-06-15T20:08:54Z",
+      "likes": 1,
+      "details": {
+        "service": 1
+      },
+      "reviewer": {
+        "reviews": 8,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNsX3V5TXRnRRAB",
+    "content": "The smashing pumpkin cold brew was watered down, tasted pre made, and had an artificial sweetener flavor to it. Definitely not my cup of coffee. Also, staff can be more welcoming. Not just yell, next! And point at the machine when prompted to pay.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-11-19T16:39:14Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNsX3V5TXRnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICl_uyMtgE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-11-19T16:39:14Z",
+      "likes": 1,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Lunch",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 2,
+        "atmosphere": 3
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 204,
+        "photos": 218
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChZDSUhNMG9nS0VJQ0FnSURaaWZiNmZnEAE",
+    "content": "I ordered a latte and waited for the person to make it for me. While I was waiting I noticed that the person making coffees had 3 inch nails that were curling and moved the cups around by putting two of those nails INSIDE each cup. This is very unsanitary and should be reported. This person should not be handling food with nails like this. The manager of this location should check their employees before they handle food and drink for the customers. This is unacceptable practice!!",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-10-03T13:33:48Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURaaWZiNmZnEAE!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIDZifb6fg%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-10-03T13:33:48Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "reviews": 3,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUQ1cnU3cm9RRRAB",
+    "content": "The barista’s there today are rude and need to be trained on customer service. This was my first time experiencing Gregory’s and asked if they make iced macchiato’s. The young lady at the register (very nice btw) said yes and charged me for the iced macchiato. I was then handed a iced latte by the barista. I simply asked what’s the difference between the macchiato and the latte since I’m paying more for the macchiato that clearly has the same ingredients as an iced latte. The gentleman barista rudely replied and acted as if I’m annoying him. It’s not about just moving fast and making coffee. You should also want to retain the customers and provide a great experience to every one that decides to come to your establishment. Especially when you’re across from a major company that provides great customer service. This was a waste of my time and money. I’m not one to write reviews but this experience was horrible! Do better!",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-10-24T16:14:26Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUQ1cnU3cm9RRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgID5ru7roQE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-10-24T16:14:26Z",
+      "likes": 0,
+      "details": {},
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 24,
+        "photos": 4
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNKM29EajlnRRAB",
+    "content": "Coffee wasn't good at all I'm a Coffee connoisseur meaning I buy roasted beans from all over the world just for that perfect cup. This ain't it plus the girl behind the counter said \"We don't put sugar in for you, your going to have to do it yourself\". Why not say, \"The sugar is at the end table you can help yourself sir. No garbage by that table neither.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-06-27T22:37:50Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNKM29EajlnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICJ3oDj9gE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-06-27T22:37:50Z",
+      "likes": 0,
+      "details": {
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 64,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNwdHRDd3ZBRRAB",
+    "content": "Annoying when baristas give you an attitude about a drink just to hurry back on their phones at work. You guys can do better.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-08-03T10:55:32Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNwdHRDd3ZBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICpttCwvAE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-08-03T10:55:32Z",
+      "likes": 0,
+      "details": {
+        "food": 4,
+        "service": 1,
+        "atmosphere": 2
+      },
+      "reviewer": {
+        "reviews": 4,
+        "photos": 1
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2taVlQzbHRUblJuV1VacldsTmhjRmhmV2xGTU5VRRAB",
+    "content": "Unfortunately, the experience was not good. I went on Monday afternoon and received very poor service from one of the employees. Her attitude was unfriendly, and the overall service was disappointing. It’s a shame because the place has potential, but customer service is key—and in this case, it was seriously lacking.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2025-07-15T00:10:53Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2taVlQzbHRUblJuV1VacldsTmhjRmhmV2xGTU5VRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkZVT3ltTnRnWUZrWlNhcFhfWlFMNUE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-07-15T00:10:53Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "reviews": 3,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNoeFlfbWtRRRAB",
+    "content": "The attitude of the staff here is absolutely atrocious. How do you give zero stars.\nGirl with her hands in her pockets  doesn't even say hi just says the price after you say hello and order.\nCoffee great in the mornings.\nCold and Bad tasting in the afternoon, and I've never seen such privileged, stuck up, moody staff in my entire life. Girl even got moody with me cus there's no little garbage can by the sugar packets at the counter you've got to walk all the way across the place, and I left my little sugar packet on the counter.\nHundred percent not spending my money here anymore",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-02-17T19:15:17Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNoeFlfbWtRRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIChxY_mkQE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-02-17T19:36:04Z",
+      "likes": 0,
+      "details": {
+        "food": 2,
+        "service": 1,
+        "atmosphere": 4
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 25,
+        "photos": 2
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNqc2ZTbm9RRRAB",
+    "content": "Ordered two New Yorker breakfast sandwiches and both were burnt! The Walnut bread was hard but the tea was fine! This was my first time at Gregory’s and my last!",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2024-04-22T23:10:56Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNqc2ZTbm9RRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICjsfSnoQE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2024-04-22T23:10:56Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "reviews": 7,
+        "photos": 4
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChZDSUhNMG9nS0VJQ0FnSUN4X1pMZ2RnEAE",
+    "content": "Gregory's  coffee was open late yesterday so we walked to the next nearest one.  Not surprisingly they were not opening the doors on time either, but the two employees also gave us a nice glare when standing at the door.  Don't waste your time or money.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2023-05-24T09:48:26Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUN4X1pMZ2RnEAE!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICx_ZLgdg%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-05-24T09:48:26Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 12,
+        "photos": 6
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21KellXMDRkV2N0TVhKRldHOUZkMWhaUzFndGMxRRAB",
+    "content": "The coffee was good, and they had a nice selection of baked goods and yogurt cups. The prices were fair, and the service was quick with no long wait. A great spot!",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-10-08T23:55:41Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21KellXMDRkV2N0TVhKRldHOUZkMWhaUzFndGMxRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmJzYW04dWctMXJFWG9Fd1hZS1gtc1E%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-10-08T23:55:41Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$1–10",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "noise_level": "Quiet, easy to talk"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 51,
+        "photos": 42
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tZeGMwMTJORGRxY1RseGFYQmlWbkZHWDE5Sk1IYxAB",
+    "content": "Staff are excellent",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-09-17T17:30:29Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tZeGMwMTJORGRxY1RseGFYQmlWbkZHWDE5Sk1IYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkYxc012NDdqcTlxaXBiVnFGX19JMHc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-09-17T17:30:29Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 45,
+        "photos": 11
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21aTGNtWlNObmRxZVVwUmNVUjJObUZSWjJ0U09WRRAB",
+    "content": "Only carries whole milk no other options. (2% or skim) they never make it hot. Every time I order hot it’s just warm. You should just order ice from here. The matcha just taste like almond milk. Barely any matcha. Waste of 8$. I tried to just add ice but since it doesn’t have much matcha it just tastes like water.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-09-12T18:25:45Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21aTGNtWlNObmRxZVVwUmNVUjJObUZSWjJ0U09WRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmZLcmZSNndqeUpRcUR2NmFRZ2tSOVE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-09-12T18:25:45Z",
+      "likes": 0,
+      "details": {},
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 9,
+        "photos": 2
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21wMVVYUjBTMmxJZVMwNVZrRkRWbkowVm10M1dYYxAB",
+    "content": "Super casual, good vibe, fast service and delicious coffee.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-09-11T15:38:52Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21wMVVYUjBTMmxJZVMwNVZrRkRWbkowVm10M1dYYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmp1UXR0S2lIeS05VkFDVnJ0Vmt3WXc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-09-11T15:38:52Z",
+      "likes": 0,
+      "details": {
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 56,
+        "photos": 16
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pKUmNDMW5jWGhSU0hVMWJUTmlOWGRWZVMxUGRXYxAB",
+    "content": "It was ok. Food was good, I went twice and both times they charged me for flavor latte and didn’t put any flavor in. Wouldn’t come back",
+    "rating": 2.0,
+    "rating_scale": 5,
+    "published_at": "2026-09-07T11:28:01Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pKUmNDMW5jWGhSU0hVMWJUTmlOWGRWZVMxUGRXYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjJRcC1ncXhRSHU1bTNiNXdVeS1PdWc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-09-07T11:28:01Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "price_per_person": "$10–20",
+        "group_size": "2 people"
+      },
+      "reviewer": {
+        "reviews": 1,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25ob1VtaEtSRVZWZVdOM1lYSlRhazFtU0c1UlEwRRAB",
+    "content": "It is absolutely critical for this\" cafe to ensure that specific\ncustomer order modifications are followed precisely Many people order certain options, like sugar-free or decat, for serious medical\nand dietary reasons Any\ncarelessness in preparing these drinks can lead to real health\nissues for the customers.\nManagement must emphasize to the staff the importance of accuracy regarding medical restrictions to ensure everyone's\n\" safety",
+    "rating": 2.0,
+    "rating_scale": 5,
+    "published_at": "2026-09-03T23:41:50Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25ob1VtaEtSRVZWZVdOM1lYSlRhazFtU0c1UlEwRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnhoUmhKREVVeWN3YXJTak1mSG5RQ0E%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-09-03T23:41:50Z",
+      "likes": 0,
+      "details": {
+        "service": 1
+      },
+      "reviewer": {
+        "reviews": 1,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pOS2VuTnNkbkV3VmxGdE4xZFhRbHBqTW1aV1dtYxAB",
+    "content": "Love the honey badger-coffee, almond milk and honey.  My favorite! Great staff at this location too.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-29T23:13:46Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pOS2VuTnNkbkV3VmxGdE4xZFhRbHBqTW1aV1dtYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjNKenNsdnEwVlFtN1dXQlpjMmZWWmc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-29T23:13:46Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 68,
+        "photos": 20
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25SaWRWVTNWM1V6WmpWMWFHOVRka1ZZY2xjeFQyYxAB",
+    "content": "Cool place, cool people, great coffee too",
+    "rating": 4.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-28T15:30:17Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25SaWRWVTNWM1V6WmpWMWFHOVRka1ZZY2xjeFQyYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnRidVU3V3UzZjV1aG9TdkVYclcxT2c%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-28T15:30:17Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$1–10",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 4,
+        "reservation": "Reservations not required"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 28,
+        "photos": 4
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tGWWFEUjZZMGRVUlVab1NsRnNWalpNWTJKT1dGRRAB",
+    "content": "Bad customer service",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-27T15:00:52Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tGWWFEUjZZMGRVUlVab1NsRnNWalpNWTJKT1dGRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkFYaDR6Y0dURUZoSlFsVjZMY2JOWFE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-27T15:00:52Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Breakfast",
+        "price_per_person": "$20–30",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1,
+        "reservation": "Walk-ins only"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 16,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2paT05rc3lTVXcwVGpKeE1HcFlhVGxGUnpWVFVGRRAB",
+    "content": "Tried to order online from this location and I got rerouted to the location near park ave and 33rd instead",
+    "rating": 3.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-23T18:28:17Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2paT05rc3lTVXcwVGpKeE1HcFlhVGxGUnpWVFVGRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjZONksySUw0TjJxMGpYaTlFRzVTUFE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-23T18:28:17Z",
+      "likes": 0,
+      "details": {},
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 254,
+        "photos": 372
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xCR1VIUTFOUzFhZEd0dWJYRnpjREJwTjBsUVRYYxAB",
+    "content": "Worst experience as a first time visitor. Will never be back. Coffee was great. Service was not. We were in line (3 people deep) - employee asked us to move the line to the left of the register. Only to help someone that just walked in over us - who were already waiting. I said something like hi uh we were also in line and was ignored. I got an egg, ham and cheese croissant and asked for no egg. All the food is pre made and heated up so you can’t modify anything. Okay, fine - I’ll take the egg off myself. I open it.. it’s FREEZING COLD. I have to ask the employee to reheat it again. the whole visit was such an inconvenience and I wish I went somewhere else. Spent $20 for not a good breakfast. Seemed like it would be a good vibes place so I was excited but was let down.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-21T13:54:48Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xCR1VIUTFOUzFhZEd0dWJYRnpjREJwTjBsUVRYYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOlBGUHQ1NS1adGtubXFzcDBpN0lQTXc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-21T13:54:48Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "price_per_person": "$20–30",
+        "service": 1,
+        "atmosphere": 5,
+        "noise_level": "Moderate noise",
+        "group_size": "2 people, 3-4 people"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 119,
+        "photos": 287
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25KalEzWmxUazVxYlRoWU5VOWFTV2wxWVRSeFdIYxAB",
+    "content": "Got the vegan burrito and a cold brew. The perfect on the go breakfast spot before class.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-04-10T15:57:22Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25KalEzWmxUazVxYlRoWU5VOWFTV2wxWVRSeFdIYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnJjQ3ZlTk5qbThYNU9aSWl1YTRxWHc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-20T13:58:27Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Breakfast",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommendation_for_vegetarians": "Somewhat recommend",
+        "vegetarian_offerings": "Clearly labeled vegetarian dishes"
+      },
+      "reviewer": {
+        "reviews": 4,
+        "photos": 2
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tSUUxVVnBSR2RFU2s4NVNGZHhlVUp1VVdOSlNFRRAB",
+    "content": "Very bad latte… milk was watery and hot, with bunch of bubbles on top. Ruins your day",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-17T12:39:34Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tSUUxVVnBSR2RFU2s4NVNGZHhlVUp1VVdOSlNFRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkRQLUVpRGdESk85SFdxeUJuUWNJSEE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-17T12:39:34Z",
+      "likes": 0,
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 2
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 13,
+        "photos": 3
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tzMlZIVnliRWxLTUhKQ1pqbG9WWFJwYzJsbFdtYxAB",
+    "content": "the staff was super friendly and very welcoming atmosphere. I am a coffee person and they have best coffee.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-16T14:59:26Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tzMlZIVnliRWxLTUhKQ1pqbG9WWFJwYzJsbFdtYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOks2VHVybElKMHJCZjloVXRpc2llWmc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-16T14:59:26Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 32,
+        "photos": 3
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2prdFdXazJka3hqZWtadlRGbFhWVk5SZFZaSE0zYxAB",
+    "content": "Food was ok but the restaurant was gross. What does it take to actually have someone clean tables.",
+    "rating": 3.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-15T15:21:09Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2prdFdXazJka3hqZWtadlRGbFhWVk5SZFZaSE0zYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjktWWk2dkxjekZvTFlXVVNRdVZHM3c%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-15T15:21:09Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$40–50",
+        "food": 3,
+        "service": 2,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 188,
+        "photos": 18
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tVeWVqQlZOSFExV21ZMmVIcHZjaTFyWXpWU1lrRRAB",
+    "content": "Decent.",
+    "rating": 4.0,
+    "rating_scale": 5,
+    "published_at": "2026-08-15T13:00:27Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tVeWVqQlZOSFExV21ZMmVIcHZjaTFyWXpWU1lrRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkUyejBVNHQ1WmY2eHpvci1rYzVSYkE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-08-15T13:00:27Z",
+      "likes": 0,
+      "details": {
+        "food": 4,
+        "service": 5,
+        "atmosphere": 3
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 312,
+        "photos": 443
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21GZk0yVktjbmhYT0RSUWVGaDNiR1ZoWkVzeFFXYxAB",
+    "content": "Delicious coffee and fast friendly service",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-07-28T13:55:32Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21GZk0yVktjbmhYT0RSUWVGaDNiR1ZoWkVzeFFXYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmFfM2VKcnhXODRQeFh3bGVhZEsxQWc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-07-28T13:55:32Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 32,
+        "photos": 6
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25sTE5UazJTRWhoY21Sc1MxRXlPRE5yVVVWQ1EzYxAB",
+    "content": "Terrible coffee and croissant sandiwch.",
+    "rating": 1.0,
+    "rating_scale": 5,
+    "published_at": "2026-07-26T01:29:23Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25sTE5UazJTRWhoY21Sc1MxRXlPRE5yVVVWQ1EzYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnlLNTk2SEhhcmRsS1EyODNrUUVCQ3c%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-07-26T01:29:23Z",
+      "likes": 0,
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "reviewer": {
+        "reviews": 15,
+        "photos": 3
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pRdGNrSTFhSEpOT0cxeGIwcDFjRzk2UzNKT2IzYxAB",
+    "content": "Good clean place excellent coffee. I recommend 100%",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-07-19T02:02:57Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pRdGNrSTFhSEpOT0cxeGIwcDFjRzk2UzNKT2IzYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjQtckI1aHJNOG1xb0p1cG96S3JOb3c%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-07-19T02:02:57Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 579,
+        "photos": 72
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tOalFWWjZUWFU0U0dWMWQwWnJOVlZVYVZCblgyYxAB",
+    "content": "Warm welcome and fast served\nCoffee’s perfect!",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-07-01T13:33:35Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tOalFWWjZUWFU0U0dWMWQwWnJOVlZVYVZCblgyYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkNjQVZ6TXU4SGV1d0ZrNVVUaVBnX2c%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-07-01T13:33:35Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 61,
+        "photos": 11
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2sxMU0zTTJaV3BOVFc4NVdqUnlSbkp5VkVOamFuYxAB",
+    "content": "Such a pleasant experience a Gregory’s this morning! Greeted by Ariella(sp)? She was delightful, professional and made me feel happy to choose this shop. Had a delicious cappuccino, great start of the day! Thank you so much(:",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-06-23T15:50:41Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2sxMU0zTTJaV3BOVFc4NVdqUnlSbkp5VkVOamFuYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOk11M3M2ZWpNTW85WjRyRnJyVENjanc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-06-23T15:50:41Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "reviews": 9,
+        "photos": 5
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21OSU0yNVhTbkZsZWxKNlRucEtNR3g2WkVKUFMyYxAB",
+    "content": "Had a great experience at Gregorys Coffee. The coffee was absolutely delicious—perfectly made and very refreshing.\n\nThe staff was super friendly and welcoming, which made the whole visit even better. The ambience is really cool and modern, a nice place to relax or just enjoy your drink.\n\nAlso, the restroom was very clean, which is always a big plus.\n\nDefinitely coming back again! ☕👌",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-04-03T13:42:09Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21OSU0yNVhTbkZsZWxKNlRucEtNR3g2WkVKUFMyYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmNIM25XSnFlelJ6TnpKMGx6ZEJPS2c%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-04-03T13:42:09Z",
+      "likes": 2,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 108,
+        "photos": 168
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2t4Q2RYUjZZa3RXV2t0c1l6bHJRMDE1UjNCT2QwRRAB",
+    "content": "Such a cozy and stylish spot right near Herald Square. The interior was super clean and aesthetic, with greenery and warm lighting that gave it a chill vibe. I got the iced coffee and my boyfriend tried the Fall Oat Boy — both were delicious. The pastries looked tempting and fresh too. The staff was really helpful and friendly, which made the experience even better. Definitely a great spot for a midday coffee run or quick bite in Midtown.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2025-09-21T02:05:43Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2t4Q2RYUjZZa3RXV2t0c1l6bHJRMDE1UjNCT2QwRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkxCdXR6YktWWktsYzlrQ015R3BOd0E%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-09-21T02:05:43Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 32,
+        "photos": 137
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25WYVRIb3dWemsyVlRaMVZETXpMV3RoTmw5Q05rRRAB",
+    "content": "Cute place with great lighting! Perfect place to people watch. Baristas are super kind and funny. The chocolate croissant and blue steel are great! Will definitely be coming back.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2025-08-20T15:40:57Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25WYVRIb3dWemsyVlRaMVZETXpMV3RoTmw5Q05rRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnVaTHowVzk2VTZ1VDMzLWthNl9CNkE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-08-20T15:40:57Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$10–20",
+        "recommended_dishes": "Pastries"
+      },
+      "reviewer": {
+        "reviews": 3,
+        "photos": 2
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNfa0piSGpBRRAB",
+    "content": "Really liked the coffee, they have coffee combinations with cold brew that looked very interesting. Would definitely come back. I tasted the fall oat boy latte which was has a very spiced flavor but really good. The people that take your order are really nice and it’s also pet friendly.",
+    "rating": 4.0,
+    "rating_scale": 5,
+    "published_at": "2025-01-12T00:22:13Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNfa0piSGpBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIC_kJbHjAE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-01-12T00:22:13Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$10–20",
+        "food": 4,
+        "service": 4,
+        "atmosphere": 4
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 299,
+        "photos": 1212
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25WT1V6RjJXWEZMV2tkUWFVSnpUV3B4TmsxMk0zYxAB",
+    "content": "Love every single coffee and matcha drink that I’ve tried at this café, also their cookies are absolutely amazing! Also, a special shout out to the Baristas, they’re always so nice ❤️",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-02-24T23:04:47Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25WT1V6RjJXWEZMV2tkUWFVSnpUV3B4TmsxMk0zYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnVOUzF2WXFLWkdQaUJzTWpxNk12M3c%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-02-24T23:04:47Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 71,
+        "photos": 169
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSURmaXBlazFnRRAB",
+    "content": "I was so happy this place was right around the corner from our hotel! They even have vegan breakfast options. I loved my chai tea latte, the tuna melt and the smoothies I tried. But the best thing? That sourdough bread! Omg! Best I’ve ever had! I asked if they could make my avocado toast with it and they did. Awesome customer service too! Loved the atmosphere.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2025-01-05T10:54:09Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURmaXBlazFnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIDfipek1gE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-01-05T10:54:09Z",
+      "likes": 2,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommendation_for_vegetarians": "Highly recommend",
+        "vegetarian_offerings": "Vegetarian menu or section"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 136,
+        "photos": 859
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tobGMwOWtabUV3UVhaVE0xZDBZbW90YjFSelluYxAB",
+    "content": "We fancied some hot drinks & pastries after a fantastic meze lunch at the ilili NoMad Lebanese restaurant so we stopped off at Gregory's Coffee shop on 6th Ave, on our way to do some shopping at Macy's.\nThe shop was light, clean & airey with plenty of seating inside. My wife had her usual one shot milky latte, which she really enjoyed. I had an English breakfast tea and we shared a delicious traditional almond croissant that had a very tasty almond paste inside.\nWe sat down at one of the tables and one of the friendly & helpful servers kindly brought the latte over to our table once it was ready. However, the cakes & pastries in the display cabinet looked a bit tired and not very appetising.\nThere was a single toilet inside the shop and also free WiFi, neither of which we used.",
+    "rating": 4.0,
+    "rating_scale": 5,
+    "published_at": "2025-09-16T00:42:38Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tobGMwOWtabUV3UVhaVE0xZDBZbW90YjFSelluYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkhlc09kZmEwQXZTM1d0Ymotb1RzYnc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-09-16T00:44:20Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Other",
+        "price_per_person": "$10–20",
+        "food": 3,
+        "service": 4,
+        "atmosphere": 3,
+        "reservation": "Walk-ins only"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 137,
+        "photos": 1492
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25CTGNVZDJkR1ZhTmpBM01sZFdNR1UyYVhsb1ZFRRAB",
+    "content": "The staff was soo happy today, and their positive energy really made me smile. Their matcha is absolutely fantastic!!",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-02-23T20:29:55Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25CTGNVZDJkR1ZhTmpBM01sZFdNR1UyYVhsb1ZFRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnBLcUd2dGVaNjA3MldWMGU2aXloVEE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-02-24T02:02:29Z",
+      "likes": 0,
+      "details": {
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 292,
+        "photos": 556
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tWQmQxWm5URkpHVlVaT1pEbEhhVU01VDBoQ1ZFRRAB",
+    "content": "Nice place! Please review all of my photos attached that share my experience which includes the atmosphere/environment and the food / all the food items that I ordered.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-01-23T14:41:14Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tWQmQxWm5URkpHVlVaT1pEbEhhVU01VDBoQ1ZFRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkVBd1ZnTFJGVUZOZDlHaUM5T0hCVEE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-01-23T14:44:41Z",
+      "likes": 0,
+      "details": {
+        "food": 4,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 94,
+        "photos": 1178
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2t4dVZWQllXWGRYYkRoMGJUVjBWMWhUTFRKa1ZYYxAB",
+    "content": "Went in to do some work. The girl taking my order was quite cold. It wasn’t too busy but there was trash, crumbs, and liquid all over the tables and floors. I asked for napkins to wipe off a table to sit down at. Probably wouldn’t visit this location again.",
+    "rating": 2.0,
+    "rating_scale": 5,
+    "published_at": "2025-08-11T15:33:01Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2t4dVZWQllXWGRYYkRoMGJUVjBWMWhUTFRKa1ZYYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkxuVVBYWXdXbDh0bTV0V1hTLTJkVXc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-08-11T15:33:01Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Brunch",
+        "price_per_person": "$10–20",
+        "food": 3,
+        "service": 2,
+        "atmosphere": 2,
+        "group_size": "2 people"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 21,
+        "photos": 37
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pkVFNYRnpVMjVKT0ZoSlZtNDVWQzE0UzBoRE5FRRAB",
+    "content": "Amazing customer service! The warmth and family orientation this particular store provides, brings joy to my inner child. And they’re very cultured! Exotic blends to sweet edibles arrangements..🤤",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-01-28T20:31:37Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pkVFNYRnpVMjVKT0ZoSlZtNDVWQzE0UzBoRE5FRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOjdTSXFzU25JOFhJVm45VC14S0hDNEE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-01-28T20:31:37Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "noise_level": "Quiet, easy to talk"
+      },
+      "reviewer": {
+        "reviews": 1,
+        "photos": 1
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21scE1IcE1VUzFuZW5VemVraGxiRVpYTFZoNFlVRRAB",
+    "content": "Great spot for a quick coffee break!\nNice variety of drinks; I tried the Protein Buzz and it was deliciously peanut buttery. Super fast service too. I recommend if you’re in the area and need a quick caffeine fix!",
+    "rating": 4.0,
+    "rating_scale": 5,
+    "published_at": "2025-10-12T16:28:36Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21scE1IcE1VUzFuZW5VemVraGxiRVpYTFZoNFlVRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmlpMHpMUS1nenUzekhlbEZXLVh4YUE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-10-12T16:29:59Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 4,
+        "service": 5,
+        "atmosphere": 3,
+        "wait_time": "No wait"
+      },
+      "reviewer": {
+        "reviews": 4,
+        "photos": 5
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT210cWRqVnBXRlJ6ZW0xdWMwbHBTalZ5UjJ4a2IyYxAB",
+    "content": "I get my coffee from this location almost every day. Last week, I ordered two lattes that seemed to be made with regular coffee instead of espresso. Yesterday, I got a latte with overly foamed, burnt-tasting milk, and today I received another latte with burnt milk and much more foam than properly steamed milk should have.\n\nI’m not sure what’s changed over the past couple of weeks, but the quality and taste of the coffee have definitely declined. It also feels like the employees currently working here don’t pay much attention to the quality of the coffee before handing it to customers. I used to enjoy coming here regularly, and I honestly preferred the previous management. I hope the consistency and quality improve soon.",
+    "rating": 2.0,
+    "rating_scale": 5,
+    "published_at": "2026-06-05T13:27:49Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT210cWRqVnBXRlJ6ZW0xdWMwbHBTalZ5UjJ4a2IyYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmtqdjVpWFRzem1uc0lpSjVyR2xkb2c%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-06-05T13:27:49Z",
+      "likes": 0,
+      "details": {},
+      "reviewer": {
+        "reviews": 4,
+        "photos": 1
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2kxc1JGaFRWVlJSVG01WVVGbFNMVUpsYW5WZlpFRRAB",
+    "content": "It’s a cold, rainy day but Sofia just brought me a Love Affair Latte taster and we had a nice conversation. The atmosphere is great in here and the people watching is fantastic, the almond croissant is delicious and someone just said, Happy Wednesday. ♥️♥️♥️🙏🎼",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-02-18T16:35:54Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2kxc1JGaFRWVlJSVG01WVVGbFNMVUpsYW5WZlpFRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOi1sRFhTVVRRTm5YUFlSLUJlanVfZEE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-02-18T16:35:54Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "reviews": 3,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT210a05FRjFZVFozZW5odFVITm5NV1o2WjFOM1ptYxAB",
+    "content": "The best customer service at any coffee shop in NYC. Jackie and Phoebe are rockstars. And the coffee was delicious too!",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-01-28T20:37:47Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT210a05FRjFZVFozZW5odFVITm5NV1o2WjFOM1ptYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmtkNEF1YTZ3enhtUHNnMWZ6Z1N3Zmc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-01-28T20:37:47Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "noise_level": "Moderate noise"
+      },
+      "reviewer": {
+        "reviews": 7,
+        "photos": 3
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xSd01IVk1aV2QyYTFBd1NFMU9hSGhKU0hodU5IYxAB",
+    "content": "Gregory’s is great. Love their coffee selection. Morning staff is attentive and quick. Afternoon/night barista is nice but needs to wash his hands. Saw him take out a trash bag then make my drink.",
+    "rating": 4.0,
+    "rating_scale": 5,
+    "published_at": "2026-01-23T01:15:57Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xSd01IVk1aV2QyYTFBd1NFMU9hSGhKU0hodU5IYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOlRwMHVMZWd2a1AwSE1OaHhJSHhuNHc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-01-23T01:15:57Z",
+      "likes": 0,
+      "details": {
+        "food": 4,
+        "service": 4,
+        "atmosphere": 4
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 17,
+        "photos": 7
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21KNWNFWkhjVlZ4UkVkZmRVOWxPRkZyY0hrd2JuYxAB",
+    "content": "ever since they renovated , vibe is so nice,\npeople who work here are so nice !!!\nI visited on Saturday around 1 PM, and all of the staff who were working at the time were incredibly kind and welcoming.\nThere were two women and one man who helped me — I didn’t catch their names, but I wanted to make sure to leave a thank-you here. I had to watch my sugar level so I asked them if I could modify my order, and they were so helpful. I appreciated their warmth!",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2025-12-13T18:23:49Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21KNWNFWkhjVlZ4UkVkZmRVOWxPRkZyY0hrd2JuYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmJ5cEZHcVVxREdfdU9lOFFrcHkwbnc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-12-13T18:23:49Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "price_per_person": "$20–30",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 64,
+        "photos": 101
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT20xVlEyeGxZWGRxVG5BMlNUaFFhbEZYUm14V1IxRRAB",
+    "content": "I would like to recognize Rida for his outstanding customer service. He was professional, courteous, and very respectful toward all customers. Truly a great example of excellent service.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-01-03T00:02:00Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT20xVlEyeGxZWGRxVG5BMlNUaFFhbEZYUm14V1IxRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOm1VQ2xlYXdqTnA2SThQalFXRmxWR1E%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-01-03T00:02:00Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "group_size": "3-4 people",
+        "wait_time": "No wait"
+      },
+      "reviewer": {
+        "reviews": 2,
+        "photos": 1
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT25oRk5HZzNSM1kxZWt0UVlWRjVRM3BmVEVNMVJuYxAB",
+    "content": "Sofia with an F :-) and Lauren were great. The shop was crowded but the 2 of them moved things along smoothly. They were so friendly and kind. The chai and almond crossaint were delicious.",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-03-21T20:38:48Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25oRk5HZzNSM1kxZWt0UVlWRjVRM3BmVEVNMVJuYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnhFNGg3R3Y1ektQYVF5Q3pfTEM1Rnc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-03-21T20:38:48Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 23,
+        "photos": 1
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21vMGNURkVOalp5YjAwMFR6QTVTRUZVVEdKUWJtYxAB",
+    "content": "When I first walked in, there was a bit of a bump but very soon thereafter a young man behind the counter CHANGED EVERYTHING with his kind and smart demeanor. He made me a fan of this place!!! I didn’t get his name but I’ll be back to get it next time and enjoy his truly outstanding customer-focused style.",
+    "rating": 4.0,
+    "rating_scale": 5,
+    "published_at": "2025-11-13T03:39:20Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21vMGNURkVOalp5YjAwMFR6QTVTRUZVVEdKUWJtYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmo0cTFENjZyb000TzA5SEFUTGJQbmc%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2025-11-13T03:39:20Z",
+      "likes": 0,
+      "details": {
+        "order_type": "Dine in",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "wait_time": "No wait"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 38,
+        "photos": 14
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "ChdDSUhNMG9nS0VJQ0FnSUNSNDdLbjF3RRAB",
+    "content": "Although everyone knows that Manhattan is becoming more and more inhabitable, one still expects a nice cafe to be a good place to rest and a good place to rest need a restroom. I am not the only customer who is asking about if the store has a restroom for customers, the cold, indifferent answer from staff member is “no”, without even a single word more or any suggestions. This aligns with many other reviews that staff in this particular location is not friendly. Coffee is ok, but do not expect anything special. The Cranberry walnut scone that I had, is just dry and flavorless. I usually wouldn’t waste food, but half of it went to trash. Three of us couldn’t even finish one scone. It is that bad. Two stars for the so-so 2 cups of cappuccino and 1 cup of americano we had. Zero star for service, environment, and pastry.",
+    "rating": 2.0,
+    "rating_scale": 5,
+    "published_at": "2023-04-09T17:44:44Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNSNDdLbjF3RRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICR47Kn1wE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2023-04-09T17:44:44Z",
+      "likes": 1,
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Other",
+        "price_per_person": "$10–20"
+      },
+      "reviewer": {
+        "local_guide": true,
+        "reviews": 302,
+        "photos": 2630
+      }
+    },
+    "mapping_version": "serpapi@1"
+  },
+  {
+    "target_id": "example-target-id",
+    "source_review_id": "Ci9DQUlRQUNvZENodHljRjlvT21Ga1NuTlFXbm94Y2tSalpsSXpOVGxEWmtoWFZWRRAB",
+    "content": "We have been travelling for almost 5 weeks across America - we are from Australia Brisbane and this is the best coffee we have had! Since leaving home! Thanks so much! We came back for another today! Keep up your great coffee!! Cheers from Lois",
+    "rating": 5.0,
+    "rating_scale": 5,
+    "published_at": "2026-05-05T12:48:26Z",
+    "source_url": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21Ga1NuTlFXbm94Y2tSalpsSXpOVGxEWmtoWFZWRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOmFkSnNQWnoxckRjZlIzNTlDZkhXVVE%7C%7C?hl=en",
+    "source_metadata": {
+      "edited_at": "2026-05-05T12:48:26Z",
+      "likes": 0,
+      "details": {
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "reviewer": {
+        "reviews": 7,
+        "photos": 0
+      }
+    },
+    "mapping_version": "serpapi@1"
+  }
+]

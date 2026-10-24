@@ -1,0 +1,66 @@
+{
+  "id": "example-target-id",
+  "name": "example name entered by user",
+  "platform": "google_maps",
+  "source_ref": "0x89c259af336b3341:0xa4969e07ce3108de",
+  "source_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c259af336b3341:0xa4969e07ce3108de!5m2!4m1!1i2!9m1!1b1?hl=en",
+  "source_metadata": {
+    "provider_name": "Gregorys Coffee",
+    "address": "874 6th Ave, New York, NY 10001",
+    "category": "Coffee shop",
+    "provider_rating": 4.1,
+    "provider_review_count": 1518,
+    "topics": [
+      {
+        "keyword": "cold brew",
+        "mentions": 26,
+        "id": "DW_Q69Z5YFg"
+      },
+      {
+        "keyword": "vegan options",
+        "mentions": 31,
+        "id": "BdHbkKiYdQA"
+      },
+      {
+        "keyword": "friendly staff",
+        "mentions": 166,
+        "id": "BP8_dBsAxLY"
+      },
+      {
+        "keyword": "croissant",
+        "mentions": 10,
+        "id": "EB7gbKwaNW8"
+      },
+      {
+        "keyword": "salted caramel cold brew",
+        "mentions": 4,
+        "id": "wy7Ub98SkJY"
+      },
+      {
+        "keyword": "vegan deluxe",
+        "mentions": 4,
+        "id": "LeB7kA-ofRA"
+      },
+      {
+        "keyword": "almond croissant",
+        "mentions": 4,
+        "id": "hR4wKm8Qle4"
+      },
+      {
+        "keyword": "oat milk",
+        "mentions": 4,
+        "id": "D2SQA6I0CNg"
+      },
+      {
+        "keyword": "matcha",
+        "mentions": 8,
+        "id": "IV-Ey_IEZEY"
+      },
+      {
+        "keyword": "protein coffee",
+        "mentions": 2,
+        "id": "H6QwIdA4aBw"
+      }
+    ]
+  }
+}

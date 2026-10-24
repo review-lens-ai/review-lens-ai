@@ -1,0 +1,782 @@
+{
+  "search_metadata": {
+    "id": "6add0813aefbb42516507300",
+    "status": "Success",
+    "json_endpoint": "https://serpapi.com/searches/dWUMgqE9Xpy1z0VZ1LQXFNZ8tpu0WfRBYtUxznis8EM/6add0813aefbb42516507300.json",
+    "markdown_endpoint": "https://serpapi.com/searches/dWUMgqE9Xpy1z0VZ1LQXFNZ8tpu0WfRBYtUxznis8EM/6add0813aefbb42516507300.md",
+    "created_at": "2026-10-24 19:33:39 UTC",
+    "processed_at": "2026-10-24 19:33:39 UTC",
+    "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c259af336b3341:0xa4969e07ce3108de!5m2!4m1!1i2!9m1!1b1?hl=en",
+    "raw_html_file": "https://serpapi.com/searches/dWUMgqE9Xpy1z0VZ1LQXFNZ8tpu0WfRBYtUxznis8EM/6add0813aefbb42516507300.html",
+    "prettify_html_file": "https://serpapi.com/searches/dWUMgqE9Xpy1z0VZ1LQXFNZ8tpu0WfRBYtUxznis8EM/6add0813aefbb42516507300.prettify",
+    "total_time_taken": 0.17
+  },
+  "search_parameters": {
+    "engine": "google_maps_reviews",
+    "data_id": "0x89c259af336b3341:0xa4969e07ce3108de",
+    "hl": "en",
+    "next_page_token": "CjEIARIpCgoAP7-mwPHE____EhDPzQXXI1zkjnfgPfMAAAAAGgn92YMCamD2CykYACIA:10",
+    "num": "20",
+    "sort_by": "ratingLow"
+  },
+  "reviews": [
+    {
+      "position": 1,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2toeFJqQmpiMU5VWmpkb1ZHdFlRMnM1U21sM2NVRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkhxRjBjb1NUZjdoVGtYQ2s5Sml3cUE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a month ago",
+      "iso_date": "2026-09-07T00:21:45Z",
+      "iso_date_of_last_edit": "2026-09-07T00:21:45Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2toeFJqQmpiMU5VWmpkb1ZHdFlRMnM1U21sM2NVRRAB",
+      "user": {
+        "name": "Threee Eyes",
+        "link": "https://www.google.com/maps/contrib/112781917224797326031?hl=en",
+        "contributor_id": "112781917224797326031",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVcWQDmuaEaSgE75Kcy8Kdbac0zSkSFYNvzMTSPkGtoWyLLGqA=s120-c-rp-mo-br100",
+        "reviews": 6,
+        "photos": 0
+      },
+      "snippet": "I came in today today 10 minutes before there closing time looking to buy a coffee and use the bathroom and the workers were nothing but rude, they told me the store was closed even thought they weren’t, and after I explain that I would buy a coffee and me needing to use the bathroom was an emergency they ignored me, than I told them again it was emergency and they replied “ the store is closed” some time later they asked me to leave, I left and they locked the door",
+      "extracted_snippet": {
+        "original": "I came in today today 10 minutes before there closing time looking to buy a coffee and use the bathroom and the workers were nothing but rude, they told me the store was closed even thought they weren’t, and after I explain that I would buy a coffee and me needing to use the bathroom was an emergency they ignored me, than I told them again it was emergency and they replied “ the store is closed” some time later they asked me to leave, I left and they locked the door"
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Dinner",
+        "price_per_person": "$10–20",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1,
+        "group_size": "1 person",
+        "recommendation_for_vegetarians": "Would not recommend",
+        "vegetarian_offerings": "Not sure",
+        "vegetarian_options": "Customer service training while training your workers! Don’t just hire anyone",
+        "parking_space": "Difficult to find parking",
+        "parking_options": "Paid parking garage, Parking is unavailable",
+        "parking": "Seems like the worked don’t care about the customers",
+        "kid_friendliness": "Workers were not friendly at all, it seemed like they just wanted to get the day over with and just go home, customer satisfaction is not their main priority!",
+        "wheelchair_accessibility": "Yes"
+      },
+      "likes": 0,
+      "response": {
+        "date": "a month ago",
+        "iso_date": "2026-09-11T17:14:14Z",
+        "iso_date_of_last_edit": "2026-09-11T17:14:14Z",
+        "snippet": "We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
+        "extracted_snippet": {
+          "original": "We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
+        }
+      }
+    },
+    {
+      "position": 2,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNwZ2VDRGhBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICpgeCDhAE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "3 years ago",
+      "iso_date": "2023-08-04T19:53:14Z",
+      "iso_date_of_last_edit": "2023-08-04T19:53:14Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLehgNj0n1H7DBPpSPyN0Baec0_MoVq1D4BfpJbbKUZjS6pRhCJeO9R2CWou2GHVOdLlv1sdOpQLnVJDvIQgclWd1Eu-17dvWateju5UWqMGqW4_c7Y7urTtvCRYcnUkG5s0JswQ=k-no"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNwZ2VDRGhBRRAB",
+      "user": {
+        "name": "Shahraj Malik",
+        "link": "https://www.google.com/maps/contrib/113601171275580637919?hl=en",
+        "contributor_id": "113601171275580637919",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVcR6zs_zSdR0b9le5JlosCu9KE5PZ3tr8uC8w5a4cGxx2-73Gg=s120-c-rp-mo-br100",
+        "reviews": 12,
+        "photos": 2
+      },
+      "snippet": "I’ve been coming to this place for a year now everyday but recently, with the new staff the service has been below par. The new lady with the long hair and bandana, idk her name, is extremely rude and always has an attitude. The previous staff was extremely warm and welcoming but the new staff doesn’t even know how to make coffee.\nThis place now also provides the worst matcha in midtown.",
+      "extracted_snippet": {
+        "original": "I’ve been coming to this place for a year now everyday but recently, with the new staff the service has been below par. The new lady with the long hair and bandana, idk her name, is extremely rude and always has an attitude. The previous staff was extremely warm and welcoming but the new staff doesn’t even know how to make coffee.\nThis place now also provides the worst matcha in midtown."
+      },
+      "details": {
+        "food": 3,
+        "service": 1,
+        "atmosphere": 4
+      },
+      "likes": 1,
+      "response": {
+        "date": "3 years ago",
+        "iso_date": "2023-08-05T09:27:42Z",
+        "iso_date_of_last_edit": "2023-08-05T09:27:42Z",
+        "snippet": "Hi there Shahraj, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there Shahraj, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 3,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xkNWIyMVFWSEZuTmpaYVNrTklUbVJmVDBSSlNFRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOld5b21QVHFnNjZaSkNITmRfT0RJSEE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-10-22T17:02:48Z",
+      "iso_date_of_last_edit": "2025-10-22T17:02:48Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xkNWIyMVFWSEZuTmpaYVNrTklUbVJmVDBSSlNFRRAB",
+      "user": {
+        "name": "Jose Barrera",
+        "link": "https://www.google.com/maps/contrib/103327529111972328249?hl=en",
+        "contributor_id": "103327529111972328249",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJV2e1X-m9Z6z_HxQIquFo1yTUuJmR0lCiihHqZIDQQZv9KzA=s120-c-rp-mo-br100",
+        "reviews": 5,
+        "photos": 0
+      },
+      "snippet": "Ordered a 13 dollar avocado smoothie after I got my smoothie I was told that the chia banana and strawberry was out so they just made it without. So the smoothie wasn’t even complete or full.  Definitely tasted weird.",
+      "extracted_snippet": {
+        "original": "Ordered a 13 dollar avocado smoothie after I got my smoothie I was told that the chia banana and strawberry was out so they just made it without. So the smoothie wasn’t even complete or full.  Definitely tasted weird."
+      },
+      "details": {
+        "order_type": "Take out",
+        "price_per_person": "$10–20"
+      },
+      "likes": 0,
+      "response": {
+        "date": "11 months ago",
+        "iso_date": "2025-11-17T16:11:45Z",
+        "iso_date_of_last_edit": "2025-11-17T16:11:45Z",
+        "snippet": "Hey Jose,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations, and we would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team",
+        "extracted_snippet": {
+          "original": "Hey Jose,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations, and we would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team"
+        }
+      }
+    },
+    {
+      "position": 4,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT20xUU1GaGlUSFUxZDNaVk5HZFdaRlpCYW5odFJIYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOm1QMFhiTHU1d3ZVNGdWZFZBanhtRHc%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "6 months ago",
+      "iso_date": "2026-03-28T12:48:38Z",
+      "iso_date_of_last_edit": "2026-03-28T12:48:38Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT20xUU1GaGlUSFUxZDNaVk5HZFdaRlpCYW5odFJIYxAB",
+      "user": {
+        "name": "L. C.",
+        "link": "https://www.google.com/maps/contrib/111431142756145095571?hl=en",
+        "contributor_id": "111431142756145095571",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIdhtpVZLYTiH8tmQYqKw27q_hPc_p6Rsg6YS1tkSelotowQd-Q=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 13,
+        "photos": 0
+      },
+      "snippet": "I like the coffee shop but wifi is very very unstable! I can't even open Google! if you are looking for a place to work, it will be a disappointment 😔",
+      "extracted_snippet": {
+        "original": "I like the coffee shop but wifi is very very unstable! I can't even open Google! if you are looking for a place to work, it will be a disappointment 😔"
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 5,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VNYm5zLTYweTVTZnBRRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEMbns-60y5SfpQE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-06-04T19:17:55Z",
+      "iso_date_of_last_edit": "2025-06-04T19:20:46Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VNYm5zLTYweTVTZnBRRRAB",
+      "user": {
+        "name": "Diego Garcia",
+        "link": "https://www.google.com/maps/contrib/110704222650231933851?hl=en",
+        "contributor_id": "110704222650231933851",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIGQKb6dJsImjMcC--uTabGDx7JE51G31IijyRhkdyadDx7eQ=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 88,
+        "photos": 26
+      },
+      "snippet": "I came to this location for an Iced Mocha coffee. I ordered it and waited for a long time. After I saw everyone that ordered after me left, I asked for my order and this guy said \"Oh I forgot\" and I asked him \"You forgot?\" And he said \"Yes, I'm being honest, I completely forgot your order\" what kind of bad service is this? Never coming back",
+      "extracted_snippet": {
+        "original": "I came to this location for an Iced Mocha coffee. I ordered it and waited for a long time. After I saw everyone that ordered after me left, I asked for my order and this guy said \"Oh I forgot\" and I asked him \"You forgot?\" And he said \"Yes, I'm being honest, I completely forgot your order\" what kind of bad service is this? Never coming back"
+      },
+      "details": {
+        "food": 4,
+        "service": 1,
+        "atmosphere": 2
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-06-07T14:20:39Z",
+        "iso_date_of_last_edit": "2025-06-07T14:20:39Z",
+        "snippet": "Hey Diego,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations and would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team",
+        "extracted_snippet": {
+          "original": "Hey Diego,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations and would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team"
+        }
+      }
+    },
+    {
+      "position": 6,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnTUNZeHFxMzZBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgMCYxqq36AE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-05-03T22:29:51Z",
+      "iso_date_of_last_edit": "2025-05-03T22:29:51Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLdUjnxwEHx9d1rCJV6_DtUI7o6ZCvg-AofR-pPjYGAAOsf8SisYPupABCjcokU8u1GXrAfXun-blghyVCPe_eMczs_YjoBoZUm4kgrOFXRfAWXrkoLDfI5Q7J-ihnua4SbF989E=k-no"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnTUNZeHFxMzZBRRAB",
+      "user": {
+        "name": "Jackie Ruiz",
+        "link": "https://www.google.com/maps/contrib/103356293471293722628?hl=en",
+        "contributor_id": "103356293471293722628",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJQoToKdI5SE8ep4h8wU_trQGAjtOGw2PxQpkUJFJhg68RLHQ=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 48,
+        "photos": 1
+      },
+      "snippet": "Worst Matcha Latte ever it tastes like water and all I got was ice",
+      "extracted_snippet": {
+        "original": "Worst Matcha Latte ever it tastes like water and all I got was ice"
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-05-05T05:40:14Z",
+        "iso_date_of_last_edit": "2025-05-05T05:40:14Z",
+        "snippet": "Hey Jacquelyn,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations and would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team ",
+        "extracted_snippet": {
+          "original": "Hey Jacquelyn,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations and would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team "
+        }
+      }
+    },
+    {
+      "position": 7,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25adFlYVk9ORzVDTUZoMVozSjBXRVZLYkRWRVduYxAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOnZtYXVONG5CMFh1Z3J0WEVKbDVEWnc%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-07-02T15:34:16Z",
+      "iso_date_of_last_edit": "2025-07-02T15:34:16Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25adFlYVk9ORzVDTUZoMVozSjBXRVZLYkRWRVduYxAB",
+      "user": {
+        "name": "Bere Belmares",
+        "link": "https://www.google.com/maps/contrib/117750818746329198839?hl=en",
+        "contributor_id": "117750818746329198839",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVLf2uPdOzUrZZjnJ9ykdZYnpG5THmEeTf1QPX3W8jAYUIoMLKLPg=s120-c-rp-mo-br100",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "This was texted to Gregory’s customer service: There is an employee that works the afternoon/evenings, a woman with glasses. I stop by and buy the same order every Tuesday at 6:30, a pastry and an iced coffee. And last week she had asked if I wanted the buy one, get 50% off, mentioned it was okay, that I just wanted the one and if I got two one would go to waste. Asked if I was sure, said yes. Yesterday, it was very visible she was having a bad day or whatever, but she was from the start rude and dismissive, interrupting me while ordering. That went ignored, but when she gave me my order, i saw two of them, and when I asked for attention, without looking at me she interrupted me again jus blurting out that it is a buy one get one free (incorrect), I told her I didnt want the second one and got extremely frustrated and confrontational at having to do a transaction. I repeated I didn't want it and that just last week she at least had asked me about it and just replied she didnt rememeber (ofc not), and proceeded to reimburse two dollars- so NOT buy one get one free. It’s NY and midtown, so the miserable vibes are understandable, but a line should be drawn at unnecessary confrontation with your own customers and misleading them to consume more.",
+      "extracted_snippet": {
+        "original": "This was texted to Gregory’s customer service: There is an employee that works the afternoon/evenings, a woman with glasses. I stop by and buy the same order every Tuesday at 6:30, a pastry and an iced coffee. And last week she had asked if I wanted the buy one, get 50% off, mentioned it was okay, that I just wanted the one and if I got two one would go to waste. Asked if I was sure, said yes. Yesterday, it was very visible she was having a bad day or whatever, but she was from the start rude and dismissive, interrupting me while ordering. That went ignored, but when she gave me my order, i saw two of them, and when I asked for attention, without looking at me she interrupted me again jus blurting out that it is a buy one get one free (incorrect), I told her I didnt want the second one and got extremely frustrated and confrontational at having to do a transaction. I repeated I didn't want it and that just last week she at least had asked me about it and just replied she didnt rememeber (ofc not), and proceeded to reimburse two dollars- so NOT buy one get one free. It’s NY and midtown, so the miserable vibes are understandable, but a line should be drawn at unnecessary confrontation with your own customers and misleading them to consume more."
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-07-04T12:10:31Z",
+        "iso_date_of_last_edit": "2025-07-04T12:10:31Z",
+        "snippet": "Hey Bere,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations, and would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team",
+        "extracted_snippet": {
+          "original": "Hey Bere,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations, and would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team"
+        }
+      }
+    },
+    {
+      "position": 8,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnTURRbGRxckh3EAE!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgMDQldqrHw%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-03-12T16:14:53Z",
+      "iso_date_of_last_edit": "2025-03-12T16:15:10Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnTURRbGRxckh3EAE",
+      "user": {
+        "name": "Maria De Los Angeles",
+        "link": "https://www.google.com/maps/contrib/113856849377431648819?hl=en",
+        "contributor_id": "113856849377431648819",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocL9PvMkknVcnMi0tGpLvZr1RAMC5yO4sSKZyw3ne13bGD0yyQ=s120-c-rp-mo-br100",
+        "reviews": 8,
+        "photos": 3
+      },
+      "snippet": "The girl with short black hair and glasses is arrogant, rude, and dismissive. I had high expectations because it seemed like an alternative coffee shop with a fairly authentic concept, but I'll never go back because of the terrible service.",
+      "extracted_snippet": {
+        "original": "The girl with short black hair and glasses is arrogant, rude, and dismissive. I had high expectations because it seemed like an alternative coffee shop with a fairly authentic concept, but I'll never go back because of the terrible service."
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Other",
+        "price_per_person": "$10–20",
+        "food": 4,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-03-21T15:08:43Z",
+        "iso_date_of_last_edit": "2025-03-21T15:08:43Z",
+        "snippet": "Hey Maria,\n\nThanks for taking the time to leave us a review. We strive to host a welcoming and comfortable environment for all of our customers and we understand this was not your experience. We hope you will give us another shot in the future!",
+        "extracted_snippet": {
+          "original": "Hey Maria,\n\nThanks for taking the time to leave us a review. We strive to host a welcoming and comfortable environment for all of our customers and we understand this was not your experience. We hope you will give us another shot in the future!"
+        }
+      }
+    },
+    {
+      "position": 9,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURadnUtejFnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIDZvu-z1gE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "3 years ago",
+      "iso_date": "2023-10-02T01:48:55Z",
+      "iso_date_of_last_edit": "2023-10-02T01:48:55Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURadnUtejFnRRAB",
+      "user": {
+        "name": "Berto",
+        "link": "https://www.google.com/maps/contrib/111302570890173469593?hl=en",
+        "contributor_id": "111302570890173469593",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjX6nCDDDByi9JQwpNE-cjGj7nBFpSyR7X_8jxkx13knQOdzoycO=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 15,
+        "photos": 5
+      },
+      "snippet": "This review is primarily about the service.\n\nArrived with a group of 4 on a Sunday morning around 11am. Two of the four of us were going to order a drink before going back out to check out NYC (we were visiting). We’d seen good things about Gregory’s, so we decided to try it out since it was right by a different shop we were getting breakfast from.\n\nService: terrible. Person at the register didn’t greet us, we initiated the conversation, and began ordering. Simple order, two drinks. State the first one, person seemed like they didn’t want to be there, begin ordering the second drink and person completely ignores us and walks away to their right to assist their coworker with something. They didn’t even tell us to hold on or anything, just a complete walk away as we’re mid sentence. We were shocked at the lack of customer service. They came back after a minute, at which point they input the FIRST drink, then ask for the rest of our order. At this point we’re disappointed and over it, so we give the second drink order and brush it off.\nNo have a nice day, no thank you for ordering, nothing. Idk if this is just NYC but other places in the city we tried were friendlier.\n\nCustomer service is tough, I get it, been there, done that myself for years. At least fake it or something. Don’t expect excellent customer service if you come here, and the coffee was just ok.",
+      "extracted_snippet": {
+        "original": "This review is primarily about the service.\n\nArrived with a group of 4 on a Sunday morning around 11am. Two of the four of us were going to order a drink before going back out to check out NYC (we were visiting). We’d seen good things about Gregory’s, so we decided to try it out since it was right by a different shop we were getting breakfast from.\n\nService: terrible. Person at the register didn’t greet us, we initiated the conversation, and began ordering. Simple order, two drinks. State the first one, person seemed like they didn’t want to be there, begin ordering the second drink and person completely ignores us and walks away to their right to assist their coworker with something. They didn’t even tell us to hold on or anything, just a complete walk away as we’re mid sentence. We were shocked at the lack of customer service. They came back after a minute, at which point they input the FIRST drink, then ask for the rest of our order. At this point we’re disappointed and over it, so we give the second drink order and brush it off.\nNo have a nice day, no thank you for ordering, nothing. Idk if this is just NYC but other places in the city we tried were friendlier.\n\nCustomer service is tough, I get it, been there, done that myself for years. At least fake it or something. Don’t expect excellent customer service if you come here, and the coffee was just ok."
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 3,
+        "service": 1,
+        "atmosphere": 3
+      },
+      "likes": 1,
+      "response": {
+        "date": "3 years ago",
+        "iso_date": "2023-10-02T10:38:33Z",
+        "iso_date_of_last_edit": "2023-10-02T10:38:33Z",
+        "snippet": "Hi there Berto, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with our service wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there Berto, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with our service wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 10,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNPdlByVWFREAE!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICOvPrUaQ%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "4 years ago",
+      "iso_date": "2022-06-04T16:03:16Z",
+      "iso_date_of_last_edit": "2022-06-04T16:03:16Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNPdlByVWFREAE",
+      "user": {
+        "name": "Zarina Z",
+        "link": "https://www.google.com/maps/contrib/109668630313547934792?hl=en",
+        "contributor_id": "109668630313547934792",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWOGB0JGZ9OJWgUVhITn_EOkG0US6fBMbBeGpUvTd8s_w8ci9BD=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 74,
+        "photos": 13
+      },
+      "snippet": "Horrible staff at this place right now: they made me latte burning hot. Steam was coming out.\nNo one does burning hot coffee. I could have burned my mouth if won’t notice myself and ask for cold milk on top. And the lady was not\nEven nice she did\nAs I owe her something. And told me rolling eyes that hot latte supposed to be like that. I know what hot latte should be like. Definitely not burning peoples mouth. No sorry no excuse me. Coffee is good but staff is horrible. This business will loose business with this kind of horrible workers.",
+      "extracted_snippet": {
+        "original": "Horrible staff at this place right now: they made me latte burning hot. Steam was coming out.\nNo one does burning hot coffee. I could have burned my mouth if won’t notice myself and ask for cold milk on top. And the lady was not\nEven nice she did\nAs I owe her something. And told me rolling eyes that hot latte supposed to be like that. I know what hot latte should be like. Definitely not burning peoples mouth. No sorry no excuse me. Coffee is good but staff is horrible. This business will loose business with this kind of horrible workers."
+      },
+      "likes": 2,
+      "response": {
+        "date": "4 years ago",
+        "iso_date": "2022-06-07T17:47:02Z",
+        "iso_date_of_last_edit": "2022-06-07T17:47:02Z",
+        "snippet": "Hi Zarina,\n\nI'm really sorry to hear that you had a terrible experience at our location on 874th 6th ave. I really wan you to know that we care about you and your feedback. I have passed along the message to our management team so that this can be addressed  ASAP. We are really sorry we drop the bal here and we really hope you could give us another chance to make it up to you.\n\nEnjoy the rest of  your week!",
+        "extracted_snippet": {
+          "original": "Hi Zarina,\n\nI'm really sorry to hear that you had a terrible experience at our location on 874th 6th ave. I really wan you to know that we care about you and your feedback. I have passed along the message to our management team so that this can be addressed  ASAP. We are really sorry we drop the bal here and we really hope you could give us another chance to make it up to you.\n\nEnjoy the rest of  your week!"
+        }
+      }
+    },
+    {
+      "position": 11,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNMdEk2V3Z3RRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICLtI6WvwE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "2 years ago",
+      "iso_date": "2024-06-15T20:08:54Z",
+      "iso_date_of_last_edit": "2024-06-15T20:08:54Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNMdEk2V3Z3RRAB",
+      "user": {
+        "name": "Nina Felton",
+        "link": "https://www.google.com/maps/contrib/110298742457061875387?hl=en",
+        "contributor_id": "110298742457061875387",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocKNNQN5ArSs549Lif1Vlvi0JBCUHCO2mSmqhEkIqgj-661nCdM=s120-c-rp-mo-br100",
+        "reviews": 8,
+        "photos": 0
+      },
+      "snippet": "I went in to first use the restroom then purchase a drink because obviously I wouldn’t take it in the restroom with me. I asked someone behind the counter about the restroom and she just said “no”. Not the restrooms are out of order or they are only for customers just “no” very rudely. Honestly if the employees are that rude and think it’s ok to casually speak to any human that way than I believe I’ll take my business to Starbucks or any other coffee shop in the vicinity and will literally never stop foot in another store again. I’ve gone to other coffee shops in the city before never had that experience.",
+      "extracted_snippet": {
+        "original": "I went in to first use the restroom then purchase a drink because obviously I wouldn’t take it in the restroom with me. I asked someone behind the counter about the restroom and she just said “no”. Not the restrooms are out of order or they are only for customers just “no” very rudely. Honestly if the employees are that rude and think it’s ok to casually speak to any human that way than I believe I’ll take my business to Starbucks or any other coffee shop in the vicinity and will literally never stop foot in another store again. I’ve gone to other coffee shops in the city before never had that experience."
+      },
+      "details": {
+        "service": 1
+      },
+      "likes": 1,
+      "response": {
+        "date": "2 years ago",
+        "iso_date": "2024-06-17T06:24:46Z",
+        "iso_date_of_last_edit": "2024-06-17T06:24:46Z",
+        "snippet": "Hi there Nina, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there Nina, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 12,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNsX3V5TXRnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICl_uyMtgE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "2 years ago",
+      "iso_date": "2023-11-19T16:39:14Z",
+      "iso_date_of_last_edit": "2023-11-19T16:39:14Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNsX3V5TXRnRRAB",
+      "user": {
+        "name": "Amir Durrani",
+        "link": "https://www.google.com/maps/contrib/116208877472697377579?hl=en",
+        "contributor_id": "116208877472697377579",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWl_qPN-mzpeq9Pgy45FO_mIebJoPOXHM8DDlp_Ria8mwlzDQtT=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 204,
+        "photos": 218
+      },
+      "snippet": "The smashing pumpkin cold brew was watered down, tasted pre made, and had an artificial sweetener flavor to it. Definitely not my cup of coffee. Also, staff can be more welcoming. Not just yell, next! And point at the machine when prompted to pay.",
+      "extracted_snippet": {
+        "original": "The smashing pumpkin cold brew was watered down, tasted pre made, and had an artificial sweetener flavor to it. Definitely not my cup of coffee. Also, staff can be more welcoming. Not just yell, next! And point at the machine when prompted to pay."
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Lunch",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 2,
+        "atmosphere": 3
+      },
+      "likes": 1,
+      "response": {
+        "date": "2 years ago",
+        "iso_date": "2023-11-20T07:48:16Z",
+        "iso_date_of_last_edit": "2023-11-20T07:48:16Z",
+        "snippet": "Hi there Amir, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there Amir, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 13,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURaaWZiNmZnEAE!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIDZifb6fg%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "3 years ago",
+      "iso_date": "2023-10-03T13:33:48Z",
+      "iso_date_of_last_edit": "2023-10-03T13:33:48Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSURaaWZiNmZnEAE",
+      "user": {
+        "name": "Nicole Latosky",
+        "link": "https://www.google.com/maps/contrib/113071337997660202080?hl=en",
+        "contributor_id": "113071337997660202080",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLtJOJ6JfErqtnSfsSjkQsw4ZdMwJCd8r0q90OopSgBJqEG1w=s120-c-rp-mo-br100",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "I ordered a latte and waited for the person to make it for me. While I was waiting I noticed that the person making coffees had 3 inch nails that were curling and moved the cups around by putting two of those nails INSIDE each cup. This is very unsanitary and should be reported. This person should not be handling food with nails like this. The manager of this location should check their employees before they handle food and drink for the customers. This is unacceptable practice!!",
+      "extracted_snippet": {
+        "original": "I ordered a latte and waited for the person to make it for me. While I was waiting I noticed that the person making coffees had 3 inch nails that were curling and moved the cups around by putting two of those nails INSIDE each cup. This is very unsanitary and should be reported. This person should not be handling food with nails like this. The manager of this location should check their employees before they handle food and drink for the customers. This is unacceptable practice!!"
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0,
+      "response": {
+        "date": "3 years ago",
+        "iso_date": "2023-10-09T09:36:05Z",
+        "iso_date_of_last_edit": "2023-10-09T09:36:05Z",
+        "snippet": "Hi there Nicole, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there Nicole, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 14,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUQ1cnU3cm9RRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgID5ru7roQE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "3 years ago",
+      "iso_date": "2023-10-24T16:14:26Z",
+      "iso_date_of_last_edit": "2023-10-24T16:14:26Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUQ1cnU3cm9RRRAB",
+      "user": {
+        "name": "QUniverse",
+        "link": "https://www.google.com/maps/contrib/115455964242696548075?hl=en",
+        "contributor_id": "115455964242696548075",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVKZCUrP0L3xY450AkPFh7K4UJ0ssp_-NvRpv_lGRK9R4Kr2-YR=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 24,
+        "photos": 4
+      },
+      "snippet": "The barista’s there today are rude and need to be trained on customer service. This was my first time experiencing Gregory’s and asked if they make iced macchiato’s. The young lady at the register (very nice btw) said yes and charged me for the iced macchiato. I was then handed a iced latte by the barista. I simply asked what’s the difference between the macchiato and the latte since I’m paying more for the macchiato that clearly has the same ingredients as an iced latte. The gentleman barista rudely replied and acted as if I’m annoying him. It’s not about just moving fast and making coffee. You should also want to retain the customers and provide a great experience to every one that decides to come to your establishment. Especially when you’re across from a major company that provides great customer service. This was a waste of my time and money. I’m not one to write reviews but this experience was horrible! Do better!",
+      "extracted_snippet": {
+        "original": "The barista’s there today are rude and need to be trained on customer service. This was my first time experiencing Gregory’s and asked if they make iced macchiato’s. The young lady at the register (very nice btw) said yes and charged me for the iced macchiato. I was then handed a iced latte by the barista. I simply asked what’s the difference between the macchiato and the latte since I’m paying more for the macchiato that clearly has the same ingredients as an iced latte. The gentleman barista rudely replied and acted as if I’m annoying him. It’s not about just moving fast and making coffee. You should also want to retain the customers and provide a great experience to every one that decides to come to your establishment. Especially when you’re across from a major company that provides great customer service. This was a waste of my time and money. I’m not one to write reviews but this experience was horrible! Do better!"
+      },
+      "likes": 0,
+      "response": {
+        "date": "2 years ago",
+        "iso_date": "2023-10-30T09:16:45Z",
+        "iso_date_of_last_edit": "2023-10-30T09:16:45Z",
+        "snippet": "Hi there QUniverse, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there QUniverse, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 15,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNKM29EajlnRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICJ3oDj9gE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "3 years ago",
+      "iso_date": "2023-06-27T22:37:50Z",
+      "iso_date_of_last_edit": "2023-06-27T22:37:50Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNKM29EajlnRRAB",
+      "user": {
+        "name": "Al Lugo",
+        "link": "https://www.google.com/maps/contrib/106934121559422252908?hl=en",
+        "contributor_id": "106934121559422252908",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWFaY_CprfhMY7yUPN9sPIQPWY992MDUTGynznv-bA95iTDAPI=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 64,
+        "photos": 0
+      },
+      "snippet": "Coffee wasn't good at all I'm a Coffee connoisseur meaning I buy roasted beans from all over the world just for that perfect cup. This ain't it plus the girl behind the counter said \"We don't put sugar in for you, your going to have to do it yourself\". Why not say, \"The sugar is at the end table you can help yourself sir. No garbage by that table neither.",
+      "extracted_snippet": {
+        "original": "Coffee wasn't good at all I'm a Coffee connoisseur meaning I buy roasted beans from all over the world just for that perfect cup. This ain't it plus the girl behind the counter said \"We don't put sugar in for you, your going to have to do it yourself\". Why not say, \"The sugar is at the end table you can help yourself sir. No garbage by that table neither."
+      },
+      "details": {
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0,
+      "response": {
+        "date": "3 years ago",
+        "iso_date": "2023-06-28T01:51:52Z",
+        "iso_date_of_last_edit": "2023-06-28T01:51:52Z",
+        "snippet": "Hi there Al, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there Al, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 16,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNwdHRDd3ZBRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICpttCwvAE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "3 years ago",
+      "iso_date": "2023-08-03T10:55:32Z",
+      "iso_date_of_last_edit": "2023-08-03T10:55:32Z",
+      "images": [
+        "https://lh3.googleusercontent.com/grass-cs/AABkmLcmOaaeitSKEKiygSvjkQ2oZHK-uuMNVhIg33d72R-H4YmQWvAj7fiPfvcT0dJ4u7ZAGSZe6M_rkxlVvQF4WxqHFpk22dMFJCiEcwdDX2T1ZfqnbS8gpuKQ_zqGC4f3r5wJMg0=k-no"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNwdHRDd3ZBRRAB",
+      "user": {
+        "name": "Chris Davies",
+        "link": "https://www.google.com/maps/contrib/101519076382271998984?hl=en",
+        "contributor_id": "101519076382271998984",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVOuYAAS3ES0XlJBv9KMzbR2UEryFduPAzGyBWR54Er3U7bWWU=s120-c-rp-mo-br100",
+        "reviews": 4,
+        "photos": 1
+      },
+      "snippet": "Annoying when baristas give you an attitude about a drink just to hurry back on their phones at work. You guys can do better.",
+      "extracted_snippet": {
+        "original": "Annoying when baristas give you an attitude about a drink just to hurry back on their phones at work. You guys can do better."
+      },
+      "details": {
+        "food": 4,
+        "service": 1,
+        "atmosphere": 2
+      },
+      "likes": 0,
+      "response": {
+        "date": "3 years ago",
+        "iso_date": "2023-08-05T09:27:18Z",
+        "iso_date_of_last_edit": "2023-08-05T09:27:18Z",
+        "snippet": "Hi there Chris, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there Chris, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 17,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2taVlQzbHRUblJuV1VacldsTmhjRmhmV2xGTU5VRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CAIQACodChtycF9oOkZVT3ltTnRnWUZrWlNhcFhfWlFMNUE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-07-15T00:10:53Z",
+      "iso_date_of_last_edit": "2025-07-15T00:10:53Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2taVlQzbHRUblJuV1VacldsTmhjRmhmV2xGTU5VRRAB",
+      "user": {
+        "name": "Lucas sastre",
+        "link": "https://www.google.com/maps/contrib/118197594848873856912?hl=en",
+        "contributor_id": "118197594848873856912",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocI562cJexjIJ5JCvk0TBuj2_bTPGrRuIz0FhS9JXQxiF1XydA=s120-c-rp-mo-br100",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "Unfortunately, the experience was not good. I went on Monday afternoon and received very poor service from one of the employees. Her attitude was unfriendly, and the overall service was disappointing. It’s a shame because the place has potential, but customer service is key—and in this case, it was seriously lacking.",
+      "extracted_snippet": {
+        "original": "Unfortunately, the experience was not good. I went on Monday afternoon and received very poor service from one of the employees. Her attitude was unfriendly, and the overall service was disappointing. It’s a shame because the place has potential, but customer service is key—and in this case, it was seriously lacking."
+      },
+      "details": {
+        "order_type": "Take out",
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0,
+      "response": {
+        "date": "a year ago",
+        "iso_date": "2025-07-19T13:26:33Z",
+        "iso_date_of_last_edit": "2025-07-19T13:26:33Z",
+        "snippet": "Hey Brisa,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations, and we would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team",
+        "extracted_snippet": {
+          "original": "Hey Brisa,\n\nWe appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. This isn't up to our expectations, and we would love to make it up to you. Please send us an email at info@gregoryscoffee.com and mention this review!\n\n-Gregorys Team"
+        }
+      }
+    },
+    {
+      "position": 18,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNoeFlfbWtRRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgIChxY_mkQE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "3 years ago",
+      "iso_date": "2023-02-17T19:15:17Z",
+      "iso_date_of_last_edit": "2023-02-17T19:36:04Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNoeFlfbWtRRRAB",
+      "user": {
+        "name": "carew207",
+        "link": "https://www.google.com/maps/contrib/104538328593494233472?hl=en",
+        "contributor_id": "104538328593494233472",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocK1KSXjJaA8ApwUlzG74ZCjlwDEofea2_2g3aLvH2IFjsDS5A=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 25,
+        "photos": 2
+      },
+      "snippet": "The attitude of the staff here is absolutely atrocious. How do you give zero stars.\nGirl with her hands in her pockets  doesn't even say hi just says the price after you say hello and order.\nCoffee great in the mornings.\nCold and Bad tasting in the afternoon, and I've never seen such privileged, stuck up, moody staff in my entire life. Girl even got moody with me cus there's no little garbage can by the sugar packets at the counter you've got to walk all the way across the place, and I left my little sugar packet on the counter.\nHundred percent not spending my money here anymore",
+      "extracted_snippet": {
+        "original": "The attitude of the staff here is absolutely atrocious. How do you give zero stars.\nGirl with her hands in her pockets  doesn't even say hi just says the price after you say hello and order.\nCoffee great in the mornings.\nCold and Bad tasting in the afternoon, and I've never seen such privileged, stuck up, moody staff in my entire life. Girl even got moody with me cus there's no little garbage can by the sugar packets at the counter you've got to walk all the way across the place, and I left my little sugar packet on the counter.\nHundred percent not spending my money here anymore"
+      },
+      "details": {
+        "food": 2,
+        "service": 1,
+        "atmosphere": 4
+      },
+      "likes": 0,
+      "response": {
+        "date": "3 years ago",
+        "iso_date": "2023-02-22T09:35:02Z",
+        "iso_date_of_last_edit": "2023-02-22T09:35:02Z",
+        "snippet": "We’re sorry to hear that you were disappointed in your experience at Gregorys Coffee. We strive to provide the best possible experience for our guests, and it’s disappointing to learn that we may have fallen short in this case.. If you could contact us at info@gregoryscoffee.com we would love to get some more details in an effort to resolve this issue. Thank you!",
+        "extracted_snippet": {
+          "original": "We’re sorry to hear that you were disappointed in your experience at Gregorys Coffee. We strive to provide the best possible experience for our guests, and it’s disappointing to learn that we may have fallen short in this case.. If you could contact us at info@gregoryscoffee.com we would love to get some more details in an effort to resolve this issue. Thank you!"
+        }
+      }
+    },
+    {
+      "position": 19,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNqc2ZTbm9RRRAB!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICjsfSnoQE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "2 years ago",
+      "iso_date": "2024-04-22T23:10:56Z",
+      "iso_date_of_last_edit": "2024-04-22T23:10:56Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNqc2ZTbm9RRRAB",
+      "user": {
+        "name": "walkrunnnerr",
+        "link": "https://www.google.com/maps/contrib/102864178474153939889?hl=en",
+        "contributor_id": "102864178474153939889",
+        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLagqwKvZ-1C2y_QxnQzeNcdWPQVbKWAvAkkk78tYn4Q75K1Ls=s120-c-rp-mo-br100",
+        "reviews": 7,
+        "photos": 4
+      },
+      "snippet": "Ordered two New Yorker breakfast sandwiches and both were burnt! The Walnut bread was hard but the tea was fine! This was my first time at Gregory’s and my last!",
+      "extracted_snippet": {
+        "original": "Ordered two New Yorker breakfast sandwiches and both were burnt! The Walnut bread was hard but the tea was fine! This was my first time at Gregory’s and my last!"
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Breakfast",
+        "price_per_person": "$1–10",
+        "food": 1,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "likes": 0,
+      "response": {
+        "date": "2 years ago",
+        "iso_date": "2024-04-29T07:45:10Z",
+        "iso_date_of_last_edit": "2024-04-29T07:45:10Z",
+        "snippet": "Hi there, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    },
+    {
+      "position": 20,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUN4X1pMZ2RnEAE!2m1!1s0x0:0xa4969e07ce3108de!3m1!1s2@1:CIHM0ogKEICAgICx_ZLgdg%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "3 years ago",
+      "iso_date": "2023-05-24T09:48:26Z",
+      "iso_date_of_last_edit": "2023-05-24T09:48:26Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUN4X1pMZ2RnEAE",
+      "user": {
+        "name": "CG",
+        "link": "https://www.google.com/maps/contrib/101387026970532961193?hl=en",
+        "contributor_id": "101387026970532961193",
+        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjUD5CN1m7w5HNQpEOXoy7D9zilNb3K946bU1zukXp626hC0gG8=s120-c-rp-mo-ba12-br100",
+        "local_guide": true,
+        "reviews": 12,
+        "photos": 6
+      },
+      "snippet": "Gregory's  coffee was open late yesterday so we walked to the next nearest one.  Not surprisingly they were not opening the doors on time either, but the two employees also gave us a nice glare when standing at the door.  Don't waste your time or money.",
+      "extracted_snippet": {
+        "original": "Gregory's  coffee was open late yesterday so we walked to the next nearest one.  Not surprisingly they were not opening the doors on time either, but the two employees also gave us a nice glare when standing at the door.  Don't waste your time or money."
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Other",
+        "price_per_person": "$1–10"
+      },
+      "likes": 0,
+      "response": {
+        "date": "3 years ago",
+        "iso_date": "2023-05-25T05:36:20Z",
+        "iso_date_of_last_edit": "2023-05-25T05:36:20Z",
+        "snippet": "Hi there Christopher, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "extracted_snippet": {
+          "original": "Hi there Christopher, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+        }
+      }
+    }
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?data_id=0x89c259af336b3341%3A0xa4969e07ce3108de&engine=google_maps_reviews&hl=en&next_page_token=CjEIARIpCgoAP7-myNcJf___EhB6kr5S8n9oJBVwIEUAAAAAGgn93lQCd7LXGGUYACIA%3A30&num=20&sort_by=ratingLow",
+    "next_page_token": "CjEIARIpCgoAP7-myNcJf___EhB6kr5S8n9oJBVwIEUAAAAAGgn93lQCd7LXGGUYACIA:30"
+  }
+}
