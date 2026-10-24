@@ -2,13 +2,13 @@
   "search_metadata": {
     "id": "6add08156a1f1145b6b803bb",
     "status": "Success",
-    "json_endpoint": "https://serpapi.com/searches/eyo6MfjV0aP4aaoC-yav1of1PlEowci4ONz7Lg9hdHw/6add08156a1f1145b6b803bb.json",
-    "markdown_endpoint": "https://serpapi.com/searches/eyo6MfjV0aP4aaoC-yav1of1PlEowci4ONz7Lg9hdHw/6add08156a1f1145b6b803bb.md",
+    "json_endpoint": "REDACTED",
+    "markdown_endpoint": "REDACTED",
     "created_at": "2026-10-24 19:33:41 UTC",
     "processed_at": "2026-10-24 19:33:41 UTC",
     "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c259af336b3341:0xa4969e07ce3108de!5m2!4m1!1i2!9m1!1b1?hl=en",
-    "raw_html_file": "https://serpapi.com/searches/eyo6MfjV0aP4aaoC-yav1of1PlEowci4ONz7Lg9hdHw/6add08156a1f1145b6b803bb.html",
-    "prettify_html_file": "https://serpapi.com/searches/eyo6MfjV0aP4aaoC-yav1of1PlEowci4ONz7Lg9hdHw/6add08156a1f1145b6b803bb.prettify",
+    "raw_html_file": "REDACTED",
+    "prettify_html_file": "REDACTED",
     "total_time_taken": 1.85
   },
   "search_parameters": {
@@ -85,17 +85,17 @@
       "iso_date": "2026-04-03T13:42:09Z",
       "iso_date_of_last_edit": "2026-04-03T13:42:09Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLcb0-Eca2ECa9IEQKNqNVBSIwlPJRAPqZiXIy0dVNgJXvJz67EWTteN6F7uqNW5lx1hImPzLXt1GIuj4yAgd135LgdSYDc9iWIwEC016vTqsz_GIeFP052K3mCNq-QLeJRjiYOqq1QfKXU=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLeeSWXchURK2F0ILh7aqI08kjazRFannQcYa7LStNBn_-esfha5I2svWvgvBX-gj2wCJSHHyzHpraFHYZ_DVusTOAJAfpKnlQohzUF1LfSIRJwkVtuCqoaS0PpJdWW9JuR9x53AUDsWDZwj=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLeZLET8eq3tWJa_fatDyT2jRrIG6Kt7RzGmO1u-747BYvob9kHpzqgwEfbuk7skSQCtYrXGitcHUHZsaczzUdyQIWL2tdpTrCYdEh7NHY_heFbEBzIefVN7lIyYCB1g50FO9wFTSA-nkE8L=k-no"
+        "https://example.com/photo/31_0.jpg",
+        "https://example.com/photo/31_1.jpg",
+        "https://example.com/photo/31_2.jpg"
       ],
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21OSU0yNVhTbkZsZWxKNlRucEtNR3g2WkVKUFMyYxAB",
       "user": {
-        "name": "HARPREET SINGH",
-        "link": "https://www.google.com/maps/contrib/109195308302848521638?hl=en",
-        "contributor_id": "109195308302848521638",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLGMcXBnwHKfpZ8ugYfn227zac32HDBOFQw9fbtzLGugNJdUxY=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 31",
+        "link": "https://example.com/contrib/31",
+        "contributor_id": "contributor_31",
+        "thumbnail": "https://example.com/avatar/31.jpg",
         "local_guide": true,
         "reviews": 108,
         "photos": 168
@@ -128,19 +128,19 @@
       "iso_date": "2025-09-21T02:05:43Z",
       "iso_date_of_last_edit": "2025-09-21T02:05:43Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfoG_E8T9cTca3w877As9ETPJiLrfTu9fDdjXF-bNuynKUYixo_D9ZzYhixfl7fd9VISj5Kl42bDKPPuNTl107htgFn0UnKzAfghhdsE_6owM4rw24XK5CoSm9k8PtICr0ggSjjSH05Yqwf=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfmOueJwV3xRUm1xtUyXxathh8RKgXU7qO-_K1unGyShg2cIuMgbqlewQ9M3A_d4UEHRPRAdznU3dcuab6oY3Lrf0r8EnS3Lk7NFdaRZekEHYKdoIJHs7R3ta3QhvSYEifJgHWNvsd-9D6G=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLdd-p7RgC8ubwbEQkc3O8bJN9qir5Zzx7QXUv0F1gwf1TiHX3DPtmK-uuEJRTxbZFwvIKUbftf9hFUgxsY7gLBmBVePAA87Bh9RD95m526ne4KJ3CZrGs0BeGtMcxRF5kHhzbWRlV-H9mSW=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfaiDg9iDOch8MABzPIcQ-HezqupOwqgFSoIO00xpEcwFZzCCdeNy5f78W3Cs3ommFNqLQgrgMaOCyyhizQr7ZPRILczgwQugTffQHbQhNh0eIsbUFVEnRqkeSL8QMLeqHvOBCzNrdQGRla=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLcBDEkTghGFP0u1IdzlOJ2tC6xvenRWFlgO-jiyxCqMjM9m0Krdgp6okGakEPn5oo3epohTRemG5kZmZK-GuMDM655JJwF2pHJEi55n6gqBhCyLobM4BOWfewfaFBmP-ocYaSm8zmUDvtyU=k-no"
+        "https://example.com/photo/32_0.jpg",
+        "https://example.com/photo/32_1.jpg",
+        "https://example.com/photo/32_2.jpg",
+        "https://example.com/photo/32_3.jpg",
+        "https://example.com/photo/32_4.jpg"
       ],
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2t4Q2RYUjZZa3RXV2t0c1l6bHJRMDE1UjNCT2QwRRAB",
       "user": {
-        "name": "J",
-        "link": "https://www.google.com/maps/contrib/118216203329265721320?hl=en",
-        "contributor_id": "118216203329265721320",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVPaowYXWZlL5LVT6DWf3J0rokOo5CQ3PKeN-UZ8zRaBh8AhJQ=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 32",
+        "link": "https://example.com/contrib/32",
+        "contributor_id": "contributor_32",
+        "thumbnail": "https://example.com/avatar/32.jpg",
         "local_guide": true,
         "reviews": 32,
         "photos": 137
@@ -173,15 +173,15 @@
       "iso_date": "2026-03-01T15:24:01Z",
       "iso_date_of_last_edit": "2026-03-01T15:24:01Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfsdt5-dZx8bFoZnbLYH-iLLrBuJPANtrWX5ZOI4X-gdBdY-1r5Z8Dk0x5JXWFR2811JmWwrBm0ZN09S9JmOahPmJSqWriw1ODi5j13E_oa82W5k_jVk4bUFdvELeALzie7MFGxAgTn_3Yf=k-no"
+        "https://example.com/photo/33_0.jpg"
       ],
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pFMlJXMVlTMHhOTmtaTk5VZE1PRVZ2UkdadGJWRRAB",
       "user": {
-        "name": "Metehan Canbakis",
-        "link": "https://www.google.com/maps/contrib/114887835267658582471?hl=en",
-        "contributor_id": "114887835267658582471",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjW_SnB_srfd_RL66_q4dRuWbetQsxWMI9KqmLj8ZOY4l55hhNSn=s120-c-rp-mo-br100",
+        "name": "Reviewer 33",
+        "link": "https://example.com/contrib/33",
+        "contributor_id": "contributor_33",
+        "thumbnail": "https://example.com/avatar/33.jpg",
         "reviews": 10,
         "photos": 4
       },
@@ -204,16 +204,16 @@
       "iso_date": "2025-08-20T15:40:57Z",
       "iso_date_of_last_edit": "2025-08-20T15:40:57Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLe_ZzZ472ygA6c0to4k4lk6OONgeBbB9twfiMeovpRlqBQWSyI1ES_rIG-7K9p8FVfVjSD7BQo8r1-f6Wh3EErl5S2oT85FqYni3ud_L1Oj55pzuzkq6QRnQXecYwwNRnEV996UIytz1L5T=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLe8HL29gRarI2-QI2lyKa2cDlyoEEBOeNj-v3QBHbJzTZeAv8hzJSwQOtNOUVMCplu4DkM4B6F4X5CF8pK2q34pYgFmX5DPeCJx1GZVWy66affr2zTDGTwsg5dw7JYDQFwwO-zYzblxetAH=k-no"
+        "https://example.com/photo/34_0.jpg",
+        "https://example.com/photo/34_1.jpg"
       ],
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25WYVRIb3dWemsyVlRaMVZETXpMV3RoTmw5Q05rRRAB",
       "user": {
-        "name": "Vanessa Pace",
-        "link": "https://www.google.com/maps/contrib/106538592776419291637?hl=en",
-        "contributor_id": "106538592776419291637",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIt_MUHCrDHLI-hzL5350M2o9gzaP15hAw3qgiOCwbKfJezkA=s120-c-rp-mo-br100",
+        "name": "Reviewer 34",
+        "link": "https://example.com/contrib/34",
+        "contributor_id": "contributor_34",
+        "thumbnail": "https://example.com/avatar/34.jpg",
         "reviews": 3,
         "photos": 2
       },
@@ -248,10 +248,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21KellXMDRkV2N0TVhKRldHOUZkMWhaUzFndGMxRRAB",
       "user": {
-        "name": "Laura McEwen",
-        "link": "https://www.google.com/maps/contrib/115719137794106592785?hl=en",
-        "contributor_id": "115719137794106592785",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVyl3nD9oGVmwa6OTmJwZ3HigC8ty7w2o6WGSk9cHLEvh4dpJ3b=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 02",
+        "link": "https://example.com/contrib/02",
+        "contributor_id": "contributor_02",
+        "thumbnail": "https://example.com/avatar/02.jpg",
         "local_guide": true,
         "reviews": 51,
         "photos": 42
@@ -274,9 +274,9 @@
         "date": "a week ago",
         "iso_date": "2026-10-13T15:12:23Z",
         "iso_date_of_last_edit": "2026-10-13T15:12:23Z",
-        "snippet": "Hey Laura McEwen,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)   \n\n- Gregorys Fam",
+        "snippet": "Hey Reviewer 02,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)   \n\n- Gregorys Fam",
         "extracted_snippet": {
-          "original": "Hey Laura McEwen,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)   \n\n- Gregorys Fam"
+          "original": "Hey Reviewer 02,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)   \n\n- Gregorys Fam"
         }
       }
     },
@@ -288,15 +288,15 @@
       "iso_date": "2026-06-10T23:29:37Z",
       "iso_date_of_last_edit": "2026-06-11T15:14:29Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfGFF2vZElGLlMyj0eIwjMZfDR9i1AL_uSv0VeqNb2mu_6-rOnYV45kL0D9LXd23GcSeDLkmL0IFvP4bkCo5IkuIDDnMWJbmvLbeaL6iqPT-ftd1xW5v3RgQiqw3USvHjQPkpz7AYZRyHk=k-no"
+        "https://example.com/photo/35_0.jpg"
       ],
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25neWNqTXRRazl5WkV4SE5qUTBaa1JQYTBNNWFrRRAB",
       "user": {
-        "name": "SERGIO MOTA",
-        "link": "https://www.google.com/maps/contrib/116644768426053798025?hl=en",
-        "contributor_id": "116644768426053798025",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWzjKn5CuPwitJVah6wPdYa073XC8-mYsXITsvlwvsvPLWPloip=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 35",
+        "link": "https://example.com/contrib/35",
+        "contributor_id": "contributor_35",
+        "thumbnail": "https://example.com/avatar/35.jpg",
         "local_guide": true,
         "reviews": 87,
         "photos": 130
@@ -326,10 +326,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25ob1VtaEtSRVZWZVdOM1lYSlRhazFtU0c1UlEwRRAB",
       "user": {
-        "name": "Hager Alshaif",
-        "link": "https://www.google.com/maps/contrib/105088490866424760195?hl=en",
-        "contributor_id": "105088490866424760195",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIB2CYLGCki-YCgM06XsoXQqN-CxPsFPHvKhn9zHH2sygjIew=s120-c-rp-mo-br100",
+        "name": "Reviewer 09",
+        "link": "https://example.com/contrib/09",
+        "contributor_id": "contributor_09",
+        "thumbnail": "https://example.com/avatar/09.jpg",
         "reviews": 1,
         "photos": 0
       },
@@ -359,18 +359,18 @@
       "iso_date": "2025-01-12T00:22:13Z",
       "iso_date_of_last_edit": "2025-01-12T00:22:13Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLcJh6XkEfWt_cEjF1owMVrTd-gnTl4NK7NbKX_9zy_h_dQd43NQs8gPxTt5J0tkyMyXvjjgbN9Th0-mQkWrvB32Jp9Sa8e3TyWvc6Ma7xlbukkpf8baGVi-gFKCXxLuagyOpPfz=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLcDeF6vvaKJ5q53sQWKmpijJBwHUXL_aRMxM5xTonzih05DRv5-YcMGQDOtbQjNPJCgclYf7jpiNJCymSL7lpT2GYQv7fuLoGj-LTBa1F-rLhqWDRSv6T4jyEc4DL2_4f8c5_johQ=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfO0uw-2JpL9NzEkNNWVcIwpY0OFM1NjfNq_sck-tlmgGby916MKNj4lKRJeVi_vfCFcr9BETzBLyxzkT9IjoV-AODGZNNkIhBTqMKt3-CBmobKKZ-RUq2_eZWWosq9J_OUAruP=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfYkXWxr6bPSe3rBcjJPakWbe2S7ZGenH7DEKVt4202TzjGNzC7duWiI1xGFylO3gHuqv8BDyuqwO59zReIS64oXRARIdbFh_Z7LO00dYnv_Xj91ZPNXlmcIqosjO3orha2Iwud=k-no"
+        "https://example.com/photo/36_0.jpg",
+        "https://example.com/photo/36_1.jpg",
+        "https://example.com/photo/36_2.jpg",
+        "https://example.com/photo/36_3.jpg"
       ],
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNfa0piSGpBRRAB",
       "user": {
-        "name": "Andrea Garcia",
-        "link": "https://www.google.com/maps/contrib/109923212523266750633?hl=en",
-        "contributor_id": "109923212523266750633",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjXIxTLJxxjQOUiwtf3tVNbhU_stNE_huo3o9VaxVKOTiN4Wex-RZw=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 36",
+        "link": "https://example.com/contrib/36",
+        "contributor_id": "contributor_36",
+        "thumbnail": "https://example.com/avatar/36.jpg",
         "local_guide": true,
         "reviews": 299,
         "photos": 1212
@@ -406,15 +406,15 @@
       "iso_date": "2026-02-24T23:04:47Z",
       "iso_date_of_last_edit": "2026-02-24T23:04:47Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfCwqgwYwMyVjqdqav2eFPa-wt25LEyTHbi3mqlZMD2LWfUVqXPz8Qa-gvaKtGwrlzp-5XMs0sqJgIKHs5yg3KueqJ0oZlYxg0LZI1p3tG85qPfcwJw1a2JhhhpgSln-LL8faASh4hRKyeW=k-no"
+        "https://example.com/photo/37_0.jpg"
       ],
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25WT1V6RjJXWEZMV2tkUWFVSnpUV3B4TmsxMk0zYxAB",
       "user": {
-        "name": "Megha Bajaj",
-        "link": "https://www.google.com/maps/contrib/109312335292960994966?hl=en",
-        "contributor_id": "109312335292960994966",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVDQUUuZGOQ_8X2JIATkLwPSXNj_rdSQM4oMZsc00wVfcpVAyY1rA=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 37",
+        "link": "https://example.com/contrib/37",
+        "contributor_id": "contributor_37",
+        "thumbnail": "https://example.com/avatar/37.jpg",
         "local_guide": true,
         "reviews": 71,
         "photos": 169
@@ -447,22 +447,22 @@
       "iso_date": "2025-01-05T10:54:09Z",
       "iso_date_of_last_edit": "2025-01-05T10:54:09Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLej9KzoTUViqtR-iM3Z1LqvymoXuNZizty1mT_gEM1ya8JiX8RznNSCQfnHClmz9R-E0PqmhPE6zYFLWcixSVgWb63PekHgQZFDU85Sy-qWfxRRNoOgMKefYbPcMp0ZoQKknC_z=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLd41qrF6R40Hhp3FJ-uhsPA_-jH1vlXH7sx82zXV1i-h961X08Q_ukhV6XZr60fO_AIGkwxXbs84yV2a--tu0lgzNFfkkvDisSKoW3dii-Mj2_lx74tK3L6q21dHEOxeA4Jlc8C=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLcROo_Y1YS8jy3w3kwzqG0aMG3AmaxvpFcVJRO7C7dNHbq-7rjIKBAgHqdeVWvNXPbYohFaS3P67DOZRpoG_fFqDTsjdj_LNy5JxB0Amp5s7UDdjwMTmUOnYIQc1NWU6_GNG_zh=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfB_NVamMAPgljsWDe0kSFlsrwiCrnm1x0qhRbPOgF1T-vmY3syFX1BRRv2FI-BvQ5l_EWtO3fLBgtQs3JxEpYbBVoHN3IYeG2tcq0K-_LxvgbfDE_PZAGgqgnENNTFsfcZNJ63lw=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLehAFtZitUfxpwbc9hr_ox8GHRQ-tY06GeFUHUYqKGgGgwVIg49PAwURTT4egeTGGbd-uLrl8SjoRPDcqtJR6cYCK5YWS_Ty7kYZ6RZNWInlEqU2SuAPlAHyheCt_kFkjet-gvz=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLdsooHexn_Yd11FsC7GosbQUMVZnwkEcmM6CidSxxlgQcLpaW4CJLY19SZKZcfETfhw289zh_ntyqAOBjkqOElRxuuPrCaV-zGr-lGs4q-Y9NWsgqBIGVqshS8Qjf7kYQG8RjHIFw=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLcd4F4kyyOUwfb8U_Lv1bw4le2ny544S5vTXoJt4fXnuP6u9LMxqmYRJEg-OMgBN16BuIkHo83JGq0g4ZaHPjL6CgzpunuU7ypG05ns9VQ-TmVSFAcPyBQXgomTqf4yqthz_zH1=k-no",
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLfXlY2WuTYp5GLTRq17sDXBBOLRCjKPt2E34eHEj1EWUAo1LDnwkeD7GMWnAdQaez-a8mJqMKTP8Eveo3q5xzDA68sS32kSbjvnlKLqpmGwpvoaAoiaBWOlZR_xcNPZe3lkLfwY6g=k-no"
+        "https://example.com/photo/38_0.jpg",
+        "https://example.com/photo/38_1.jpg",
+        "https://example.com/photo/38_2.jpg",
+        "https://example.com/photo/38_3.jpg",
+        "https://example.com/photo/38_4.jpg",
+        "https://example.com/photo/38_5.jpg",
+        "https://example.com/photo/38_6.jpg",
+        "https://example.com/photo/38_7.jpg"
       ],
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSURmaXBlazFnRRAB",
       "user": {
-        "name": "Kara Citarella",
-        "link": "https://www.google.com/maps/contrib/100520045602314326417?hl=en",
-        "contributor_id": "100520045602314326417",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVyU_69251MbOf1Wl3Vn4Xo41zINLI4Ep1D84q_HPNhfX7HNG0=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 38",
+        "link": "https://example.com/contrib/38",
+        "contributor_id": "contributor_38",
+        "thumbnail": "https://example.com/avatar/38.jpg",
         "local_guide": true,
         "reviews": 136,
         "photos": 859

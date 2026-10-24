@@ -275,14 +275,15 @@ ReviewAdapter
 
 ## Running the scripts
 
-All need only `python3`. Output goes to `output/`, which is gitignored because it contains real reviewer names.
+All need only `python3`. Output goes to `output/`, which is **committed** so the team can read the data shape without running anything. Before committing, [redact_output.py](redact_output.py) replaced reviewer identities in `output/raw/` and `output/merged_sample.json` with stable fakes (`Reviewer 01`, example.com links), so the shape is unchanged. Names a reviewer writes inside their own review text are not redacted. **If you re-fetch, run `redact_output.py` before committing.**
 
 **API key:** the fetch scripts read it from the `SERPAPI_API_KEY` environment variable only. They do not read `backend/.env` or any other file, and refuse to run without it. Get the key from your SerpApi dashboard. Free usage checks (searches left, hourly limit): `https://serpapi.com/account.json?api_key=...` costs no credit.
 
 | Script | Output | Credits |
 |---|---|---|
-| [fetch_raw_pages.py](fetch_raw_pages.py) | `output/raw/<sort>/page_<n>.json` untouched bodies + `manifest.json` (params, cursors, search id) | 6 |
+| [fetch_raw_pages.py](fetch_raw_pages.py) | `output/raw/<sort>/page_<n>.json` untouched bodies (committed copies redacted) + `manifest.json` (params, cursors, search id) | 6 |
 | [map_to_reviews.py](map_to_reviews.py) | `output/canonical/`: **the end-product shape**, a pair of files (see below) | 0 |
+| [redact_output.py](redact_output.py) | rewrites `output/raw/` + `merged_sample.json` in place with fake reviewer identities | 0 |
 | [fetch_sample_reviews.py](fetch_sample_reviews.py) | `output/merged_sample.json`, **merged, not raw, not the end product**; its `_about` block lists the assumptions | 3 |
 
 ```bash

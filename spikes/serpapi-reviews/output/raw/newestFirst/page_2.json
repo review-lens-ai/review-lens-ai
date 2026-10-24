@@ -2,13 +2,13 @@
   "search_metadata": {
     "id": "6add0814b69cbecce1dd6527",
     "status": "Success",
-    "json_endpoint": "https://serpapi.com/searches/Jynt474uCcPbEY09I5-wDWMKnylDEGRdNnSkqfSmvmw/6add0814b69cbecce1dd6527.json",
-    "markdown_endpoint": "https://serpapi.com/searches/Jynt474uCcPbEY09I5-wDWMKnylDEGRdNnSkqfSmvmw/6add0814b69cbecce1dd6527.md",
+    "json_endpoint": "REDACTED",
+    "markdown_endpoint": "REDACTED",
     "created_at": "2026-10-24 19:33:40 UTC",
     "processed_at": "2026-10-24 19:33:40 UTC",
     "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c259af336b3341:0xa4969e07ce3108de!5m2!4m1!1i2!9m1!1b1?hl=en",
-    "raw_html_file": "https://serpapi.com/searches/Jynt474uCcPbEY09I5-wDWMKnylDEGRdNnSkqfSmvmw/6add0814b69cbecce1dd6527.html",
-    "prettify_html_file": "https://serpapi.com/searches/Jynt474uCcPbEY09I5-wDWMKnylDEGRdNnSkqfSmvmw/6add0814b69cbecce1dd6527.prettify",
+    "raw_html_file": "REDACTED",
+    "prettify_html_file": "REDACTED",
     "total_time_taken": 1.12
   },
   "search_parameters": {
@@ -30,10 +30,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25SaWRWVTNWM1V6WmpWMWFHOVRka1ZZY2xjeFQyYxAB",
       "user": {
-        "name": "Noel Ramos Caramés",
-        "link": "https://www.google.com/maps/contrib/107824422776313743534?hl=en",
-        "contributor_id": "107824422776313743534",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjX_wzTOCA2JzFOEejkEM32wwJf1v-z9MkZLUn4Jo39jEcKJs1g=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 11",
+        "link": "https://example.com/contrib/11",
+        "contributor_id": "contributor_11",
+        "thumbnail": "https://example.com/avatar/11.jpg",
         "local_guide": true,
         "reviews": 28,
         "photos": 4
@@ -72,10 +72,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tGWWFEUjZZMGRVUlVab1NsRnNWalpNWTJKT1dGRRAB",
       "user": {
-        "name": "Fifi Rodriguez",
-        "link": "https://www.google.com/maps/contrib/117465486101019061965?hl=en",
-        "contributor_id": "117465486101019061965",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocInC4Pf5BVTRnGhbMO7itRyEFbtlpj5n3rp-lyd2brol0AP4g=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 12",
+        "link": "https://example.com/contrib/12",
+        "contributor_id": "contributor_12",
+        "thumbnail": "https://example.com/avatar/12.jpg",
         "local_guide": true,
         "reviews": 16,
         "photos": 0
@@ -114,10 +114,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT20xVmJEbDRhVlJFUkcwNGRXZHpUMjFxUjJvd1owRRAB",
       "user": {
-        "name": "Siobhan Evelyn",
-        "link": "https://www.google.com/maps/contrib/105275091533593356651?hl=en",
-        "contributor_id": "105275091533593356651",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJWrJGDQmQNDSypnxhVTuhY43Ppqba9VS3RNn5pg-f5vnG6eg=s120-c-rp-mo-br100",
+        "name": "Reviewer 13",
+        "link": "https://example.com/contrib/13",
+        "contributor_id": "contributor_13",
+        "thumbnail": "https://example.com/avatar/13.jpg",
         "reviews": 4,
         "photos": 0
       },
@@ -148,10 +148,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2paT05rc3lTVXcwVGpKeE1HcFlhVGxGUnpWVFVGRRAB",
       "user": {
-        "name": "Katherine Kaplan",
-        "link": "https://www.google.com/maps/contrib/109000706336389952049?hl=en",
-        "contributor_id": "109000706336389952049",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVE46GekDX-olq2XZZzs8P9QJd6jfAOYoxvyoHvzLo4wvGmo5Ua=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 14",
+        "link": "https://example.com/contrib/14",
+        "contributor_id": "contributor_14",
+        "thumbnail": "https://example.com/avatar/14.jpg",
         "local_guide": true,
         "reviews": 254,
         "photos": 372
@@ -181,10 +181,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tOVFIySmtSMWhzT1dKd09FMUNSMFJyV1hOME9HYxAB",
       "user": {
-        "name": "joey",
-        "link": "https://www.google.com/maps/contrib/108451797334449653077?hl=en",
-        "contributor_id": "108451797334449653077",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjV1aodqr-2pxj_ePEehvwsbF9V4rceIe1s6RsXxF7PnW7PxU_F4jQ=s120-c-rp-mo-br100",
+        "name": "Reviewer 15",
+        "link": "https://example.com/contrib/15",
+        "contributor_id": "contributor_15",
+        "thumbnail": "https://example.com/avatar/15.jpg",
         "reviews": 0,
         "photos": 0
       },
@@ -216,10 +216,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pBMmN6Z3pXR3M1ZVVwNmFXcHZkRFpuYmxOaGNtYxAB",
       "user": {
-        "name": "Marine Mntg",
-        "link": "https://www.google.com/maps/contrib/111228645808003718215?hl=en",
-        "contributor_id": "111228645808003718215",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVPULnvfpEmiRlxotKfZ6jDD9FUPhZT2CqCXzaT8--kShD1RxRh=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 16",
+        "link": "https://example.com/contrib/16",
+        "contributor_id": "contributor_16",
+        "thumbnail": "https://example.com/avatar/16.jpg",
         "local_guide": true,
         "reviews": 42,
         "photos": 32
@@ -245,10 +245,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xCR1VIUTFOUzFhZEd0dWJYRnpjREJwTjBsUVRYYxAB",
       "user": {
-        "name": "Kim Drinks Local",
-        "link": "https://www.google.com/maps/contrib/109172042086626758564?hl=en",
-        "contributor_id": "109172042086626758564",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjXQgrDYL2X-UZKl9zaxD3nBvfHG4Aby-L6tLUunkPA4TK782bw=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 17",
+        "link": "https://example.com/contrib/17",
+        "contributor_id": "contributor_17",
+        "thumbnail": "https://example.com/avatar/17.jpg",
         "local_guide": true,
         "reviews": 119,
         "photos": 287
@@ -286,10 +286,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25KalEzWmxUazVxYlRoWU5VOWFTV2wxWVRSeFdIYxAB",
       "user": {
-        "name": "Lorena Gama",
-        "link": "https://www.google.com/maps/contrib/113487468955611652331?hl=en",
-        "contributor_id": "113487468955611652331",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjXJYcPek6KVNGEXXvxoEZhu_FSNaUJLaB7CTWcisR_NrjYMysd-=s120-c-rp-mo-br100",
+        "name": "Reviewer 18",
+        "link": "https://example.com/contrib/18",
+        "contributor_id": "contributor_18",
+        "thumbnail": "https://example.com/avatar/18.jpg",
         "reviews": 4,
         "photos": 2
       },
@@ -328,10 +328,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tSUUxVVnBSR2RFU2s4NVNGZHhlVUp1VVdOSlNFRRAB",
       "user": {
-        "name": "Ahmad khadem",
-        "link": "https://www.google.com/maps/contrib/104425074208123843920?hl=en",
-        "contributor_id": "104425074208123843920",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVoHoDr_Up30Q1M78RUk4nmQnGrsszsj0NQ6H7OyPckyRdhNqfX=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 19",
+        "link": "https://example.com/contrib/19",
+        "contributor_id": "contributor_19",
+        "thumbnail": "https://example.com/avatar/19.jpg",
         "local_guide": true,
         "reviews": 13,
         "photos": 3
@@ -350,9 +350,9 @@
         "date": "2 months ago",
         "iso_date": "2026-08-21T01:25:51Z",
         "iso_date_of_last_edit": "2026-08-21T01:25:51Z",
-        "snippet": "Hi Ahmad khadem, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
+        "snippet": "Hi Reviewer 19, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
         "extracted_snippet": {
-          "original": "Hi Ahmad khadem, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
+          "original": "Hi Reviewer 19, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
         }
       }
     },
@@ -366,10 +366,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tzMlZIVnliRWxLTUhKQ1pqbG9WWFJwYzJsbFdtYxAB",
       "user": {
-        "name": "Anil Patel",
-        "link": "https://www.google.com/maps/contrib/115670782738710728598?hl=en",
-        "contributor_id": "115670782738710728598",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocK9JJmN6AaNjUl6AZwTOiZXBjTPqwdgNCoFc7Atdx3oYW_ZDw=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 20",
+        "link": "https://example.com/contrib/20",
+        "contributor_id": "contributor_20",
+        "thumbnail": "https://example.com/avatar/20.jpg",
         "local_guide": true,
         "reviews": 32,
         "photos": 3
@@ -404,10 +404,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2prdFdXazJka3hqZWtadlRGbFhWVk5SZFZaSE0zYxAB",
       "user": {
-        "name": "Evan",
-        "link": "https://www.google.com/maps/contrib/112545641943013469525?hl=en",
-        "contributor_id": "112545641943013469525",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJ3vikOHwxRTpPKSBAZe5zZLrC7kL-SAL7I_Lgc5-35nuc6lA=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 21",
+        "link": "https://example.com/contrib/21",
+        "contributor_id": "contributor_21",
+        "thumbnail": "https://example.com/avatar/21.jpg",
         "local_guide": true,
         "reviews": 188,
         "photos": 18
@@ -429,9 +429,9 @@
         "date": "2 months ago",
         "iso_date": "2026-08-21T01:26:57Z",
         "iso_date_of_last_edit": "2026-08-21T01:26:57Z",
-        "snippet": "Hi Evan, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
+        "snippet": "Hi Reviewer 21, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
         "extracted_snippet": {
-          "original": "Hi Evan, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
+          "original": "Hi Reviewer 21, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
         }
       }
     },
@@ -445,10 +445,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tVeWVqQlZOSFExV21ZMmVIcHZjaTFyWXpWU1lrRRAB",
       "user": {
-        "name": "John D",
-        "link": "https://www.google.com/maps/contrib/110008794871336847716?hl=en",
-        "contributor_id": "110008794871336847716",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjXpCju94S_DJYTI34Q3zo1vRf-8VjXWcVSIMKFaeI3yXH_sS3Kj=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 22",
+        "link": "https://example.com/contrib/22",
+        "contributor_id": "contributor_22",
+        "thumbnail": "https://example.com/avatar/22.jpg",
         "local_guide": true,
         "reviews": 312,
         "photos": 443
@@ -483,10 +483,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21GZk0yVktjbmhYT0RSUWVGaDNiR1ZoWkVzeFFXYxAB",
       "user": {
-        "name": "Raffi Khatchadourian",
-        "link": "https://www.google.com/maps/contrib/108193947284587444903?hl=en",
-        "contributor_id": "108193947284587444903",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJ0qCRH0SIhjm_CUdDMfTnNtE2OHhQbPmohmj19w1oxFA8G2g=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 23",
+        "link": "https://example.com/contrib/23",
+        "contributor_id": "contributor_23",
+        "thumbnail": "https://example.com/avatar/23.jpg",
         "local_guide": true,
         "reviews": 32,
         "photos": 6
@@ -521,10 +521,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25sTE5UazJTRWhoY21Sc1MxRXlPRE5yVVVWQ1EzYxAB",
       "user": {
-        "name": "v ile",
-        "link": "https://www.google.com/maps/contrib/117199958295478252299?hl=en",
-        "contributor_id": "117199958295478252299",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIxLW6Ln5UVebdp-dBfPBbnq7NLEkDhflJksjkLATiC3SpG4Q=s120-c-rp-mo-br100",
+        "name": "Reviewer 24",
+        "link": "https://example.com/contrib/24",
+        "contributor_id": "contributor_24",
+        "thumbnail": "https://example.com/avatar/24.jpg",
         "reviews": 15,
         "photos": 3
       },
@@ -542,9 +542,9 @@
         "date": "2 months ago",
         "iso_date": "2026-07-28T12:29:10Z",
         "iso_date_of_last_edit": "2026-07-28T12:29:10Z",
-        "snippet": "Hi v ile, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
+        "snippet": "Hi Reviewer 24, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!",
         "extracted_snippet": {
-          "original": "Hi v ile, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
+          "original": "Hi Reviewer 24, We appreciate you taking the time to leave a review and are bummed to hear that this was your experience with us. If you’d like to talk more, please send us an email at info@gregoryscoffee.com and mention this review!"
         }
       }
     },
@@ -558,10 +558,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pRdGNrSTFhSEpOT0cxeGIwcDFjRzk2UzNKT2IzYxAB",
       "user": {
-        "name": "A G",
-        "link": "https://www.google.com/maps/contrib/106470413677795522347?hl=en",
-        "contributor_id": "106470413677795522347",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLiKSuIkOYkTRDwgJPe9UhFNQbQzgTb3rCrM3E1QCq8tybNY4A=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 25",
+        "link": "https://example.com/contrib/25",
+        "contributor_id": "contributor_25",
+        "thumbnail": "https://example.com/avatar/25.jpg",
         "local_guide": true,
         "reviews": 579,
         "photos": 72
@@ -596,10 +596,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pCcVRIVTNSMGszUXpkZmVsOVZOWE01TTJKdlJrRRAB",
       "user": {
-        "name": "Don Gregory",
-        "link": "https://www.google.com/maps/contrib/103414687410751718634?hl=en",
-        "contributor_id": "103414687410751718634",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWH4reuTri3C6shbg1AnU4OUMMl5gCGfXouC2B4SkhgdJiYo9Vg3g=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 26",
+        "link": "https://example.com/contrib/26",
+        "contributor_id": "contributor_26",
+        "thumbnail": "https://example.com/avatar/26.jpg",
         "local_guide": true,
         "reviews": 79,
         "photos": 260
@@ -623,15 +623,15 @@
       "iso_date": "2026-07-10T14:43:00Z",
       "iso_date_of_last_edit": "2026-07-10T14:43:00Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLc_Q0IID7omQ68g5NdBLoaG0hxLeuRpIHtSlrqEcBneZOfALCH5znO7czaLsSqlSuHnFG98MJAgkRtJmjEq-q4NYi935t54J70fXdsbYJkqwXc_n31BGl6VMtptVJKAketY6Is6zf0Hrz-5=k-no"
+        "https://example.com/photo/27_0.jpg"
       ],
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pGdFRGQmFTbkJ3Y25jd1dISjVORWxRVFdoT0xYYxAB",
       "user": {
-        "name": "Mr Spaik",
-        "link": "https://www.google.com/maps/contrib/107724152074263518834?hl=en",
-        "contributor_id": "107724152074263518834",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJeoc481z_hBWpr0oWG_J96GRGevIT4LzrmNKkvndelFflS9Q=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 27",
+        "link": "https://example.com/contrib/27",
+        "contributor_id": "contributor_27",
+        "thumbnail": "https://example.com/avatar/27.jpg",
         "local_guide": true,
         "reviews": 246,
         "photos": 324
@@ -646,9 +646,9 @@
         "date": "3 months ago",
         "iso_date": "2026-07-10T19:35:15Z",
         "iso_date_of_last_edit": "2026-07-10T19:35:15Z",
-        "snippet": "Hey Mr Spaik,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)\n\n- Gregorys Fam",
+        "snippet": "Hey Reviewer 27,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)\n\n- Gregorys Fam",
         "extracted_snippet": {
-          "original": "Hey Mr Spaik,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)\n\n- Gregorys Fam"
+          "original": "Hey Reviewer 27,\n\nThanks for the great review! We can't wait to have you back again at a Gregorys Coffee :)\n\n- Gregorys Fam"
         }
       }
     },
@@ -662,10 +662,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xOalJtbFVhR1JOUzBOM2NIUjFUakZ6Tld0SFRWRRAB",
       "user": {
-        "name": "Stipe Renic",
-        "link": "https://www.google.com/maps/contrib/101234308753753590701?hl=en",
-        "contributor_id": "101234308753753590701",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjW1f2luqnXm0YUjWDxp3Er8UBU7Pi4Dd8EEJ2l02pFsEzqmOvmn4w=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 28",
+        "link": "https://example.com/contrib/28",
+        "contributor_id": "contributor_28",
+        "thumbnail": "https://example.com/avatar/28.jpg",
         "local_guide": true,
         "reviews": 86,
         "photos": 3182
@@ -691,10 +691,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tOalFWWjZUWFU0U0dWMWQwWnJOVlZVYVZCblgyYxAB",
       "user": {
-        "name": "Hugues Martel",
-        "link": "https://www.google.com/maps/contrib/112568253891188956761?hl=en",
-        "contributor_id": "112568253891188956761",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocKqQDYAgUV4FAJjdbYYkQKGtXupArQXd_Dg536_6UwaRvjm7rg=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 29",
+        "link": "https://example.com/contrib/29",
+        "contributor_id": "contributor_29",
+        "thumbnail": "https://example.com/avatar/29.jpg",
         "local_guide": true,
         "reviews": 61,
         "photos": 11
@@ -730,10 +730,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2sxMU0zTTJaV3BOVFc4NVdqUnlSbkp5VkVOamFuYxAB",
       "user": {
-        "name": "DONNA Donnellon",
-        "link": "https://www.google.com/maps/contrib/106223491879729779921?hl=en",
-        "contributor_id": "106223491879729779921",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLXoT0T92igrwJ_FNr992SUr3M9j-NfJz4No4Zg-0asXaFTaw=s120-c-rp-mo-br100",
+        "name": "Reviewer 30",
+        "link": "https://example.com/contrib/30",
+        "contributor_id": "contributor_30",
+        "thumbnail": "https://example.com/avatar/30.jpg",
         "reviews": 9,
         "photos": 5
       },

@@ -52,7 +52,7 @@ ABOUT = {
         "page boundaries are lost; reviews[].position restarts at 1 on every page",
         "data_id at the top level is added by this script, not returned by SerpApi",
         f"one place, one sort order ({SORT_BY}), hl=en, results may be cached up to 1 hour",
-        "contains real reviewer names; keep local",
+        "reviewer identities replaced with fakes by redact_output.py before committing",
     ],
 }
 

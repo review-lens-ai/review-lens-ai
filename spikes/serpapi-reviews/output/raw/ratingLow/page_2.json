@@ -2,13 +2,13 @@
   "search_metadata": {
     "id": "6add0813aefbb42516507300",
     "status": "Success",
-    "json_endpoint": "https://serpapi.com/searches/dWUMgqE9Xpy1z0VZ1LQXFNZ8tpu0WfRBYtUxznis8EM/6add0813aefbb42516507300.json",
-    "markdown_endpoint": "https://serpapi.com/searches/dWUMgqE9Xpy1z0VZ1LQXFNZ8tpu0WfRBYtUxznis8EM/6add0813aefbb42516507300.md",
+    "json_endpoint": "REDACTED",
+    "markdown_endpoint": "REDACTED",
     "created_at": "2026-10-24 19:33:39 UTC",
     "processed_at": "2026-10-24 19:33:39 UTC",
     "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c259af336b3341:0xa4969e07ce3108de!5m2!4m1!1i2!9m1!1b1?hl=en",
-    "raw_html_file": "https://serpapi.com/searches/dWUMgqE9Xpy1z0VZ1LQXFNZ8tpu0WfRBYtUxznis8EM/6add0813aefbb42516507300.html",
-    "prettify_html_file": "https://serpapi.com/searches/dWUMgqE9Xpy1z0VZ1LQXFNZ8tpu0WfRBYtUxznis8EM/6add0813aefbb42516507300.prettify",
+    "raw_html_file": "REDACTED",
+    "prettify_html_file": "REDACTED",
     "total_time_taken": 0.17
   },
   "search_parameters": {
@@ -30,10 +30,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2toeFJqQmpiMU5VWmpkb1ZHdFlRMnM1U21sM2NVRRAB",
       "user": {
-        "name": "Threee Eyes",
-        "link": "https://www.google.com/maps/contrib/112781917224797326031?hl=en",
-        "contributor_id": "112781917224797326031",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVcWQDmuaEaSgE75Kcy8Kdbac0zSkSFYNvzMTSPkGtoWyLLGqA=s120-c-rp-mo-br100",
+        "name": "Reviewer 08",
+        "link": "https://example.com/contrib/08",
+        "contributor_id": "contributor_08",
+        "thumbnail": "https://example.com/avatar/08.jpg",
         "reviews": 6,
         "photos": 0
       },
@@ -77,15 +77,15 @@
       "iso_date": "2023-08-04T19:53:14Z",
       "iso_date_of_last_edit": "2023-08-04T19:53:14Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLehgNj0n1H7DBPpSPyN0Baec0_MoVq1D4BfpJbbKUZjS6pRhCJeO9R2CWou2GHVOdLlv1sdOpQLnVJDvIQgclWd1Eu-17dvWateju5UWqMGqW4_c7Y7urTtvCRYcnUkG5s0JswQ=k-no"
+        "https://example.com/photo/63_0.jpg"
       ],
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNwZ2VDRGhBRRAB",
       "user": {
-        "name": "Shahraj Malik",
-        "link": "https://www.google.com/maps/contrib/113601171275580637919?hl=en",
-        "contributor_id": "113601171275580637919",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVcR6zs_zSdR0b9le5JlosCu9KE5PZ3tr8uC8w5a4cGxx2-73Gg=s120-c-rp-mo-br100",
+        "name": "Reviewer 63",
+        "link": "https://example.com/contrib/63",
+        "contributor_id": "contributor_63",
+        "thumbnail": "https://example.com/avatar/63.jpg",
         "reviews": 12,
         "photos": 2
       },
@@ -119,10 +119,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xkNWIyMVFWSEZuTmpaYVNrTklUbVJmVDBSSlNFRRAB",
       "user": {
-        "name": "Jose Barrera",
-        "link": "https://www.google.com/maps/contrib/103327529111972328249?hl=en",
-        "contributor_id": "103327529111972328249",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJV2e1X-m9Z6z_HxQIquFo1yTUuJmR0lCiihHqZIDQQZv9KzA=s120-c-rp-mo-br100",
+        "name": "Reviewer 64",
+        "link": "https://example.com/contrib/64",
+        "contributor_id": "contributor_64",
+        "thumbnail": "https://example.com/avatar/64.jpg",
         "reviews": 5,
         "photos": 0
       },
@@ -155,10 +155,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT20xUU1GaGlUSFUxZDNaVk5HZFdaRlpCYW5odFJIYxAB",
       "user": {
-        "name": "L. C.",
-        "link": "https://www.google.com/maps/contrib/111431142756145095571?hl=en",
-        "contributor_id": "111431142756145095571",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIdhtpVZLYTiH8tmQYqKw27q_hPc_p6Rsg6YS1tkSelotowQd-Q=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 65",
+        "link": "https://example.com/contrib/65",
+        "contributor_id": "contributor_65",
+        "thumbnail": "https://example.com/avatar/65.jpg",
         "local_guide": true,
         "reviews": 13,
         "photos": 0
@@ -184,10 +184,10 @@
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VNYm5zLTYweTVTZnBRRRAB",
       "user": {
-        "name": "Diego Garcia",
-        "link": "https://www.google.com/maps/contrib/110704222650231933851?hl=en",
-        "contributor_id": "110704222650231933851",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocIGQKb6dJsImjMcC--uTabGDx7JE51G31IijyRhkdyadDx7eQ=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 66",
+        "link": "https://example.com/contrib/66",
+        "contributor_id": "contributor_66",
+        "thumbnail": "https://example.com/avatar/66.jpg",
         "local_guide": true,
         "reviews": 88,
         "photos": 26
@@ -220,15 +220,15 @@
       "iso_date": "2025-05-03T22:29:51Z",
       "iso_date_of_last_edit": "2025-05-03T22:29:51Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLdUjnxwEHx9d1rCJV6_DtUI7o6ZCvg-AofR-pPjYGAAOsf8SisYPupABCjcokU8u1GXrAfXun-blghyVCPe_eMczs_YjoBoZUm4kgrOFXRfAWXrkoLDfI5Q7J-ihnua4SbF989E=k-no"
+        "https://example.com/photo/67_0.jpg"
       ],
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnTUNZeHFxMzZBRRAB",
       "user": {
-        "name": "Jackie Ruiz",
-        "link": "https://www.google.com/maps/contrib/103356293471293722628?hl=en",
-        "contributor_id": "103356293471293722628",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocJQoToKdI5SE8ep4h8wU_trQGAjtOGw2PxQpkUJFJhg68RLHQ=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 67",
+        "link": "https://example.com/contrib/67",
+        "contributor_id": "contributor_67",
+        "thumbnail": "https://example.com/avatar/67.jpg",
         "local_guide": true,
         "reviews": 48,
         "photos": 1
@@ -258,10 +258,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25adFlYVk9ORzVDTUZoMVozSjBXRVZLYkRWRVduYxAB",
       "user": {
-        "name": "Bere Belmares",
-        "link": "https://www.google.com/maps/contrib/117750818746329198839?hl=en",
-        "contributor_id": "117750818746329198839",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVLf2uPdOzUrZZjnJ9ykdZYnpG5THmEeTf1QPX3W8jAYUIoMLKLPg=s120-c-rp-mo-br100",
+        "name": "Reviewer 68",
+        "link": "https://example.com/contrib/68",
+        "contributor_id": "contributor_68",
+        "thumbnail": "https://example.com/avatar/68.jpg",
         "reviews": 3,
         "photos": 0
       },
@@ -290,10 +290,10 @@
       "source": "Google",
       "review_id": "ChZDSUhNMG9nS0VJQ0FnTURRbGRxckh3EAE",
       "user": {
-        "name": "Maria De Los Angeles",
-        "link": "https://www.google.com/maps/contrib/113856849377431648819?hl=en",
-        "contributor_id": "113856849377431648819",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocL9PvMkknVcnMi0tGpLvZr1RAMC5yO4sSKZyw3ne13bGD0yyQ=s120-c-rp-mo-br100",
+        "name": "Reviewer 69",
+        "link": "https://example.com/contrib/69",
+        "contributor_id": "contributor_69",
+        "thumbnail": "https://example.com/avatar/69.jpg",
         "reviews": 8,
         "photos": 3
       },
@@ -330,10 +330,10 @@
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSURadnUtejFnRRAB",
       "user": {
-        "name": "Berto",
-        "link": "https://www.google.com/maps/contrib/111302570890173469593?hl=en",
-        "contributor_id": "111302570890173469593",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjX6nCDDDByi9JQwpNE-cjGj7nBFpSyR7X_8jxkx13knQOdzoycO=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 70",
+        "link": "https://example.com/contrib/70",
+        "contributor_id": "contributor_70",
+        "thumbnail": "https://example.com/avatar/70.jpg",
         "local_guide": true,
         "reviews": 15,
         "photos": 5
@@ -355,9 +355,9 @@
         "date": "3 years ago",
         "iso_date": "2023-10-02T10:38:33Z",
         "iso_date_of_last_edit": "2023-10-02T10:38:33Z",
-        "snippet": "Hi there Berto, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with our service wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "snippet": "Hi there Reviewer 70, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with our service wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
         "extracted_snippet": {
-          "original": "Hi there Berto, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with our service wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+          "original": "Hi there Reviewer 70, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with our service wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
         }
       }
     },
@@ -371,10 +371,10 @@
       "source": "Google",
       "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNPdlByVWFREAE",
       "user": {
-        "name": "Zarina Z",
-        "link": "https://www.google.com/maps/contrib/109668630313547934792?hl=en",
-        "contributor_id": "109668630313547934792",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWOGB0JGZ9OJWgUVhITn_EOkG0US6fBMbBeGpUvTd8s_w8ci9BD=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 71",
+        "link": "https://example.com/contrib/71",
+        "contributor_id": "contributor_71",
+        "thumbnail": "https://example.com/avatar/71.jpg",
         "local_guide": true,
         "reviews": 74,
         "photos": 13
@@ -404,10 +404,10 @@
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNMdEk2V3Z3RRAB",
       "user": {
-        "name": "Nina Felton",
-        "link": "https://www.google.com/maps/contrib/110298742457061875387?hl=en",
-        "contributor_id": "110298742457061875387",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocKNNQN5ArSs549Lif1Vlvi0JBCUHCO2mSmqhEkIqgj-661nCdM=s120-c-rp-mo-br100",
+        "name": "Reviewer 72",
+        "link": "https://example.com/contrib/72",
+        "contributor_id": "contributor_72",
+        "thumbnail": "https://example.com/avatar/72.jpg",
         "reviews": 8,
         "photos": 0
       },
@@ -439,10 +439,10 @@
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNsX3V5TXRnRRAB",
       "user": {
-        "name": "Amir Durrani",
-        "link": "https://www.google.com/maps/contrib/116208877472697377579?hl=en",
-        "contributor_id": "116208877472697377579",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWl_qPN-mzpeq9Pgy45FO_mIebJoPOXHM8DDlp_Ria8mwlzDQtT=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 73",
+        "link": "https://example.com/contrib/73",
+        "contributor_id": "contributor_73",
+        "thumbnail": "https://example.com/avatar/73.jpg",
         "local_guide": true,
         "reviews": 204,
         "photos": 218
@@ -480,10 +480,10 @@
       "source": "Google",
       "review_id": "ChZDSUhNMG9nS0VJQ0FnSURaaWZiNmZnEAE",
       "user": {
-        "name": "Nicole Latosky",
-        "link": "https://www.google.com/maps/contrib/113071337997660202080?hl=en",
-        "contributor_id": "113071337997660202080",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLtJOJ6JfErqtnSfsSjkQsw4ZdMwJCd8r0q90OopSgBJqEG1w=s120-c-rp-mo-br100",
+        "name": "Reviewer 74",
+        "link": "https://example.com/contrib/74",
+        "contributor_id": "contributor_74",
+        "thumbnail": "https://example.com/avatar/74.jpg",
         "reviews": 3,
         "photos": 0
       },
@@ -520,10 +520,10 @@
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUQ1cnU3cm9RRRAB",
       "user": {
-        "name": "QUniverse",
-        "link": "https://www.google.com/maps/contrib/115455964242696548075?hl=en",
-        "contributor_id": "115455964242696548075",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVKZCUrP0L3xY450AkPFh7K4UJ0ssp_-NvRpv_lGRK9R4Kr2-YR=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 75",
+        "link": "https://example.com/contrib/75",
+        "contributor_id": "contributor_75",
+        "thumbnail": "https://example.com/avatar/75.jpg",
         "local_guide": true,
         "reviews": 24,
         "photos": 4
@@ -537,9 +537,9 @@
         "date": "2 years ago",
         "iso_date": "2023-10-30T09:16:45Z",
         "iso_date_of_last_edit": "2023-10-30T09:16:45Z",
-        "snippet": "Hi there QUniverse, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
+        "snippet": "Hi there Reviewer 75, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit.",
         "extracted_snippet": {
-          "original": "Hi there QUniverse, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
+          "original": "Hi there Reviewer 75, this is Erin with Gregorys Coffee. Thank you so much for your feedback. I’m truly sorry that the experience you had with us wasn’t what either of us had hoped. We know we can do better and would love to get another shot during a future visit."
         }
       }
     },
@@ -553,10 +553,10 @@
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNKM29EajlnRRAB",
       "user": {
-        "name": "Al Lugo",
-        "link": "https://www.google.com/maps/contrib/106934121559422252908?hl=en",
-        "contributor_id": "106934121559422252908",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjWFaY_CprfhMY7yUPN9sPIQPWY992MDUTGynznv-bA95iTDAPI=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 76",
+        "link": "https://example.com/contrib/76",
+        "contributor_id": "contributor_76",
+        "thumbnail": "https://example.com/avatar/76.jpg",
         "local_guide": true,
         "reviews": 64,
         "photos": 0
@@ -588,15 +588,15 @@
       "iso_date": "2023-08-03T10:55:32Z",
       "iso_date_of_last_edit": "2023-08-03T10:55:32Z",
       "images": [
-        "https://lh3.googleusercontent.com/grass-cs/AABkmLcmOaaeitSKEKiygSvjkQ2oZHK-uuMNVhIg33d72R-H4YmQWvAj7fiPfvcT0dJ4u7ZAGSZe6M_rkxlVvQF4WxqHFpk22dMFJCiEcwdDX2T1ZfqnbS8gpuKQ_zqGC4f3r5wJMg0=k-no"
+        "https://example.com/photo/77_0.jpg"
       ],
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNwdHRDd3ZBRRAB",
       "user": {
-        "name": "Chris Davies",
-        "link": "https://www.google.com/maps/contrib/101519076382271998984?hl=en",
-        "contributor_id": "101519076382271998984",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjVOuYAAS3ES0XlJBv9KMzbR2UEryFduPAzGyBWR54Er3U7bWWU=s120-c-rp-mo-br100",
+        "name": "Reviewer 77",
+        "link": "https://example.com/contrib/77",
+        "contributor_id": "contributor_77",
+        "thumbnail": "https://example.com/avatar/77.jpg",
         "reviews": 4,
         "photos": 1
       },
@@ -630,10 +630,10 @@
       "source": "Google",
       "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2taVlQzbHRUblJuV1VacldsTmhjRmhmV2xGTU5VRRAB",
       "user": {
-        "name": "Lucas sastre",
-        "link": "https://www.google.com/maps/contrib/118197594848873856912?hl=en",
-        "contributor_id": "118197594848873856912",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocI562cJexjIJ5JCvk0TBuj2_bTPGrRuIz0FhS9JXQxiF1XydA=s120-c-rp-mo-br100",
+        "name": "Reviewer 78",
+        "link": "https://example.com/contrib/78",
+        "contributor_id": "contributor_78",
+        "thumbnail": "https://example.com/avatar/78.jpg",
         "reviews": 3,
         "photos": 0
       },
@@ -668,10 +668,10 @@
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNoeFlfbWtRRRAB",
       "user": {
-        "name": "carew207",
-        "link": "https://www.google.com/maps/contrib/104538328593494233472?hl=en",
-        "contributor_id": "104538328593494233472",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocK1KSXjJaA8ApwUlzG74ZCjlwDEofea2_2g3aLvH2IFjsDS5A=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 79",
+        "link": "https://example.com/contrib/79",
+        "contributor_id": "contributor_79",
+        "thumbnail": "https://example.com/avatar/79.jpg",
         "local_guide": true,
         "reviews": 25,
         "photos": 2
@@ -706,10 +706,10 @@
       "source": "Google",
       "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNqc2ZTbm9RRRAB",
       "user": {
-        "name": "walkrunnnerr",
-        "link": "https://www.google.com/maps/contrib/102864178474153939889?hl=en",
-        "contributor_id": "102864178474153939889",
-        "thumbnail": "https://lh3.googleusercontent.com/a/ACg8ocLagqwKvZ-1C2y_QxnQzeNcdWPQVbKWAvAkkk78tYn4Q75K1Ls=s120-c-rp-mo-br100",
+        "name": "Reviewer 80",
+        "link": "https://example.com/contrib/80",
+        "contributor_id": "contributor_80",
+        "thumbnail": "https://example.com/avatar/80.jpg",
         "reviews": 7,
         "photos": 4
       },
@@ -746,10 +746,10 @@
       "source": "Google",
       "review_id": "ChZDSUhNMG9nS0VJQ0FnSUN4X1pMZ2RnEAE",
       "user": {
-        "name": "CG",
-        "link": "https://www.google.com/maps/contrib/101387026970532961193?hl=en",
-        "contributor_id": "101387026970532961193",
-        "thumbnail": "https://lh3.googleusercontent.com/a-/ALV-UjUD5CN1m7w5HNQpEOXoy7D9zilNb3K946bU1zukXp626hC0gG8=s120-c-rp-mo-ba12-br100",
+        "name": "Reviewer 81",
+        "link": "https://example.com/contrib/81",
+        "contributor_id": "contributor_81",
+        "thumbnail": "https://example.com/avatar/81.jpg",
         "local_guide": true,
         "reviews": 12,
         "photos": 6

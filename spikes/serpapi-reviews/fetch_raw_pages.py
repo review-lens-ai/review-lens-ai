@@ -8,7 +8,7 @@ Assumptions:
     scaled down to 2 pages per sort = 6 credits
   - one place, hl=en, num=20 after page 1, results may be cached up to 1 hour
   - pages stop early if SerpApi returns no next_page_token
-  - files contain real reviewer names; output/ is gitignored and must stay local
+  - files contain real reviewer names; run redact_output.py before committing output/
 
 Usage:
     SERPAPI_API_KEY=... python3 spikes/serpapi-reviews/fetch_raw_pages.py [data_id]
