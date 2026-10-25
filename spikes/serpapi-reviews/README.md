@@ -287,9 +287,19 @@ All need only `python3`. Output goes to `output/`, which is **committed** so the
 | [fetch_sample_reviews.py](fetch_sample_reviews.py) | `output/merged_sample.json`, **merged, not raw, not the end product**; its `_about` block lists the assumptions | 3 |
 
 ```bash
-SERPAPI_API_KEY=... python3 spikes/serpapi-reviews/fetch_raw_pages.py [data_id]
-python3 spikes/serpapi-reviews/map_to_reviews.py
+SERPAPI_API_KEY=... python3 spikes/serpapi-reviews/fetch_raw_pages.py [data_id] [output_dir]
+python3 spikes/serpapi-reviews/map_to_reviews.py [output_dir]
+python3 spikes/serpapi-reviews/redact_output.py [output_dir]
 ```
+
+`output_dir` defaults to `output/`. Two examples are committed:
+
+| Folder | Place | `data_id` | Fetched → unique → written |
+|---|---|---|---|
+| `output/` | Gregorys Coffee, 874 6th Ave, New York (1,518 reviews) | `0x89c259af336b3341:0xa4969e07ce3108de` | 90 → 81 → 73 |
+| `output-smashburger-newark/` | Smashburger, 156 Warren St, Newark (338 reviews) | `0x89c2537da9b3163d:0x2be30fcff506fec8` | 90 → 67 → 55 |
+
+`output-smashburger-newark/` has no `merged_sample.json`; it was only made for the first example.
 
 The canonical output is **one pair per target**, one file per table. Read them together:
 

@@ -1,0 +1,583 @@
+{
+  "search_metadata": {
+    "id": "6add60cf7f33ee52ac36cbd8",
+    "status": "Success",
+    "json_endpoint": "REDACTED",
+    "markdown_endpoint": "REDACTED",
+    "created_at": "2026-10-25 01:52:15 UTC",
+    "processed_at": "2026-10-25 01:52:15 UTC",
+    "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c2537da9b3163d:0x2be30fcff506fec8!5m2!4m1!1i2!9m1!1b1?hl=en",
+    "raw_html_file": "REDACTED",
+    "prettify_html_file": "REDACTED",
+    "total_time_taken": 1.11
+  },
+  "search_parameters": {
+    "engine": "google_maps_reviews",
+    "data_id": "0x89c2537da9b3163d:0x2be30fcff506fec8",
+    "hl": "en",
+    "next_page_token": "CjEIARIpCgoAP7_LDlFD____EhD54a95FMB2txnqakIAAAAAGgn92x4CYh_DEP4YACIA:10",
+    "num": "20",
+    "sort_by": "qualityScore"
+  },
+  "reviews": [
+    {
+      "position": 1,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VKU1I0ODJwNDl1SjdRRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEJSR482p49uJ7QE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-05-14T23:34:15Z",
+      "iso_date_of_last_edit": "2025-05-14T23:34:15Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VKU1I0ODJwNDl1SjdRRRAB",
+      "user": {
+        "name": "Reviewer 20",
+        "link": "https://example.com/contrib/20",
+        "contributor_id": "contributor_20",
+        "thumbnail": "https://example.com/avatar/20.jpg",
+        "reviews": 9,
+        "photos": 0
+      },
+      "snippet": "I went to this location for the first time today and I will say not only was the food prepared well and tasted delicious, but the MANAGER was soooo friendly and made everything was very accessible to me as I am in a wheelchair. He made sure everything was perfect with my order and kept checking to make sure I was okay and satisfied. I will definitely be coming back! Thank you :)",
+      "extracted_snippet": {
+        "original": "I went to this location for the first time today and I will say not only was the food prepared well and tasted delicious, but the MANAGER was soooo friendly and made everything was very accessible to me as I am in a wheelchair. He made sure everything was perfect with my order and kept checking to make sure I was okay and satisfied. I will definitely be coming back! Thank you :)"
+      },
+      "details": {
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommended_dishes": "Smash Fries, Classic Smash Burger",
+        "reservation": "Reservations not required",
+        "wait_time": "No wait"
+      },
+      "likes": 0
+    },
+    {
+      "position": 2,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURHM2NHdW5RRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDG3cGunQE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "4 years ago",
+      "iso_date": "2021-12-06T23:38:17Z",
+      "iso_date_of_last_edit": "2021-12-06T23:38:17Z",
+      "images": [
+        "https://example.com/photo/34_0.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURHM2NHdW5RRRAB",
+      "user": {
+        "name": "Reviewer 34",
+        "link": "https://example.com/contrib/34",
+        "contributor_id": "contributor_34",
+        "thumbnail": "https://example.com/avatar/34.jpg",
+        "reviews": 9,
+        "photos": 1
+      },
+      "snippet": "Worst smash burger I’ve been to, rude Custmer service and disgusting attitude, I got a milkshake that it’s 6$ I got half cup and when I asked I was told to save place for the whip cream and when I explained that I dont want whip cream I was told that I have to get it the same way as if I asked for one. Will never be back!",
+      "extracted_snippet": {
+        "original": "Worst smash burger I’ve been to, rude Custmer service and disgusting attitude, I got a milkshake that it’s 6$ I got half cup and when I asked I was told to save place for the whip cream and when I explained that I dont want whip cream I was told that I have to get it the same way as if I asked for one. Will never be back!"
+      },
+      "likes": 4,
+      "response": {
+        "date": "4 years ago",
+        "iso_date": "2021-12-12T19:18:02Z",
+        "iso_date_of_last_edit": "2021-12-12T19:18:02Z",
+        "snippet": "Mariam,\n\nThank you for bringing this to our attention. We take your service concern seriously. Please contact us at reviews@smashburger.com and recount your experience so we can look further into this.",
+        "extracted_snippet": {
+          "original": "Mariam,\n\nThank you for bringing this to our attention. We take your service concern seriously. Please contact us at reviews@smashburger.com and recount your experience so we can look further into this."
+        }
+      }
+    },
+    {
+      "position": 3,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xjeFUzRnlkR2d4WDJoUlFtUlRiRmhIU1dod01tYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOlcxU3FydGgxX2hRQmRTbFhHSWhwMmc%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "6 months ago",
+      "iso_date": "2026-04-23T17:13:30Z",
+      "iso_date_of_last_edit": "2026-04-23T17:13:30Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xjeFUzRnlkR2d4WDJoUlFtUlRiRmhIU1dod01tYxAB",
+      "user": {
+        "name": "Reviewer 06",
+        "link": "https://example.com/contrib/06",
+        "contributor_id": "contributor_06",
+        "thumbnail": "https://example.com/avatar/06.jpg",
+        "reviews": 12,
+        "photos": 0
+      },
+      "snippet": "Fantastic food, fantastic service, love the smash tots ❤️❤️❤️",
+      "extracted_snippet": {
+        "original": "Fantastic food, fantastic service, love the smash tots ❤️❤️❤️"
+      },
+      "details": {
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "group_size": "1 person, 2 people, 3-4 people",
+        "seating_type": "Indoor dining area, Counter seating"
+      },
+      "likes": 0
+    },
+    {
+      "position": 4,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNJMDhMQWxnRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICI08LAlgE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "7 years ago",
+      "iso_date": "2018-12-05T17:59:17Z",
+      "iso_date_of_last_edit": "2018-12-05T18:00:33Z",
+      "images": [
+        "https://example.com/photo/35_0.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNJMDhMQWxnRRAB",
+      "user": {
+        "name": "Reviewer 35",
+        "link": "https://example.com/contrib/35",
+        "contributor_id": "contributor_35",
+        "thumbnail": "https://example.com/avatar/35.jpg",
+        "local_guide": true,
+        "reviews": 81,
+        "photos": 116
+      },
+      "snippet": "Crispy Brussels are delicious! The NJ burger also pretty good. Everyone was very nice, service was quick. All in all a quick, good place to grab a burger.",
+      "extracted_snippet": {
+        "original": "Crispy Brussels are delicious! The NJ burger also pretty good. Everyone was very nice, service was quick. All in all a quick, good place to grab a burger."
+      },
+      "likes": 0
+    },
+    {
+      "position": 5,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNzODdEVzdBRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICs87DW7AE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "6 years ago",
+      "iso_date": "2020-02-13T21:28:47Z",
+      "iso_date_of_last_edit": "2020-02-13T21:28:47Z",
+      "images": [
+        "https://example.com/photo/36_0.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNzODdEVzdBRRAB",
+      "user": {
+        "name": "Reviewer 36",
+        "link": "https://example.com/contrib/36",
+        "contributor_id": "contributor_36",
+        "thumbnail": "https://example.com/avatar/36.jpg",
+        "local_guide": true,
+        "reviews": 179,
+        "photos": 105
+      },
+      "snippet": "It was really good i had the classic burger. Yummy",
+      "extracted_snippet": {
+        "original": "It was really good i had the classic burger. Yummy"
+      },
+      "likes": 0
+    },
+    {
+      "position": 6,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnTUNRX05HN0FREAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgMCQ_NG7AQ%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-03-03T04:31:58Z",
+      "iso_date_of_last_edit": "2025-03-03T04:31:58Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnTUNRX05HN0FREAE",
+      "user": {
+        "name": "Reviewer 27",
+        "link": "https://example.com/contrib/27",
+        "contributor_id": "contributor_27",
+        "thumbnail": "https://example.com/avatar/27.jpg",
+        "reviews": 3,
+        "photos": 3
+      },
+      "snippet": "Very expensive! I’ve never seen a chicken burger with fries cost $21. They’re taking advantage of their location, surrounded by students, to overcharge for food that shouldn’t be this expensive.",
+      "extracted_snippet": {
+        "original": "Very expensive! I’ve never seen a chicken burger with fries cost $21. They’re taking advantage of their location, surrounded by students, to overcharge for food that shouldn’t be this expensive."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 1
+    },
+    {
+      "position": 7,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNnczgtZVpnEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICgs8-eZg%7C%7C?hl=en",
+      "rating": 3.0,
+      "date": "8 years ago",
+      "iso_date": "2017-12-09T17:23:25Z",
+      "iso_date_of_last_edit": "2017-12-09T17:23:25Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNnczgtZVpnEAE",
+      "user": {
+        "name": "Reviewer 37",
+        "link": "https://example.com/contrib/37",
+        "contributor_id": "contributor_37",
+        "thumbnail": "https://example.com/avatar/37.jpg",
+        "reviews": 11,
+        "photos": 1
+      },
+      "snippet": "The food is good like any other Smash Burger location, but I'm dinging them for not accepting the coupons that I get from Smash in my email. There's a lot seating here so the place is spacious. The staff is relatively friendly and they get your food out fairly quickly.",
+      "extracted_snippet": {
+        "original": "The food is good like any other Smash Burger location, but I'm dinging them for not accepting the coupons that I get from Smash in my email. There's a lot seating here so the place is spacious. The staff is relatively friendly and they get your food out fairly quickly."
+      },
+      "likes": 0
+    },
+    {
+      "position": 8,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNBaFpETDl3RRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICAhZDL9wE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "Edited 6 years ago",
+      "iso_date": "2018-08-15T20:47:34Z",
+      "iso_date_of_last_edit": "2020-03-06T21:08:19Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNBaFpETDl3RRAB",
+      "user": {
+        "name": "Reviewer 38",
+        "link": "https://example.com/contrib/38",
+        "contributor_id": "contributor_38",
+        "thumbnail": "https://example.com/avatar/38.jpg",
+        "reviews": 8,
+        "photos": 0
+      },
+      "snippet": "I spend about $200 a month here and it's worth every penny. Everyone there is friendly and quick to attend a customer or ask if there's anything else they can do.  And of course, the burgers are delicious (though I only order the same thing and they know what my order is by this time). 10/10, would spend a chunk of my paycheck on them again.",
+      "extracted_snippet": {
+        "original": "I spend about $200 a month here and it's worth every penny. Everyone there is friendly and quick to attend a customer or ask if there's anything else they can do.  And of course, the burgers are delicious (though I only order the same thing and they know what my order is by this time). 10/10, would spend a chunk of my paycheck on them again."
+      },
+      "likes": 0
+    },
+    {
+      "position": 9,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNZMV9xT0tBEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICY1_qOKA%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "7 years ago",
+      "iso_date": "2019-04-23T18:48:31Z",
+      "iso_date_of_last_edit": "2019-04-23T18:48:31Z",
+      "images": [
+        "https://example.com/photo/39_0.jpg",
+        "https://example.com/photo/39_1.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNZMV9xT0tBEAE",
+      "user": {
+        "name": "Reviewer 39",
+        "link": "https://example.com/contrib/39",
+        "contributor_id": "contributor_39",
+        "thumbnail": "https://example.com/avatar/39.jpg",
+        "local_guide": true,
+        "reviews": 53,
+        "photos": 341
+      },
+      "snippet": "Amazing burgers and milk shake....salted caramel with whipped cream is ♥️",
+      "extracted_snippet": {
+        "original": "Amazing burgers and milk shake....salted caramel with whipped cream is ♥️"
+      },
+      "likes": 1
+    },
+    {
+      "position": 10,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNBaU5Ya0tnEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICAiNXkKg%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "Edited 7 years ago",
+      "iso_date": "2017-11-16T21:14:29Z",
+      "iso_date_of_last_edit": "2019-02-21T17:48:36Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNBaU5Ya0tnEAE",
+      "user": {
+        "name": "Reviewer 40",
+        "link": "https://example.com/contrib/40",
+        "contributor_id": "contributor_40",
+        "thumbnail": "https://example.com/avatar/40.jpg",
+        "reviews": 7,
+        "photos": 1
+      },
+      "snippet": "Every time I go here, I pay a lot of money and wait a long time for them to get my order wrong. The shakes are pretty good, but something is wrong with their take-out system.\n\nI ordered a large avocado bacon burger with no tomato today. Three times I was handed an order, twice the cook called them back and said no no that’s not hers. The third time the manager stepped in and packed the order for me. I was there long enough to get extra sauce and everything. All I ordered was a burger and I paid over $8 for them to get it wrong. Disappointing all around.",
+      "extracted_snippet": {
+        "original": "Every time I go here, I pay a lot of money and wait a long time for them to get my order wrong. The shakes are pretty good, but something is wrong with their take-out system.\n\nI ordered a large avocado bacon burger with no tomato today. Three times I was handed an order, twice the cook called them back and said no no that’s not hers. The third time the manager stepped in and packed the order for me. I was there long enough to get extra sauce and everything. All I ordered was a burger and I paid over $8 for them to get it wrong. Disappointing all around."
+      },
+      "likes": 2
+    },
+    {
+      "position": 11,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChRDSUhNMG9nS0VJQ0FnSUMxc0owZRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIC1sJ0e%7C%7C?hl=en",
+      "rating": 3.0,
+      "date": "2 years ago",
+      "iso_date": "2023-12-21T03:42:26Z",
+      "iso_date_of_last_edit": "2023-12-21T03:42:26Z",
+      "source": "Google",
+      "review_id": "ChRDSUhNMG9nS0VJQ0FnSUMxc0owZRAB",
+      "user": {
+        "name": "Reviewer 41",
+        "link": "https://example.com/contrib/41",
+        "contributor_id": "contributor_41",
+        "thumbnail": "https://example.com/avatar/41.jpg",
+        "reviews": 6,
+        "photos": 0
+      },
+      "snippet": "One of the females in the kitchen was very loud and obnoxious. When I was getting my food I heard her say “what she keep staring at me for”. The person that took my order was nice with helping me. However I won’t return to this specific location",
+      "extracted_snippet": {
+        "original": "One of the females in the kitchen was very loud and obnoxious. When I was getting my food I heard her say “what she keep staring at me for”. The person that took my order was nice with helping me. However I won’t return to this specific location"
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20",
+        "service": 2,
+        "atmosphere": 5
+      },
+      "likes": 0
+    },
+    {
+      "position": 12,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUQyd2F6ZS1BRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgID2waze-AE%7C%7C?hl=en",
+      "rating": 4.0,
+      "date": "4 years ago",
+      "iso_date": "2022-05-16T16:59:12Z",
+      "iso_date_of_last_edit": "2022-05-16T16:59:12Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUQyd2F6ZS1BRRAB",
+      "user": {
+        "name": "Reviewer 42",
+        "link": "https://example.com/contrib/42",
+        "contributor_id": "contributor_42",
+        "thumbnail": "https://example.com/avatar/42.jpg",
+        "local_guide": true,
+        "reviews": 25,
+        "photos": 4
+      },
+      "snippet": "I've had Smasburger and this place was off. After a really long wait, I expected the burger to be top notch, but it wasn't. The people in front of me were also waiting a while even after I got there. It wasn't particularly too busy even though I did go around lunch time. The staff were friendly. The soda machine was out of ice, and there was water on the floor around the machine. Don't expect this to be a quick grab and go type of place. Expect to spend at least 20-30 mins waiting for your order.",
+      "extracted_snippet": {
+        "original": "I've had Smasburger and this place was off. After a really long wait, I expected the burger to be top notch, but it wasn't. The people in front of me were also waiting a while even after I got there. It wasn't particularly too busy even though I did go around lunch time. The staff were friendly. The soda machine was out of ice, and there was water on the floor around the machine. Don't expect this to be a quick grab and go type of place. Expect to spend at least 20-30 mins waiting for your order."
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20"
+      },
+      "likes": 1
+    },
+    {
+      "position": 13,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURnamI2ODBnRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDgjb680gE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "8 years ago",
+      "iso_date": "2017-11-17T14:53:55Z",
+      "iso_date_of_last_edit": "2017-11-17T14:56:10Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURnamI2ODBnRRAB",
+      "user": {
+        "name": "Reviewer 43",
+        "link": "https://example.com/contrib/43",
+        "contributor_id": "contributor_43",
+        "thumbnail": "https://example.com/avatar/43.jpg",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "I am so psyched that Smashburger came to this campus!  I had tried the restaurant once before in a distant NJ location and was pleased to see all the menu options.  The shakes are fantabulous. I ran into a mob scene my first time, around 1pm, and service was still exceptional for a fast food restaurant.  Next time, I'll go at 11am for lunch.  I hope they make online ordering available soon.",
+      "extracted_snippet": {
+        "original": "I am so psyched that Smashburger came to this campus!  I had tried the restaurant once before in a distant NJ location and was pleased to see all the menu options.  The shakes are fantabulous. I ran into a mob scene my first time, around 1pm, and service was still exceptional for a fast food restaurant.  Next time, I'll go at 11am for lunch.  I hope they make online ordering available soon."
+      },
+      "likes": 2
+    },
+    {
+      "position": 14,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURWaWNXcE5REAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDVicWpNQ%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "2 years ago",
+      "iso_date": "2023-12-13T19:06:36Z",
+      "iso_date_of_last_edit": "2023-12-13T19:14:39Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSURWaWNXcE5REAE",
+      "user": {
+        "name": "Reviewer 44",
+        "link": "https://example.com/contrib/44",
+        "contributor_id": "contributor_44",
+        "thumbnail": "https://example.com/avatar/44.jpg",
+        "local_guide": true,
+        "reviews": 31,
+        "photos": 1
+      },
+      "snippet": "Best smashburger location I ever been too. Food cooked to order.  Nothing left around then given to you.  Everything was fresh. The whole staff was amazing, nice and communicated efficiently.",
+      "extracted_snippet": {
+        "original": "Best smashburger location I ever been too. Food cooked to order.  Nothing left around then given to you.  Everything was fresh. The whole staff was amazing, nice and communicated efficiently."
+      },
+      "details": {
+        "order_type": "Take out",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "likes": 0
+    },
+    {
+      "position": 15,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNJanF2Ymp3RRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICIjqvbjwE%7C%7C?hl=en",
+      "rating": 4.0,
+      "date": "7 years ago",
+      "iso_date": "2018-11-15T02:59:35Z",
+      "iso_date_of_last_edit": "2018-11-15T03:00:43Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNJanF2Ymp3RRAB",
+      "user": {
+        "name": "Reviewer 45",
+        "link": "https://example.com/contrib/45",
+        "contributor_id": "contributor_45",
+        "thumbnail": "https://example.com/avatar/45.jpg",
+        "local_guide": true,
+        "reviews": 34,
+        "photos": 12
+      },
+      "snippet": "Good food and good service! the food isn't the cheapest, but it's good! Since they are part of the campus dining services they do take NJIT cards, but not smash gift cards for some reason. The milkshakes are great for stress eating!",
+      "extracted_snippet": {
+        "original": "Good food and good service! the food isn't the cheapest, but it's good! Since they are part of the campus dining services they do take NJIT cards, but not smash gift cards for some reason. The milkshakes are great for stress eating!"
+      },
+      "likes": 0
+    },
+    {
+      "position": 16,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25kTmFqZE9hbkpDVVZFd09HSjBaSHB5TUdOcVQyYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOndNajdOanJCUVEwOGJ0ZHpyMGNqT2c%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-10-05T13:28:37Z",
+      "iso_date_of_last_edit": "2025-10-05T13:28:37Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25kTmFqZE9hbkpDVVZFd09HSjBaSHB5TUdOcVQyYxAB",
+      "user": {
+        "name": "Reviewer 16",
+        "link": "https://example.com/contrib/16",
+        "contributor_id": "contributor_16",
+        "thumbnail": "https://example.com/avatar/16.jpg",
+        "local_guide": true,
+        "reviews": 52,
+        "photos": 19
+      },
+      "snippet": "The food is hot so be careful. The store manager is very helpful and willing to fix any issues.",
+      "extracted_snippet": {
+        "original": "The food is hot so be careful. The store manager is very helpful and willing to fix any issues."
+      },
+      "details": {
+        "order_type": "Dine in",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "noise_level": "Quiet, easy to talk",
+        "group_size": "Suitable for all group sizes"
+      },
+      "likes": 0
+    },
+    {
+      "position": 17,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNaaHZUcHdRRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICZhvTpwQE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "Edited a year ago",
+      "iso_date": "2023-09-09T08:52:43Z",
+      "iso_date_of_last_edit": "2025-09-11T17:39:34Z",
+      "images": [
+        "https://example.com/photo/19_0.jpg",
+        "https://example.com/photo/19_1.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNaaHZUcHdRRRAB",
+      "user": {
+        "name": "Reviewer 19",
+        "link": "https://example.com/contrib/19",
+        "contributor_id": "contributor_19",
+        "thumbnail": "https://example.com/avatar/19.jpg",
+        "local_guide": true,
+        "reviews": 104,
+        "photos": 882
+      },
+      "snippet": "The best casual dining at NJIT!! The staff are wonderful as well! TANAYA, Aneesha, and the GM Laron are exceptionally nice and professional. The grill operator Roland creates visually appealing and delicious food😇🙂🙂🙂",
+      "extracted_snippet": {
+        "original": "The best casual dining at NJIT!! The staff are wonderful as well! TANAYA, Aneesha, and the GM Laron are exceptionally nice and professional. The grill operator Roland creates visually appealing and delicious food😇🙂🙂🙂"
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommended_dishes": "Classic Smash Burger"
+      },
+      "likes": 0
+    },
+    {
+      "position": 18,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURBc0ozbmhnRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDAsJ3nhgE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "8 years ago",
+      "iso_date": "2017-11-16T20:20:53Z",
+      "iso_date_of_last_edit": "2017-11-16T20:22:57Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURBc0ozbmhnRRAB",
+      "user": {
+        "name": "Reviewer 46",
+        "link": "https://example.com/contrib/46",
+        "contributor_id": "contributor_46",
+        "thumbnail": "https://example.com/avatar/46.jpg",
+        "reviews": 13,
+        "photos": 0
+      },
+      "snippet": "these lower reviews need to take a chill pill. This place just opened a week ago on a freaking college campus where the students wanted this restaurant to be there of course its going to get packed especially if you go from 1-8 on most days. The food was great and the service was fair for being recently opened",
+      "extracted_snippet": {
+        "original": "these lower reviews need to take a chill pill. This place just opened a week ago on a freaking college campus where the students wanted this restaurant to be there of course its going to get packed especially if you go from 1-8 on most days. The food was great and the service was fair for being recently opened"
+      },
+      "likes": 5
+    },
+    {
+      "position": 19,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURROXItRlB3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDQ9r-FPw%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "8 years ago",
+      "iso_date": "2018-07-15T01:17:48Z",
+      "iso_date_of_last_edit": "2018-07-15T01:19:24Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSURROXItRlB3EAE",
+      "user": {
+        "name": "Reviewer 47",
+        "link": "https://example.com/contrib/47",
+        "contributor_id": "contributor_47",
+        "thumbnail": "https://example.com/avatar/47.jpg",
+        "local_guide": true,
+        "reviews": 115,
+        "photos": 126
+      },
+      "snippet": "Great place.  Had the burger with truffle, mushrooms, and swiss. It was fantastic(although a bit too salty) and the service was some of the best I've ever seen! Wish I had a picture to share. Wanted to go back for dinner that same day for the same burger. Enjoy!",
+      "extracted_snippet": {
+        "original": "Great place.  Had the burger with truffle, mushrooms, and swiss. It was fantastic(although a bit too salty) and the service was some of the best I've ever seen! Wish I had a picture to share. Wanted to go back for dinner that same day for the same burger. Enjoy!"
+      },
+      "likes": 1
+    },
+    {
+      "position": 20,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNZMFlXUWp3RRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICY0YWQjwE%7C%7C?hl=en",
+      "rating": 3.0,
+      "date": "7 years ago",
+      "iso_date": "2019-04-13T15:13:10Z",
+      "iso_date_of_last_edit": "2019-04-13T15:13:10Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNZMFlXUWp3RRAB",
+      "user": {
+        "name": "Reviewer 48",
+        "link": "https://example.com/contrib/48",
+        "contributor_id": "contributor_48",
+        "thumbnail": "https://example.com/avatar/48.jpg",
+        "local_guide": true,
+        "reviews": 22,
+        "photos": 1
+      },
+      "snippet": "The food is alright. It's about standard for a burger joint. However, it's pretty pricey for its mediocrity. Being on a college campus, I think pricey restaurants like this are taking advantage of the students in the area. It's okay if you've got money to burn, but I wouldn't recommend it if you're strapped for cash.",
+      "extracted_snippet": {
+        "original": "The food is alright. It's about standard for a burger joint. However, it's pretty pricey for its mediocrity. Being on a college campus, I think pricey restaurants like this are taking advantage of the students in the area. It's okay if you've got money to burn, but I wouldn't recommend it if you're strapped for cash."
+      },
+      "likes": 0
+    }
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?data_id=0x89c2537da9b3163d%3A0x2be30fcff506fec8&engine=google_maps_reviews&hl=en&next_page_token=CjEIARIpCgoAP7_LKM-0____EhA6ymhr1j-zZPpmpV8AAAAAGgn93ykClei9k88YACIA%3A30&num=20&sort_by=qualityScore",
+    "next_page_token": "CjEIARIpCgoAP7_LKM-0____EhA6ymhr1j-zZPpmpV8AAAAAGgn93ykClei9k88YACIA:30"
+  }
+}

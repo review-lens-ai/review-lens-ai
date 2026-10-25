@@ -11,8 +11,8 @@ Assumptions:
   - files contain real reviewer names; run redact_output.py before committing output/
 
 Usage:
-    SERPAPI_API_KEY=... python3 spikes/serpapi-reviews/fetch_raw_pages.py [data_id]
-Writes:
+    SERPAPI_API_KEY=... python3 spikes/serpapi-reviews/fetch_raw_pages.py [data_id] [output_dir]
+Writes (output_dir defaults to output/):
     output/raw/<sort_by>/page_<n>.json   untouched response bodies
     output/raw/manifest.json             how each page was requested (no key)
 """
@@ -25,10 +25,10 @@ from pathlib import Path
 from serpapi_client import DEFAULT_DATA_ID, build_params, fetch_page, get_api_key, next_token
 
 SORT_PLAN = {"ratingLow": 2, "newestFirst": 2, "qualityScore": 2}
-RAW_DIR = Path(__file__).resolve().parent / "output" / "raw"
+HERE = Path(__file__).resolve().parent
 
 
-def fetch_sort(data_id, sort_by, max_pages, api_key):
+def fetch_sort(data_id, sort_by, max_pages, api_key, raw_dir):
     """Page through one sort order. Returns one manifest entry per saved page."""
     entries = []
     token = None
@@ -37,13 +37,13 @@ def fetch_sort(data_id, sort_by, max_pages, api_key):
         params = build_params(data_id, sort_by, token)
         raw, page = fetch_page(params, api_key)
 
-        path = RAW_DIR / sort_by / f"page_{page_number}.json"
+        path = raw_dir / sort_by / f"page_{page_number}.json"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(raw)
 
         next_page_token = next_token(page)
         entries.append({
-            "file": str(path.relative_to(RAW_DIR)),
+            "file": str(path.relative_to(raw_dir)),
             "sort_by": sort_by,
             "page": page_number,
             "request_params": params,
@@ -65,13 +65,14 @@ def fetch_sort(data_id, sort_by, max_pages, api_key):
 def main():
     api_key = get_api_key()
     data_id = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_DATA_ID
+    raw_dir = HERE / (sys.argv[2] if len(sys.argv) > 2 else "output") / "raw"
 
     manifest = []
     for sort_by, max_pages in SORT_PLAN.items():
-        manifest += fetch_sort(data_id, sort_by, max_pages, api_key)
+        manifest += fetch_sort(data_id, sort_by, max_pages, api_key, raw_dir)
 
-    (RAW_DIR / "manifest.json").write_text(json.dumps(manifest, indent=2))
-    print(f"wrote {len(manifest)} raw pages -> {RAW_DIR}")
+    (raw_dir / "manifest.json").write_text(json.dumps(manifest, indent=2))
+    print(f"wrote {len(manifest)} raw pages -> {raw_dir}")
 
 
 if __name__ == "__main__":

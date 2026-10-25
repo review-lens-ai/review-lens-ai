@@ -1,0 +1,375 @@
+{
+  "search_metadata": {
+    "id": "6add60cd45a66a0e2fc26a0c",
+    "status": "Success",
+    "json_endpoint": "REDACTED",
+    "markdown_endpoint": "REDACTED",
+    "created_at": "2026-10-25 01:52:13 UTC",
+    "processed_at": "2026-10-25 01:52:13 UTC",
+    "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c2537da9b3163d:0x2be30fcff506fec8!5m2!4m1!1i2!9m1!1b1?hl=en",
+    "raw_html_file": "REDACTED",
+    "prettify_html_file": "REDACTED",
+    "total_time_taken": 1.88
+  },
+  "search_parameters": {
+    "engine": "google_maps_reviews",
+    "data_id": "0x89c2537da9b3163d:0x2be30fcff506fec8",
+    "hl": "en",
+    "sort_by": "qualityScore"
+  },
+  "place_info": {
+    "title": "Smashburger",
+    "address": "156 Warren St, Newark, NJ 07103",
+    "rating": 3.9,
+    "reviews": 338,
+    "type": "Hamburger restaurant"
+  },
+  "topics": [
+    {
+      "keyword": "sweet potato fries",
+      "mentions": 4,
+      "id": "AAVQg3rnbHM"
+    },
+    {
+      "keyword": "shakes",
+      "mentions": 12,
+      "id": "JHIMCrFrc2c"
+    },
+    {
+      "keyword": "app ordering",
+      "mentions": 2,
+      "id": "E1QI1aZoHtE"
+    },
+    {
+      "keyword": "friendly manager",
+      "mentions": 10,
+      "id": "BOZHPj9NgrY"
+    },
+    {
+      "keyword": "truffle",
+      "mentions": 2,
+      "id": "A7SyW6EG1Fc"
+    },
+    {
+      "keyword": "coupons",
+      "mentions": 3,
+      "id": "Qb5dS_wfmFc"
+    },
+    {
+      "keyword": "campus",
+      "mentions": 10,
+      "id": "SlFoPNJduaY"
+    },
+    {
+      "keyword": "fresh food",
+      "mentions": 2,
+      "id": "DPyThL0oDHU"
+    },
+    {
+      "keyword": "cleanliness",
+      "mentions": 4,
+      "id": "WtXhzhVYpO4"
+    },
+    {
+      "keyword": "bean",
+      "mentions": 3,
+      "id": "Ag6LI3VcY2U"
+    }
+  ],
+  "reviews": [
+    {
+      "position": 1,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pRMWJXUkpSVlpqUVdweWJscDZNWFV0ZFdaT09WRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOjQ1bWRJRVZjQWpyblp6MXUtdWZOOVE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "6 months ago",
+      "iso_date": "2026-04-02T15:02:46Z",
+      "iso_date_of_last_edit": "2026-04-02T15:02:46Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pRMWJXUkpSVlpqUVdweWJscDZNWFV0ZFdaT09WRRAB",
+      "user": {
+        "name": "Reviewer 08",
+        "link": "https://example.com/contrib/08",
+        "contributor_id": "contributor_08",
+        "thumbnail": "https://example.com/avatar/08.jpg",
+        "reviews": 1,
+        "photos": 0
+      },
+      "snippet": "The staff should not feel this comfortable being so aggressive and disrespectful toward customers. It’s genuinely concerning, and frankly unacceptable. It’s hard to understand how this behavior has been allowed to continue without intervention from NJIT or Gourmet Dining. Something needs to change.",
+      "extracted_snippet": {
+        "original": "The staff should not feel this comfortable being so aggressive and disrespectful toward customers. It’s genuinely concerning, and frankly unacceptable. It’s hard to understand how this behavior has been allowed to continue without intervention from NJIT or Gourmet Dining. Something needs to change."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 2,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNQX3ZTZGtnRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICP_vSdkgE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2024-11-24T22:58:57Z",
+      "iso_date_of_last_edit": "2024-11-24T22:58:57Z",
+      "images": [
+        "https://example.com/photo/31_0.jpg",
+        "https://example.com/photo/31_1.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNQX3ZTZGtnRRAB",
+      "user": {
+        "name": "Reviewer 31",
+        "link": "https://example.com/contrib/31",
+        "contributor_id": "contributor_31",
+        "thumbnail": "https://example.com/avatar/31.jpg",
+        "local_guide": true,
+        "reviews": 26,
+        "photos": 30
+      },
+      "snippet": "I love the Oreo milkshake it's only $6. The store's always clean and the workers are quick and communicate well when I place my orders. I really miss the Mac and Cheese burgers PLEASE BRING THEM BACK THEY WERE SO GOOD :(",
+      "extracted_snippet": {
+        "original": "I love the Oreo milkshake it's only $6. The store's always clean and the workers are quick and communicate well when I place my orders. I really miss the Mac and Cheese burgers PLEASE BRING THEM BACK THEY WERE SO GOOD :("
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Dinner",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommended_dishes": "Oreo"
+      },
+      "likes": 1
+    },
+    {
+      "position": 3,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT201WFJVUlpWbGxDYmw5R1dsZzROVWx2WlVsdVluYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOm5XRURZVllCbl9GWlg4NUlvZUluYnc%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "10 months ago",
+      "iso_date": "2025-12-01T18:28:13Z",
+      "iso_date_of_last_edit": "2025-12-01T18:51:09Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT201WFJVUlpWbGxDYmw5R1dsZzROVWx2WlVsdVluYxAB",
+      "user": {
+        "name": "Reviewer 15",
+        "link": "https://example.com/contrib/15",
+        "contributor_id": "contributor_15",
+        "thumbnail": "https://example.com/avatar/15.jpg",
+        "reviews": 10,
+        "photos": 0
+      },
+      "snippet": "Pretty good until the fountain drink CO2 needs to be changed. They seem to be slow on purpose when guests let them know. It’s probably just me, but I wanted to comment to see if others experience the same thing.  On top of the fountain machine issue, my food was subpar in comparison to usual. Regardless, it’s pretty good most days. Today it was a bad experience.",
+      "extracted_snippet": {
+        "original": "Pretty good until the fountain drink CO2 needs to be changed. They seem to be slow on purpose when guests let them know. It’s probably just me, but I wanted to comment to see if others experience the same thing.  On top of the fountain machine issue, my food was subpar in comparison to usual. Regardless, it’s pretty good most days. Today it was a bad experience."
+      },
+      "likes": 0
+    },
+    {
+      "position": 4,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25oNVVXcEdSazR4UTNweWFqWnhXa2d4YXpCVWQyYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOnh5UWpGRk4xQ3pyajZxWkgxazBUd2c%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "9 months ago",
+      "iso_date": "2026-01-18T22:06:38Z",
+      "iso_date_of_last_edit": "2026-01-18T22:06:38Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25oNVVXcEdSazR4UTNweWFqWnhXa2d4YXpCVWQyYxAB",
+      "user": {
+        "name": "Reviewer 12",
+        "link": "https://example.com/contrib/12",
+        "contributor_id": "contributor_12",
+        "thumbnail": "https://example.com/avatar/12.jpg",
+        "local_guide": true,
+        "reviews": 66,
+        "photos": 6
+      },
+      "snippet": "Great location.\n\nOrdered on the app and and the time being ready was correct.\n\nThe staff was friendly.\n\nExcellent burger and price is better than any fast food burger.\n\nTons of options for toppings.",
+      "extracted_snippet": {
+        "original": "Great location.\n\nOrdered on the app and and the time being ready was correct.\n\nThe staff was friendly.\n\nExcellent burger and price is better than any fast food burger.\n\nTons of options for toppings."
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$1–10",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "likes": 0
+    },
+    {
+      "position": 5,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURXdGRlRFd3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDWtdeDWw%7C%7C?hl=en",
+      "rating": 4.0,
+      "date": "Edited 4 years ago",
+      "iso_date": "2022-03-30T23:52:21Z",
+      "iso_date_of_last_edit": "2022-10-12T17:35:38Z",
+      "images": [
+        "https://example.com/photo/32_0.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSURXdGRlRFd3EAE",
+      "user": {
+        "name": "Reviewer 32",
+        "link": "https://example.com/contrib/32",
+        "contributor_id": "contributor_32",
+        "thumbnail": "https://example.com/avatar/32.jpg",
+        "local_guide": true,
+        "reviews": 47,
+        "photos": 63
+      },
+      "snippet": "I’m Re-reviewing this location for a 3rd time giving the store back 3 more stars because the female manager today was kind, polite & understanding why my order was messed up. She deserves a few stars because she noticed this is an ongoing issue with staff and student ordering on the mobile app. Please make sure to stress u don’t want any sauce or mayo. And if u do- it’s very Heavy.\nWe Thank you!! 😊\n**Side Note: the location being closed entirely on Saturdays & Sundays is definitely hurting the business. Most weekends, students look elsewhere for something different then campus food after a long week. Professors and community members alike. Maybe the hours can be looked into? Especially when summer comes along & many students stay Newark residents all year. Thanks :)",
+      "extracted_snippet": {
+        "original": "I’m Re-reviewing this location for a 3rd time giving the store back 3 more stars because the female manager today was kind, polite & understanding why my order was messed up. She deserves a few stars because she noticed this is an ongoing issue with staff and student ordering on the mobile app. Please make sure to stress u don’t want any sauce or mayo. And if u do- it’s very Heavy.\nWe Thank you!! 😊\n**Side Note: the location being closed entirely on Saturdays & Sundays is definitely hurting the business. Most weekends, students look elsewhere for something different then campus food after a long week. Professors and community members alike. Maybe the hours can be looked into? Especially when summer comes along & many students stay Newark residents all year. Thanks :)"
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20"
+      },
+      "likes": 1
+    },
+    {
+      "position": 6,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURRaHNiWXVnRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDQhsbYugE%7C%7C?hl=en",
+      "rating": 3.0,
+      "date": "8 years ago",
+      "iso_date": "2017-11-17T20:31:41Z",
+      "iso_date_of_last_edit": "2017-11-17T20:50:50Z",
+      "images": [
+        "https://example.com/photo/33_0.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURRaHNiWXVnRRAB",
+      "user": {
+        "name": "Reviewer 33",
+        "link": "https://example.com/contrib/33",
+        "contributor_id": "contributor_33",
+        "thumbnail": "https://example.com/avatar/33.jpg",
+        "local_guide": true,
+        "reviews": 15,
+        "photos": 7
+      },
+      "snippet": "It probably designed for the future when less people come here because it literally has only one register and maybe one cook to handle all the people came for opening week. But it’s confusing that they have ads all over the place prompt you to download their app to get discount while the register girl told me they don’t take coupons from their app. So the app is useless here. Nothing can be redeemed and no point will be earned. The service are better compared to other traditional fast food chain. Most people love their burgers but I find the avocado in mine is not the best quality.",
+      "extracted_snippet": {
+        "original": "It probably designed for the future when less people come here because it literally has only one register and maybe one cook to handle all the people came for opening week. But it’s confusing that they have ads all over the place prompt you to download their app to get discount while the register girl told me they don’t take coupons from their app. So the app is useless here. Nothing can be redeemed and no point will be earned. The service are better compared to other traditional fast food chain. Most people love their burgers but I find the avocado in mine is not the best quality."
+      },
+      "likes": 1
+    },
+    {
+      "position": 7,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21zNVN6aEVOV2QzZGtOcVJWUkJWa1pwYnpaMFkzYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOms5SzhENWd3dkNqRVRBVkZpbzZ0Y3c%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 months ago",
+      "iso_date": "2026-02-05T18:00:33Z",
+      "iso_date_of_last_edit": "2026-02-05T18:00:33Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21zNVN6aEVOV2QzZGtOcVJWUkJWa1pwYnpaMFkzYxAB",
+      "user": {
+        "name": "Reviewer 11",
+        "link": "https://example.com/contrib/11",
+        "contributor_id": "contributor_11",
+        "thumbnail": "https://example.com/avatar/11.jpg",
+        "reviews": 9,
+        "photos": 1
+      },
+      "snippet": "I walk up to order and the manager immediately gives me attitude for not hearing “for here or to go” so he cuts me off and asks again. So I responded with the same level of volume and he immediately threatens to not take my order and an argument ensues. Tells me to “step aside” for a “conversation” so I laugh and he proceeds to kick me out and call public safety. Outrageous gaul on this man.",
+      "extracted_snippet": {
+        "original": "I walk up to order and the manager immediately gives me attitude for not hearing “for here or to go” so he cuts me off and asks again. So I responded with the same level of volume and he immediately threatens to not take my order and an argument ensues. Tells me to “step aside” for a “conversation” so I laugh and he proceeds to kick me out and call public safety. Outrageous gaul on this man."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 8,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2sxRFgyZFNSRVZsUlhsUlowODBOM3AzVFY5blRrRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOk1DX2dSREVlRXlRZ080N3p3TV9nTkE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "10 months ago",
+      "iso_date": "2025-12-19T20:00:18Z",
+      "iso_date_of_last_edit": "2025-12-19T20:00:18Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2sxRFgyZFNSRVZsUlhsUlowODBOM3AzVFY5blRrRRAB",
+      "user": {
+        "name": "Reviewer 14",
+        "link": "https://example.com/contrib/14",
+        "contributor_id": "contributor_14",
+        "thumbnail": "https://example.com/avatar/14.jpg",
+        "reviews": 2,
+        "photos": 0
+      },
+      "snippet": "Worst place around ever, all of them are rude and not helpful at all. Literally all of them are acting like they are doing a favor to the customer. They took over 20 minutes for a burger while the place was empty, they didn’t have any shakes (or at least that’s what the people in the front said) and when asked what took too long to cook the guy talked shit back with explicit words “ You are crazy” I eat on smash all over Jersey and New York and never had trouble or such a bad experience as I did with these guys.",
+      "extracted_snippet": {
+        "original": "Worst place around ever, all of them are rude and not helpful at all. Literally all of them are acting like they are doing a favor to the customer. They took over 20 minutes for a burger while the place was empty, they didn’t have any shakes (or at least that’s what the people in the front said) and when asked what took too long to cook the guy talked shit back with explicit words “ You are crazy” I eat on smash all over Jersey and New York and never had trouble or such a bad experience as I did with these guys."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 9,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2pod2FqUnJaVjlSYW1kTFdVeG9OR0ZyVlZCa1owRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOjhwajRrZV9RamdLWUxoNGFrVVBkZ0E%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 months ago",
+      "iso_date": "2026-02-26T23:39:22Z",
+      "iso_date_of_last_edit": "2026-02-26T23:39:22Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2pod2FqUnJaVjlSYW1kTFdVeG9OR0ZyVlZCa1owRRAB",
+      "user": {
+        "name": "Reviewer 10",
+        "link": "https://example.com/contrib/10",
+        "contributor_id": "contributor_10",
+        "thumbnail": "https://example.com/avatar/10.jpg",
+        "reviews": 6,
+        "photos": 0
+      },
+      "snippet": "Absolutely disgusting in terms of wait time\nEnded up late to class after spending 50 minutes waiting for my food. Do not come here, seriously.",
+      "extracted_snippet": {
+        "original": "Absolutely disgusting in terms of wait time\nEnded up late to class after spending 50 minutes waiting for my food. Do not come here, seriously."
+      },
+      "details": {
+        "order_type": "Dine in",
+        "price_per_person": "$10–20",
+        "service": 1,
+        "wait_time": "30-60 min"
+      },
+      "likes": 0
+    },
+    {
+      "position": 10,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2tsQ1gzcFhZbFZPUjBrNGJUVmxWa1YyVGxwMVgyYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOklCX3pXYlVOR0k4bTVlVkV2Tlp1X2c%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "5 months ago",
+      "iso_date": "2026-04-30T21:13:02Z",
+      "iso_date_of_last_edit": "2026-04-30T21:13:02Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2tsQ1gzcFhZbFZPUjBrNGJUVmxWa1YyVGxwMVgyYxAB",
+      "user": {
+        "name": "Reviewer 05",
+        "link": "https://example.com/contrib/05",
+        "contributor_id": "contributor_05",
+        "thumbnail": "https://example.com/avatar/05.jpg",
+        "reviews": 1,
+        "photos": 0
+      },
+      "snippet": "I don’t usually leave reviews but the staff were not friendly at all and their attitude was so aggressive. Very unprofessional",
+      "extracted_snippet": {
+        "original": "I don’t usually leave reviews but the staff were not friendly at all and their attitude was so aggressive. Very unprofessional"
+      },
+      "details": {
+        "service": 1
+      },
+      "likes": 0
+    }
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?data_id=0x89c2537da9b3163d%3A0x2be30fcff506fec8&engine=google_maps_reviews&hl=en&next_page_token=CjEIARIpCgoAP7_LDlFD____EhD54a95FMB2txnqakIAAAAAGgn92x4CYh_DEP4YACIA%3A10&sort_by=qualityScore",
+    "next_page_token": "CjEIARIpCgoAP7_LDlFD____EhD54a95FMB2txnqakIAAAAAGgn92x4CYh_DEP4YACIA:10"
+  }
+}

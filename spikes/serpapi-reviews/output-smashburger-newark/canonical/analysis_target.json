@@ -1,0 +1,66 @@
+{
+  "id": "example-target-id",
+  "name": "example name entered by user",
+  "platform": "google_maps",
+  "source_ref": "0x89c2537da9b3163d:0x2be30fcff506fec8",
+  "source_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c2537da9b3163d:0x2be30fcff506fec8!5m2!4m1!1i2!9m1!1b1?hl=en",
+  "source_metadata": {
+    "provider_name": "Smashburger",
+    "address": "156 Warren St, Newark, NJ 07103",
+    "category": "Hamburger restaurant",
+    "provider_rating": 3.9,
+    "provider_review_count": 338,
+    "topics": [
+      {
+        "keyword": "sweet potato fries",
+        "mentions": 4,
+        "id": "AAVQg3rnbHM"
+      },
+      {
+        "keyword": "shakes",
+        "mentions": 12,
+        "id": "JHIMCrFrc2c"
+      },
+      {
+        "keyword": "app ordering",
+        "mentions": 2,
+        "id": "E1QI1aZoHtE"
+      },
+      {
+        "keyword": "friendly manager",
+        "mentions": 10,
+        "id": "BOZHPj9NgrY"
+      },
+      {
+        "keyword": "truffle",
+        "mentions": 2,
+        "id": "A7SyW6EG1Fc"
+      },
+      {
+        "keyword": "coupons",
+        "mentions": 3,
+        "id": "Qb5dS_wfmFc"
+      },
+      {
+        "keyword": "campus",
+        "mentions": 10,
+        "id": "SlFoPNJduaY"
+      },
+      {
+        "keyword": "fresh food",
+        "mentions": 2,
+        "id": "DPyThL0oDHU"
+      },
+      {
+        "keyword": "cleanliness",
+        "mentions": 4,
+        "id": "WtXhzhVYpO4"
+      },
+      {
+        "keyword": "bean",
+        "mentions": 3,
+        "id": "Ag6LI3VcY2U"
+      }
+    ]
+  }
+}

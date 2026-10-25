@@ -1,0 +1,519 @@
+{
+  "search_metadata": {
+    "id": "6add60c8539381323f68f057",
+    "status": "Success",
+    "json_endpoint": "REDACTED",
+    "markdown_endpoint": "REDACTED",
+    "created_at": "2026-10-25 01:52:08 UTC",
+    "processed_at": "2026-10-25 01:52:08 UTC",
+    "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c2537da9b3163d:0x2be30fcff506fec8!5m2!4m1!1i2!9m1!1b1?hl=en",
+    "raw_html_file": "REDACTED",
+    "prettify_html_file": "REDACTED",
+    "total_time_taken": 0.67
+  },
+  "search_parameters": {
+    "engine": "google_maps_reviews",
+    "data_id": "0x89c2537da9b3163d:0x2be30fcff506fec8",
+    "hl": "en",
+    "next_page_token": "CjEIARIpCgoAP7-mykCMv___EhCTeV3hhiVhbG59zmwAAAAAGgn93zECnUUP4LoYACIA:10",
+    "num": "20",
+    "sort_by": "ratingLow"
+  },
+  "reviews": [
+    {
+      "position": 1,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNJcnZLSURnEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICIrvKIDg%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 years ago",
+      "iso_date": "2018-11-15T17:36:59Z",
+      "iso_date_of_last_edit": "2018-11-15T17:36:59Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNJcnZLSURnEAE",
+      "user": {
+        "name": "Reviewer 50",
+        "link": "https://example.com/contrib/50",
+        "contributor_id": "contributor_50",
+        "thumbnail": "https://example.com/avatar/50.jpg",
+        "local_guide": true,
+        "reviews": 46,
+        "photos": 23
+      },
+      "snippet": "Shonique was rude. I asked if I could use a reward I obtained from the smashburger app, and she said no which is fine, but proceeds to tell me that the cheapest burger they have is the classic smash. Assuming a customer will not want other (more expensive) options when unable to use a reward is extremely rude.  I then proceed to stand in an open space to which she calls me back and tell me that I am obstructing the way for the other employee to walk pass. That's something someone else could have told me when they needed me to move. I plan on not coming to this store again. Also, a cup for water is $2.29, because they also charge for tap.",
+      "extracted_snippet": {
+        "original": "Shonique was rude. I asked if I could use a reward I obtained from the smashburger app, and she said no which is fine, but proceeds to tell me that the cheapest burger they have is the classic smash. Assuming a customer will not want other (more expensive) options when unable to use a reward is extremely rude.  I then proceed to stand in an open space to which she calls me back and tell me that I am obstructing the way for the other employee to walk pass. That's something someone else could have told me when they needed me to move. I plan on not coming to this store again. Also, a cup for water is $2.29, because they also charge for tap."
+      },
+      "likes": 2
+    },
+    {
+      "position": 2,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNJckp2ZXBRRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICIrJvepQE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 years ago",
+      "iso_date": "2018-10-30T19:49:15Z",
+      "iso_date_of_last_edit": "2018-10-30T19:49:15Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNJckp2ZXBRRRAB",
+      "user": {
+        "name": "Reviewer 51",
+        "link": "https://example.com/contrib/51",
+        "contributor_id": "contributor_51",
+        "thumbnail": "https://example.com/avatar/51.jpg",
+        "reviews": 6,
+        "photos": 0
+      },
+      "snippet": "As a working professional taking night classes, stopped in for a quick bite.  Asked for a burger with no lettuce, tomatoes, or mayo.  Was told by cashier can only take 2 things off a sandwich. I'm paying same price for less ingredients and you can't do this? No thanks  not worth the time or hassle, avoid.",
+      "extracted_snippet": {
+        "original": "As a working professional taking night classes, stopped in for a quick bite.  Asked for a burger with no lettuce, tomatoes, or mayo.  Was told by cashier can only take 2 things off a sandwich. I'm paying same price for less ingredients and you can't do this? No thanks  not worth the time or hassle, avoid."
+      },
+      "likes": 1
+    },
+    {
+      "position": 3,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUN3NHJDME9REAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICw4rC0OQ%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2017-11-14T18:24:15Z",
+      "iso_date_of_last_edit": "2017-11-14T18:26:03Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUN3NHJDME9REAE",
+      "user": {
+        "name": "Reviewer 52",
+        "link": "https://example.com/contrib/52",
+        "contributor_id": "contributor_52",
+        "thumbnail": "https://example.com/avatar/52.jpg",
+        "reviews": 7,
+        "photos": 1
+      },
+      "snippet": "If there was 0 stars, I would've chosen it. Waited an hour for four BURGER sandwiches. I didn't mind the wait, becasue they werr busy.. But to get my orders wrong, this means their crew didn't complete their trainings 😂.. worst place ever. Trucks around it are a lot cheaper and better 👍🏼",
+      "extracted_snippet": {
+        "original": "If there was 0 stars, I would've chosen it. Waited an hour for four BURGER sandwiches. I didn't mind the wait, becasue they werr busy.. But to get my orders wrong, this means their crew didn't complete their trainings 😂.. worst place ever. Trucks around it are a lot cheaper and better 👍🏼"
+      },
+      "likes": 2
+    },
+    {
+      "position": 4,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNfaWZ1V1d3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIC_ifuWWw%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-01-17T05:36:07Z",
+      "iso_date_of_last_edit": "2025-01-17T05:36:07Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNfaWZ1V1d3EAE",
+      "user": {
+        "name": "Reviewer 30",
+        "link": "https://example.com/contrib/30",
+        "contributor_id": "contributor_30",
+        "thumbnail": "https://example.com/avatar/30.jpg",
+        "local_guide": true,
+        "reviews": 142,
+        "photos": 137
+      },
+      "snippet": "The hours listed is not correct.  Went there around 7pm and it's already closed even though the website clearly states 8pm closing.  No idea what the actual hours are and the phone number doesn't reach anyone.",
+      "extracted_snippet": {
+        "original": "The hours listed is not correct.  Went there around 7pm and it's already closed even though the website clearly states 8pm closing.  No idea what the actual hours are and the phone number doesn't reach anyone."
+      },
+      "details": {
+        "food": 3,
+        "service": 2,
+        "atmosphere": 3
+      },
+      "likes": 1
+    },
+    {
+      "position": 5,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUN3N3F5VnRBRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICw7qyVtAE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2018-02-05T18:11:56Z",
+      "iso_date_of_last_edit": "2018-02-05T18:11:56Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUN3N3F5VnRBRRAB",
+      "user": {
+        "name": "Reviewer 53",
+        "link": "https://example.com/contrib/53",
+        "contributor_id": "contributor_53",
+        "thumbnail": "https://example.com/avatar/53.jpg",
+        "reviews": 7,
+        "photos": 4
+      },
+      "snippet": "Absolutely awful! Absolutely befitting of a “NEWARK” hood nasty urban restaurant... what is to be expected of any big time fast food restaurant who’s gained such notoriety and success in every suburban neighborhood prior to this addition... once they get to Newark are core values and principles OUT to the dump.\nCame here with my app ready to redeem my reward and I was told that they don’t HONOR it. After my rude as hell “have a nice day” from the poetic justice Janet Jackson wanna be I knew I’d have to review this place. Thanks google",
+      "extracted_snippet": {
+        "original": "Absolutely awful! Absolutely befitting of a “NEWARK” hood nasty urban restaurant... what is to be expected of any big time fast food restaurant who’s gained such notoriety and success in every suburban neighborhood prior to this addition... once they get to Newark are core values and principles OUT to the dump.\nCame here with my app ready to redeem my reward and I was told that they don’t HONOR it. After my rude as hell “have a nice day” from the poetic justice Janet Jackson wanna be I knew I’d have to review this place. Thanks google"
+      },
+      "likes": 1
+    },
+    {
+      "position": 6,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURneC1xOFV3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDgx-q8Uw%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2018-01-31T22:06:07Z",
+      "iso_date_of_last_edit": "2018-01-31T22:10:20Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSURneC1xOFV3EAE",
+      "user": {
+        "name": "Reviewer 54",
+        "link": "https://example.com/contrib/54",
+        "contributor_id": "contributor_54",
+        "thumbnail": "https://example.com/avatar/54.jpg",
+        "local_guide": true,
+        "reviews": 137,
+        "photos": 12
+      },
+      "snippet": "Decent burgers but charging for water (even a cup) No no no that’s a 1 Star review for these scam artists.  Plenty of better burger places for cheaper prices and free water.",
+      "extracted_snippet": {
+        "original": "Decent burgers but charging for water (even a cup) No no no that’s a 1 Star review for these scam artists.  Plenty of better burger places for cheaper prices and free water."
+      },
+      "likes": 3
+    },
+    {
+      "position": 7,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNRd2JDS05BEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICQwbCKNA%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2017-11-15T19:36:12Z",
+      "iso_date_of_last_edit": "2017-11-15T19:36:12Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNRd2JDS05BEAE",
+      "user": {
+        "name": "Reviewer 55",
+        "link": "https://example.com/contrib/55",
+        "contributor_id": "contributor_55",
+        "thumbnail": "https://example.com/avatar/55.jpg",
+        "reviews": 9,
+        "photos": 0
+      },
+      "snippet": "Worst service possible. Waited half an hour on line to get to the register and be told there is another 15 minute wait! Want to waste your time and money... Best place to go!",
+      "extracted_snippet": {
+        "original": "Worst service possible. Waited half an hour on line to get to the register and be told there is another 15 minute wait! Want to waste your time and money... Best place to go!"
+      },
+      "likes": 1
+    },
+    {
+      "position": 8,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUN3eEplNWFBEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICwxJe5aA%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2017-11-14T18:13:51Z",
+      "iso_date_of_last_edit": "2017-11-14T18:13:51Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUN3eEplNWFBEAE",
+      "user": {
+        "name": "Reviewer 56",
+        "link": "https://example.com/contrib/56",
+        "contributor_id": "contributor_56",
+        "thumbnail": "https://example.com/avatar/56.jpg",
+        "reviews": 1,
+        "photos": 0
+      },
+      "snippet": "The worst place ever, I literally had to wait for 50 minuets to get my order and it was all wrong!!! I will never go there again!",
+      "extracted_snippet": {
+        "original": "The worst place ever, I literally had to wait for 50 minuets to get my order and it was all wrong!!! I will never go there again!"
+      },
+      "likes": 1
+    },
+    {
+      "position": 9,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUMyazlyN21nRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIC2k9r7mgE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "4 years ago",
+      "iso_date": "2022-04-27T18:07:55Z",
+      "iso_date_of_last_edit": "2022-04-27T18:07:55Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUMyazlyN21nRRAB",
+      "user": {
+        "name": "Reviewer 57",
+        "link": "https://example.com/contrib/57",
+        "contributor_id": "contributor_57",
+        "thumbnail": "https://example.com/avatar/57.jpg",
+        "reviews": 5,
+        "photos": 11
+      },
+      "snippet": "customer service is the worst. the lady is scratching her wig and did not wear gloves VERY DISGUSTING",
+      "extracted_snippet": {
+        "original": "customer service is the worst. the lady is scratching her wig and did not wear gloves VERY DISGUSTING"
+      },
+      "likes": 1,
+      "response": {
+        "date": "4 years ago",
+        "iso_date": "2022-04-30T17:17:10Z",
+        "iso_date_of_last_edit": "2022-04-30T17:17:10Z",
+        "snippet": "Mays,\n\nThank you for bringing this to our immediate attention. We take your food quality concern seriously. Please contact us at reviews@smashburger.com and recount your experience so we can look into this further.",
+        "extracted_snippet": {
+          "original": "Mays,\n\nThank you for bringing this to our immediate attention. We take your food quality concern seriously. Please contact us at reviews@smashburger.com and recount your experience so we can look into this further."
+        }
+      }
+    },
+    {
+      "position": 10,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUMwb0oteWZ3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIC0oJ-yfw%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 years ago",
+      "iso_date": "2019-09-11T00:18:38Z",
+      "iso_date_of_last_edit": "2019-09-11T00:21:29Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUMwb0oteWZ3EAE",
+      "user": {
+        "name": "Reviewer 58",
+        "link": "https://example.com/contrib/58",
+        "contributor_id": "contributor_58",
+        "thumbnail": "https://example.com/avatar/58.jpg",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "Stay away...far away! Orders are wrong and the wait time is ridiculous. Management and wait staff are not friendly and do not listen to the customer. No apologies, no smile, no thank you. Just attitude.",
+      "extracted_snippet": {
+        "original": "Stay away...far away! Orders are wrong and the wait time is ridiculous. Management and wait staff are not friendly and do not listen to the customer. No apologies, no smile, no thank you. Just attitude."
+      },
+      "likes": 0
+    },
+    {
+      "position": 11,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNfckt5c29nRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIC_rKysogE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-01-13T16:41:47Z",
+      "iso_date_of_last_edit": "2025-01-13T16:41:47Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNfckt5c29nRRAB",
+      "user": {
+        "name": "Reviewer 59",
+        "link": "https://example.com/contrib/59",
+        "contributor_id": "contributor_59",
+        "thumbnail": "https://example.com/avatar/59.jpg",
+        "local_guide": true,
+        "reviews": 23,
+        "photos": 0
+      },
+      "snippet": "Was Closed both times I went..\nI guess if College kids are Not around, no business for nobody Else 😒",
+      "extracted_snippet": {
+        "original": "Was Closed both times I went..\nI guess if College kids are Not around, no business for nobody Else 😒"
+      },
+      "likes": 1
+    },
+    {
+      "position": 12,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNRMUpTcnNBRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICQ1JSrsAE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2018-03-26T20:15:41Z",
+      "iso_date_of_last_edit": "2018-03-26T20:15:41Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNRMUpTcnNBRRAB",
+      "user": {
+        "name": "Reviewer 60",
+        "link": "https://example.com/contrib/60",
+        "contributor_id": "contributor_60",
+        "thumbnail": "https://example.com/avatar/60.jpg",
+        "reviews": 1,
+        "photos": 0
+      },
+      "snippet": "The women was absolutely nasty with me once I approached the register. I will not be buying from a place with nasty service.",
+      "extracted_snippet": {
+        "original": "The women was absolutely nasty with me once I approached the register. I will not be buying from a place with nasty service."
+      },
+      "likes": 0
+    },
+    {
+      "position": 13,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUMyazdMQWF3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIC2k7LAaw%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "4 years ago",
+      "iso_date": "2022-04-27T18:05:18Z",
+      "iso_date_of_last_edit": "2022-04-27T18:05:18Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUMyazdMQWF3EAE",
+      "user": {
+        "name": "Reviewer 61",
+        "link": "https://example.com/contrib/61",
+        "contributor_id": "contributor_61",
+        "thumbnail": "https://example.com/avatar/61.jpg",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "The worst place I’ve seen in my life, the customer service very nasty and they have a disgusting attitude. I will never come to this place again, Don’t ever try it",
+      "extracted_snippet": {
+        "original": "The worst place I’ve seen in my life, the customer service very nasty and they have a disgusting attitude. I will never come to this place again, Don’t ever try it"
+      },
+      "likes": 1,
+      "response": {
+        "date": "4 years ago",
+        "iso_date": "2022-04-30T17:16:51Z",
+        "iso_date_of_last_edit": "2022-04-30T17:16:51Z",
+        "snippet": "Sana,\n\nProviding our guest with Smashtastic service is always our goal. We hate to hear we missed the mark and would like a chance to make things right. Please email us at reviews@smashburger.com and include the location you visited, and a copy of your review and we will follow up with you. We hope to hear from you soon.",
+        "extracted_snippet": {
+          "original": "Sana,\n\nProviding our guest with Smashtastic service is always our goal. We hate to hear we missed the mark and would like a chance to make things right. Please email us at reviews@smashburger.com and include the location you visited, and a copy of your review and we will follow up with you. We hope to hear from you soon."
+        }
+      }
+    },
+    {
+      "position": 14,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURfODhudjh3RRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgID_88nv8wE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-01-27T01:17:01Z",
+      "iso_date_of_last_edit": "2025-01-27T01:17:01Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURfODhudjh3RRAB",
+      "user": {
+        "name": "Reviewer 29",
+        "link": "https://example.com/contrib/29",
+        "contributor_id": "contributor_29",
+        "thumbnail": "https://example.com/avatar/29.jpg",
+        "reviews": 5,
+        "photos": 0
+      },
+      "snippet": "The location was not open i go there different days and times the store is never open",
+      "extracted_snippet": {
+        "original": "The location was not open i go there different days and times the store is never open"
+      },
+      "details": {
+        "service": 1
+      },
+      "likes": 1
+    },
+    {
+      "position": 15,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUM0OEtteEFREAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIC48KmxAQ%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "7 years ago",
+      "iso_date": "2019-05-30T23:30:22Z",
+      "iso_date_of_last_edit": "2019-05-30T23:30:22Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUM0OEtteEFREAE",
+      "user": {
+        "name": "Reviewer 62",
+        "link": "https://example.com/contrib/62",
+        "contributor_id": "contributor_62",
+        "thumbnail": "https://example.com/avatar/62.jpg",
+        "reviews": 6,
+        "photos": 6
+      },
+      "snippet": "Been by two times, separate days, during business hours and both times not open. Note to owner or manager, put up hours and signs when closed. Thanks!",
+      "extracted_snippet": {
+        "original": "Been by two times, separate days, during business hours and both times not open. Note to owner or manager, put up hours and signs when closed. Thanks!"
+      },
+      "likes": 0
+    },
+    {
+      "position": 16,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNzM1B6anhRRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICs3PzjxQE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "6 years ago",
+      "iso_date": "2020-01-25T14:41:07Z",
+      "iso_date_of_last_edit": "2020-01-25T14:41:07Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNzM1B6anhRRRAB",
+      "user": {
+        "name": "Reviewer 63",
+        "link": "https://example.com/contrib/63",
+        "contributor_id": "contributor_63",
+        "thumbnail": "https://example.com/avatar/63.jpg",
+        "local_guide": true,
+        "reviews": 375,
+        "photos": 93
+      },
+      "snippet": "I visit this Smashburger while I was traveling on Wednesday Jan 21 2020 and the food was not up to par no seasoning on the meat just tasted like beef sorry unseasoned beef worst $8 I spent for burgers",
+      "extracted_snippet": {
+        "original": "I visit this Smashburger while I was traveling on Wednesday Jan 21 2020 and the food was not up to par no seasoning on the meat just tasted like beef sorry unseasoned beef worst $8 I spent for burgers"
+      },
+      "likes": 0
+    },
+    {
+      "position": 17,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURBbWVETFhREAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDAmeDLXQ%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2018-04-18T01:36:14Z",
+      "iso_date_of_last_edit": "2018-04-18T01:36:14Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSURBbWVETFhREAE",
+      "user": {
+        "name": "Reviewer 64",
+        "link": "https://example.com/contrib/64",
+        "contributor_id": "contributor_64",
+        "thumbnail": "https://example.com/avatar/64.jpg",
+        "reviews": 11,
+        "photos": 0
+      },
+      "snippet": "Awful....There are so many better options than this \"Particular Smash Burger\".. Its awful.. no joke",
+      "extracted_snippet": {
+        "original": "Awful....There are so many better options than this \"Particular Smash Burger\".. Its awful.. no joke"
+      },
+      "likes": 0
+    },
+    {
+      "position": 18,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURmNTRuQmpnRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDf54nBjgE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-01-10T19:24:39Z",
+      "iso_date_of_last_edit": "2025-01-10T19:24:39Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURmNTRuQmpnRRAB",
+      "user": {
+        "name": "Reviewer 65",
+        "link": "https://example.com/contrib/65",
+        "contributor_id": "contributor_65",
+        "thumbnail": "https://example.com/avatar/65.jpg",
+        "reviews": 7,
+        "photos": 7
+      },
+      "snippet": "The hours posted are a lie. I drove here and it was closed.",
+      "extracted_snippet": {
+        "original": "The hours posted are a lie. I drove here and it was closed."
+      },
+      "likes": 0
+    },
+    {
+      "position": 19,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNReC03elRnEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICQx-7zTg%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2017-11-14T17:45:57Z",
+      "iso_date_of_last_edit": "2017-11-14T17:45:57Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNReC03elRnEAE",
+      "user": {
+        "name": "Reviewer 66",
+        "link": "https://example.com/contrib/66",
+        "contributor_id": "contributor_66",
+        "thumbnail": "https://example.com/avatar/66.jpg",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "The wait is way to long and the prices are double . 30 minute wait on BURGERS  is crazy ...",
+      "extracted_snippet": {
+        "original": "The wait is way to long and the prices are double . 30 minute wait on BURGERS  is crazy ..."
+      },
+      "likes": 0
+    },
+    {
+      "position": 20,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSURnaC1pelZ3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIDgh-izVw%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 years ago",
+      "iso_date": "2018-07-16T22:05:05Z",
+      "iso_date_of_last_edit": "2018-07-16T22:05:05Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSURnaC1pelZ3EAE",
+      "user": {
+        "name": "Reviewer 67",
+        "link": "https://example.com/contrib/67",
+        "contributor_id": "contributor_67",
+        "thumbnail": "https://example.com/avatar/67.jpg",
+        "reviews": 4,
+        "photos": 0
+      },
+      "snippet": "ive traveled here 3 times and its never been open for business",
+      "extracted_snippet": {
+        "original": "ive traveled here 3 times and its never been open for business"
+      },
+      "likes": 0
+    }
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?data_id=0x89c2537da9b3163d%3A0x2be30fcff506fec8&engine=google_maps_reviews&hl=en&next_page_token=CjEIARIpCgoAP7-m6Y3IX___EhAaQs5WZw3JyEBkhKIAAAAAGgn98kwCm1rf2NgYACIA%3A30&num=20&sort_by=ratingLow",
+    "next_page_token": "CjEIARIpCgoAP7-m6Y3IX___EhAaQs5WZw3JyEBkhKIAAAAAGgn98kwCm1rf2NgYACIA:30"
+  }
+}

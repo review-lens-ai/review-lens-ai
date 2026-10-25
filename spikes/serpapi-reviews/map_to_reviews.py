@@ -7,7 +7,7 @@ through target_id -> id (the analysis_targets 1:N reviews foreign key). The id i
 the database generates real uuids, plus ingestion_run_id and created_at.
 
 Usage:
-    python3 spikes/serpapi-reviews/map_to_reviews.py     (run fetch_raw_pages.py first)
+    python3 spikes/serpapi-reviews/map_to_reviews.py [output_dir]     (run fetch_raw_pages.py first; default output/)
 Reads:
     output/raw/manifest.json + page files
 Writes:
@@ -16,13 +16,13 @@ Writes:
 """
 
 import json
+import sys
 from collections import Counter
 from pathlib import Path
 
 MAPPING_VERSION = "serpapi@1"
 
-RAW_DIR = Path(__file__).resolve().parent / "output" / "raw"
-CANONICAL_DIR = Path(__file__).resolve().parent / "output" / "canonical"
+HERE = Path(__file__).resolve().parent
 
 # Placeholder for the database-generated uuid; links the two output files.
 TARGET_ID = "example-target-id"
@@ -94,7 +94,9 @@ def map_review(raw):
 
 
 def main():
-    manifest = json.loads((RAW_DIR / "manifest.json").read_text())
+    output_dir = HERE / (sys.argv[1] if len(sys.argv) > 1 else "output")
+    raw_dir, canonical_dir = output_dir / "raw", output_dir / "canonical"
+    manifest = json.loads((raw_dir / "manifest.json").read_text())
 
     target = None
     reviews = {}            # source_review_id -> row; first seen wins, like the upsert
@@ -103,7 +105,7 @@ def main():
     duplicates = 0
 
     for entry in manifest:
-        page = json.loads((RAW_DIR / entry["file"]).read_text())
+        page = json.loads((raw_dir / entry["file"]).read_text())
         if target is None and "place_info" in page:
             target = map_target(page)
 
@@ -118,11 +120,11 @@ def main():
             else:
                 reviews[row["source_review_id"]] = row
 
-    CANONICAL_DIR.mkdir(exist_ok=True)
-    (CANONICAL_DIR / "analysis_target.json").write_text(json.dumps(target, indent=2, ensure_ascii=False))
-    (CANONICAL_DIR / "reviews.json").write_text(json.dumps(list(reviews.values()), indent=2, ensure_ascii=False))
+    canonical_dir.mkdir(exist_ok=True)
+    (canonical_dir / "analysis_target.json").write_text(json.dumps(target, indent=2, ensure_ascii=False))
+    (canonical_dir / "reviews.json").write_text(json.dumps(list(reviews.values()), indent=2, ensure_ascii=False))
 
-    print(f"wrote pair -> {CANONICAL_DIR}: 1 analysis_target + {len(reviews)} reviews (linked by target_id)")
+    print(f"wrote pair -> {canonical_dir}: 1 analysis_target + {len(reviews)} reviews (linked by target_id)")
     print(f"duplicates across sorts: {duplicates}")
     print(f"skipped (reviews_failed): {dict(skipped)}")
     print(f"unmapped SerpApi fields: {dict(unknown_fields) or 'none'}")

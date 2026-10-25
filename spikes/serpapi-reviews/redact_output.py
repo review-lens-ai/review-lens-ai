@@ -11,14 +11,15 @@ Redacted:
 Not redacted: names a reviewer writes inside their own review text.
 
 Usage:
-    python3 spikes/serpapi-reviews/redact_output.py
+    python3 spikes/serpapi-reviews/redact_output.py [output_dir]     (default output/)
 """
 
 import json
 import re
+import sys
 from pathlib import Path
 
-OUTPUT_DIR = Path(__file__).resolve().parent / "output"
+HERE = Path(__file__).resolve().parent
 SEARCH_METADATA_LINKS = ["json_endpoint", "markdown_endpoint", "raw_html_file", "prettify_html_file"]
 
 fakes = {}  # contributor_id -> number, shared across files
@@ -75,11 +76,12 @@ def redact_file(path):
 
 
 def main():
-    files = sorted((OUTPUT_DIR / "raw").glob("*/page_*.json")) + [OUTPUT_DIR / "merged_sample.json"]
+    output_dir = HERE / (sys.argv[1] if len(sys.argv) > 1 else "output")
+    files = sorted((output_dir / "raw").glob("*/page_*.json")) + [output_dir / "merged_sample.json"]
     for path in files:
         if path.exists():
             redact_file(path)
-            print(f"redacted {path.relative_to(OUTPUT_DIR)}")
+            print(f"redacted {path.relative_to(output_dir)}")
     print(f"{len(fakes)} reviewers replaced")
 
 

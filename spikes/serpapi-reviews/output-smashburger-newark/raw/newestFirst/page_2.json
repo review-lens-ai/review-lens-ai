@@ -1,0 +1,571 @@
+{
+  "search_metadata": {
+    "id": "6add60ca4f19ee38850c4a6d",
+    "status": "Success",
+    "json_endpoint": "REDACTED",
+    "markdown_endpoint": "REDACTED",
+    "created_at": "2026-10-25 01:52:10 UTC",
+    "processed_at": "2026-10-25 01:52:10 UTC",
+    "google_maps_reviews_url": "https://www.google.com/maps/place/data=!4m7!3m6!1s0x89c2537da9b3163d:0x2be30fcff506fec8!5m2!4m1!1i2!9m1!1b1?hl=en",
+    "raw_html_file": "REDACTED",
+    "prettify_html_file": "REDACTED",
+    "total_time_taken": 3.15
+  },
+  "search_parameters": {
+    "engine": "google_maps_reviews",
+    "data_id": "0x89c2537da9b3163d:0x2be30fcff506fec8",
+    "hl": "en",
+    "next_page_token": "CjEIARIpCgoAP72GNjrbwV__EhATsn2pYu7k8RJA1fQAAAAAGgn92woCY2OtvBUYACIA:10",
+    "num": "20",
+    "sort_by": "newestFirst"
+  },
+  "reviews": [
+    {
+      "position": 1,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21zNVN6aEVOV2QzZGtOcVJWUkJWa1pwYnpaMFkzYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOms5SzhENWd3dkNqRVRBVkZpbzZ0Y3c%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "8 months ago",
+      "iso_date": "2026-02-05T18:00:33Z",
+      "iso_date_of_last_edit": "2026-02-05T18:00:33Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21zNVN6aEVOV2QzZGtOcVJWUkJWa1pwYnpaMFkzYxAB",
+      "user": {
+        "name": "Reviewer 11",
+        "link": "https://example.com/contrib/11",
+        "contributor_id": "contributor_11",
+        "thumbnail": "https://example.com/avatar/11.jpg",
+        "reviews": 9,
+        "photos": 1
+      },
+      "snippet": "I walk up to order and the manager immediately gives me attitude for not hearing “for here or to go” so he cuts me off and asks again. So I responded with the same level of volume and he immediately threatens to not take my order and an argument ensues. Tells me to “step aside” for a “conversation” so I laugh and he proceeds to kick me out and call public safety. Outrageous gaul on this man.",
+      "extracted_snippet": {
+        "original": "I walk up to order and the manager immediately gives me attitude for not hearing “for here or to go” so he cuts me off and asks again. So I responded with the same level of volume and he immediately threatens to not take my order and an argument ensues. Tells me to “step aside” for a “conversation” so I laugh and he proceeds to kick me out and call public safety. Outrageous gaul on this man."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 2,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25oNVVXcEdSazR4UTNweWFqWnhXa2d4YXpCVWQyYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOnh5UWpGRk4xQ3pyajZxWkgxazBUd2c%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "9 months ago",
+      "iso_date": "2026-01-18T22:06:38Z",
+      "iso_date_of_last_edit": "2026-01-18T22:06:38Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25oNVVXcEdSazR4UTNweWFqWnhXa2d4YXpCVWQyYxAB",
+      "user": {
+        "name": "Reviewer 12",
+        "link": "https://example.com/contrib/12",
+        "contributor_id": "contributor_12",
+        "thumbnail": "https://example.com/avatar/12.jpg",
+        "local_guide": true,
+        "reviews": 66,
+        "photos": 6
+      },
+      "snippet": "Great location.\n\nOrdered on the app and and the time being ready was correct.\n\nThe staff was friendly.\n\nExcellent burger and price is better than any fast food burger.\n\nTons of options for toppings.",
+      "extracted_snippet": {
+        "original": "Great location.\n\nOrdered on the app and and the time being ready was correct.\n\nThe staff was friendly.\n\nExcellent burger and price is better than any fast food burger.\n\nTons of options for toppings."
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$1–10",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "likes": 0
+    },
+    {
+      "position": 3,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2w5dk1FVk5ka3cwYnpWc1gwSktUMlV5T1c5cGJrRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOl9vMEVNdkw0bzVsX0JKT2UyOW9pbkE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "9 months ago",
+      "iso_date": "2026-01-14T19:34:59Z",
+      "iso_date_of_last_edit": "2026-01-14T19:34:59Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2w5dk1FVk5ka3cwYnpWc1gwSktUMlV5T1c5cGJrRRAB",
+      "user": {
+        "name": "Reviewer 13",
+        "link": "https://example.com/contrib/13",
+        "contributor_id": "contributor_13",
+        "thumbnail": "https://example.com/avatar/13.jpg",
+        "local_guide": true,
+        "reviews": 19,
+        "photos": 4
+      },
+      "snippet": "Location is closed",
+      "extracted_snippet": {
+        "original": "Location is closed"
+      },
+      "likes": 0
+    },
+    {
+      "position": 4,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2sxRFgyZFNSRVZsUlhsUlowODBOM3AzVFY5blRrRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOk1DX2dSREVlRXlRZ080N3p3TV9nTkE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "10 months ago",
+      "iso_date": "2025-12-19T20:00:18Z",
+      "iso_date_of_last_edit": "2025-12-19T20:00:18Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2sxRFgyZFNSRVZsUlhsUlowODBOM3AzVFY5blRrRRAB",
+      "user": {
+        "name": "Reviewer 14",
+        "link": "https://example.com/contrib/14",
+        "contributor_id": "contributor_14",
+        "thumbnail": "https://example.com/avatar/14.jpg",
+        "reviews": 2,
+        "photos": 0
+      },
+      "snippet": "Worst place around ever, all of them are rude and not helpful at all. Literally all of them are acting like they are doing a favor to the customer. They took over 20 minutes for a burger while the place was empty, they didn’t have any shakes (or at least that’s what the people in the front said) and when asked what took too long to cook the guy talked shit back with explicit words “ You are crazy” I eat on smash all over Jersey and New York and never had trouble or such a bad experience as I did with these guys.",
+      "extracted_snippet": {
+        "original": "Worst place around ever, all of them are rude and not helpful at all. Literally all of them are acting like they are doing a favor to the customer. They took over 20 minutes for a burger while the place was empty, they didn’t have any shakes (or at least that’s what the people in the front said) and when asked what took too long to cook the guy talked shit back with explicit words “ You are crazy” I eat on smash all over Jersey and New York and never had trouble or such a bad experience as I did with these guys."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 5,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT201WFJVUlpWbGxDYmw5R1dsZzROVWx2WlVsdVluYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOm5XRURZVllCbl9GWlg4NUlvZUluYnc%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "10 months ago",
+      "iso_date": "2025-12-01T18:28:13Z",
+      "iso_date_of_last_edit": "2025-12-01T18:51:09Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT201WFJVUlpWbGxDYmw5R1dsZzROVWx2WlVsdVluYxAB",
+      "user": {
+        "name": "Reviewer 15",
+        "link": "https://example.com/contrib/15",
+        "contributor_id": "contributor_15",
+        "thumbnail": "https://example.com/avatar/15.jpg",
+        "reviews": 10,
+        "photos": 0
+      },
+      "snippet": "Pretty good until the fountain drink CO2 needs to be changed. They seem to be slow on purpose when guests let them know. It’s probably just me, but I wanted to comment to see if others experience the same thing.  On top of the fountain machine issue, my food was subpar in comparison to usual. Regardless, it’s pretty good most days. Today it was a bad experience.",
+      "extracted_snippet": {
+        "original": "Pretty good until the fountain drink CO2 needs to be changed. They seem to be slow on purpose when guests let them know. It’s probably just me, but I wanted to comment to see if others experience the same thing.  On top of the fountain machine issue, my food was subpar in comparison to usual. Regardless, it’s pretty good most days. Today it was a bad experience."
+      },
+      "likes": 0
+    },
+    {
+      "position": 6,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT25kTmFqZE9hbkpDVVZFd09HSjBaSHB5TUdOcVQyYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOndNajdOanJCUVEwOGJ0ZHpyMGNqT2c%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-10-05T13:28:37Z",
+      "iso_date_of_last_edit": "2025-10-05T13:28:37Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT25kTmFqZE9hbkpDVVZFd09HSjBaSHB5TUdOcVQyYxAB",
+      "user": {
+        "name": "Reviewer 16",
+        "link": "https://example.com/contrib/16",
+        "contributor_id": "contributor_16",
+        "thumbnail": "https://example.com/avatar/16.jpg",
+        "local_guide": true,
+        "reviews": 52,
+        "photos": 19
+      },
+      "snippet": "The food is hot so be careful. The store manager is very helpful and willing to fix any issues.",
+      "extracted_snippet": {
+        "original": "The food is hot so be careful. The store manager is very helpful and willing to fix any issues."
+      },
+      "details": {
+        "order_type": "Dine in",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "noise_level": "Quiet, easy to talk",
+        "group_size": "Suitable for all group sizes"
+      },
+      "likes": 0
+    },
+    {
+      "position": 7,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT21oaGRIRTFTMWRGWlRNNVVVMXFUbGhWT0ZJMFUwRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOmhhdHE1S1dFZTM5UU1qTlhVOFI0U0E%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-10-04T16:25:23Z",
+      "iso_date_of_last_edit": "2025-10-04T16:25:23Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT21oaGRIRTFTMWRGWlRNNVVVMXFUbGhWT0ZJMFUwRRAB",
+      "user": {
+        "name": "Reviewer 17",
+        "link": "https://example.com/contrib/17",
+        "contributor_id": "contributor_17",
+        "thumbnail": "https://example.com/avatar/17.jpg",
+        "local_guide": true,
+        "reviews": 104,
+        "photos": 0
+      },
+      "likes": 0
+    },
+    {
+      "position": 8,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sCi9DQUlRQUNvZENodHljRjlvT2xwcmIyTnJSMmxNY0RKeWJXRk1aVlZ2VnpOcmVXYxAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CAIQACodChtycF9oOlprb2NrR2lMcDJybWFMZVVvVzNreWc%7C%7C?hl=en",
+      "rating": 3.0,
+      "date": "a year ago",
+      "iso_date": "2025-09-24T17:47:30Z",
+      "iso_date_of_last_edit": "2025-09-24T17:47:30Z",
+      "source": "Google",
+      "review_id": "Ci9DQUlRQUNvZENodHljRjlvT2xwcmIyTnJSMmxNY0RKeWJXRk1aVlZ2VnpOcmVXYxAB",
+      "user": {
+        "name": "Reviewer 18",
+        "link": "https://example.com/contrib/18",
+        "contributor_id": "contributor_18",
+        "thumbnail": "https://example.com/avatar/18.jpg",
+        "reviews": 1,
+        "photos": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 9,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSUNaaHZUcHdRRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgICZhvTpwQE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "Edited a year ago",
+      "iso_date": "2023-09-09T08:52:43Z",
+      "iso_date_of_last_edit": "2025-09-11T17:39:34Z",
+      "images": [
+        "https://example.com/photo/19_0.jpg",
+        "https://example.com/photo/19_1.jpg"
+      ],
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSUNaaHZUcHdRRRAB",
+      "user": {
+        "name": "Reviewer 19",
+        "link": "https://example.com/contrib/19",
+        "contributor_id": "contributor_19",
+        "thumbnail": "https://example.com/avatar/19.jpg",
+        "local_guide": true,
+        "reviews": 104,
+        "photos": 882
+      },
+      "snippet": "The best casual dining at NJIT!! The staff are wonderful as well! TANAYA, Aneesha, and the GM Laron are exceptionally nice and professional. The grill operator Roland creates visually appealing and delicious food😇🙂🙂🙂",
+      "extracted_snippet": {
+        "original": "The best casual dining at NJIT!! The staff are wonderful as well! TANAYA, Aneesha, and the GM Laron are exceptionally nice and professional. The grill operator Roland creates visually appealing and delicious food😇🙂🙂🙂"
+      },
+      "details": {
+        "order_type": "Dine in",
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommended_dishes": "Classic Smash Burger"
+      },
+      "likes": 0
+    },
+    {
+      "position": 10,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VKU1I0ODJwNDl1SjdRRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEJSR482p49uJ7QE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-05-14T23:34:15Z",
+      "iso_date_of_last_edit": "2025-05-14T23:34:15Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VKU1I0ODJwNDl1SjdRRRAB",
+      "user": {
+        "name": "Reviewer 20",
+        "link": "https://example.com/contrib/20",
+        "contributor_id": "contributor_20",
+        "thumbnail": "https://example.com/avatar/20.jpg",
+        "reviews": 9,
+        "photos": 0
+      },
+      "snippet": "I went to this location for the first time today and I will say not only was the food prepared well and tasted delicious, but the MANAGER was soooo friendly and made everything was very accessible to me as I am in a wheelchair. He made sure everything was perfect with my order and kept checking to make sure I was okay and satisfied. I will definitely be coming back! Thank you :)",
+      "extracted_snippet": {
+        "original": "I went to this location for the first time today and I will say not only was the food prepared well and tasted delicious, but the MANAGER was soooo friendly and made everything was very accessible to me as I am in a wheelchair. He made sure everything was perfect with my order and kept checking to make sure I was okay and satisfied. I will definitely be coming back! Thank you :)"
+      },
+      "details": {
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommended_dishes": "Smash Fries, Classic Smash Burger",
+        "reservation": "Reservations not required",
+        "wait_time": "No wait"
+      },
+      "likes": 0
+    },
+    {
+      "position": 11,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VOMzctZURScDVDWVpnEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEN37-eDRp5CYZg%7C%7C?hl=en",
+      "rating": 3.0,
+      "date": "a year ago",
+      "iso_date": "2025-05-10T19:51:29Z",
+      "iso_date_of_last_edit": "2025-05-10T19:51:29Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VOMzctZURScDVDWVpnEAE",
+      "user": {
+        "name": "Reviewer 21",
+        "link": "https://example.com/contrib/21",
+        "contributor_id": "contributor_21",
+        "thumbnail": "https://example.com/avatar/21.jpg",
+        "local_guide": true,
+        "reviews": 17,
+        "photos": 4
+      },
+      "details": {
+        "price_per_person": "$10–20",
+        "food": 4,
+        "service": 3
+      },
+      "likes": 0
+    },
+    {
+      "position": 12,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VMTFJ2b1NsOHViTlhREAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKELLRvoSl8ubNXQ%7C%7C?hl=en",
+      "rating": 4.0,
+      "date": "a year ago",
+      "iso_date": "2025-05-10T19:17:26Z",
+      "iso_date_of_last_edit": "2025-05-10T19:17:26Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VMTFJ2b1NsOHViTlhREAE",
+      "user": {
+        "name": "Reviewer 22",
+        "link": "https://example.com/contrib/22",
+        "contributor_id": "contributor_22",
+        "thumbnail": "https://example.com/avatar/22.jpg",
+        "local_guide": true,
+        "reviews": 97,
+        "photos": 199
+      },
+      "details": {
+        "food": 4,
+        "service": 4,
+        "atmosphere": 4
+      },
+      "likes": 0
+    },
+    {
+      "position": 13,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnTUNZcUltQzZRRRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgMCYqImC6QE%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-04-30T20:33:43Z",
+      "iso_date_of_last_edit": "2025-04-30T20:33:43Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnTUNZcUltQzZRRRAB",
+      "user": {
+        "name": "Reviewer 23",
+        "link": "https://example.com/contrib/23",
+        "contributor_id": "contributor_23",
+        "thumbnail": "https://example.com/avatar/23.jpg",
+        "reviews": 3,
+        "photos": 0
+      },
+      "snippet": "I absolutely loved Smashburger! The service and cleanliness of the restaurant was amazing! Not to mention it may be one of the best burgers in town!",
+      "extracted_snippet": {
+        "original": "I absolutely loved Smashburger! The service and cleanliness of the restaurant was amazing! Not to mention it may be one of the best burgers in town!"
+      },
+      "details": {
+        "price_per_person": "$20–30",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5
+      },
+      "likes": 0
+    },
+    {
+      "position": 14,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnTUNZcU5iNFpnEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgMCYqNb4Zg%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-04-30T20:15:01Z",
+      "iso_date_of_last_edit": "2025-04-30T20:15:01Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnTUNZcU5iNFpnEAE",
+      "user": {
+        "name": "Reviewer 24",
+        "link": "https://example.com/contrib/24",
+        "contributor_id": "contributor_24",
+        "thumbnail": "https://example.com/avatar/24.jpg",
+        "local_guide": true,
+        "reviews": 13,
+        "photos": 0
+      },
+      "likes": 0
+    },
+    {
+      "position": 15,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnTUNJb3VDMFZ3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgMCIouC0Vw%7C%7C?hl=en",
+      "rating": 3.0,
+      "date": "a year ago",
+      "iso_date": "2025-03-31T13:33:33Z",
+      "iso_date_of_last_edit": "2025-03-31T13:34:00Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnTUNJb3VDMFZ3EAE",
+      "user": {
+        "name": "Reviewer 25",
+        "link": "https://example.com/contrib/25",
+        "contributor_id": "contributor_25",
+        "thumbnail": "https://example.com/avatar/25.jpg",
+        "local_guide": true,
+        "reviews": 6,
+        "photos": 4
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$20–30",
+        "food": 3,
+        "service": 3,
+        "atmosphere": 3,
+        "recommended_dishes": "Classic Smash Burger, Double Cheeseburger, Smash Fries, BBQ",
+        "parking_space": "Somewhat difficult to find parking",
+        "parking_options": "Free parking lot"
+      },
+      "likes": 0
+    },
+    {
+      "position": 16,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnTUN3b2ZQUmFBEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgMCwofPRaA%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-03-19T10:12:22Z",
+      "iso_date_of_last_edit": "2025-03-19T10:12:22Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnTUN3b2ZQUmFBEAE",
+      "user": {
+        "name": "Reviewer 26",
+        "link": "https://example.com/contrib/26",
+        "contributor_id": "contributor_26",
+        "thumbnail": "https://example.com/avatar/26.jpg",
+        "local_guide": true,
+        "reviews": 8,
+        "photos": 1
+      },
+      "likes": 0
+    },
+    {
+      "position": 17,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnTUNRX05HN0FREAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgMCQ_NG7AQ%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-03-03T04:31:58Z",
+      "iso_date_of_last_edit": "2025-03-03T04:31:58Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnTUNRX05HN0FREAE",
+      "user": {
+        "name": "Reviewer 27",
+        "link": "https://example.com/contrib/27",
+        "contributor_id": "contributor_27",
+        "thumbnail": "https://example.com/avatar/27.jpg",
+        "reviews": 3,
+        "photos": 3
+      },
+      "snippet": "Very expensive! I’ve never seen a chicken burger with fries cost $21. They’re taking advantage of their location, surrounded by students, to overcharge for food that shouldn’t be this expensive.",
+      "extracted_snippet": {
+        "original": "Very expensive! I’ve never seen a chicken burger with fries cost $21. They’re taking advantage of their location, surrounded by students, to overcharge for food that shouldn’t be this expensive."
+      },
+      "details": {
+        "food": 1,
+        "service": 1,
+        "atmosphere": 1
+      },
+      "likes": 1
+    },
+    {
+      "position": 18,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnTURnNWVQTVNBEAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgMDg5ePMSA%7C%7C?hl=en",
+      "rating": 5.0,
+      "date": "a year ago",
+      "iso_date": "2025-02-26T06:19:24Z",
+      "iso_date_of_last_edit": "2025-02-26T06:19:24Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnTURnNWVQTVNBEAE",
+      "user": {
+        "name": "Reviewer 28",
+        "link": "https://example.com/contrib/28",
+        "contributor_id": "contributor_28",
+        "thumbnail": "https://example.com/avatar/28.jpg",
+        "local_guide": true,
+        "reviews": 43,
+        "photos": 54
+      },
+      "snippet": "Best burger ever",
+      "extracted_snippet": {
+        "original": "Best burger ever"
+      },
+      "details": {
+        "order_type": "Take out",
+        "meal_type": "Lunch",
+        "price_per_person": "$10–20",
+        "food": 5,
+        "service": 5,
+        "atmosphere": 5,
+        "recommended_dishes": "Classic Smash Burger",
+        "wheelchair_accessibility": "Flat ground"
+      },
+      "likes": 0
+    },
+    {
+      "position": 19,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChdDSUhNMG9nS0VJQ0FnSURfODhudjh3RRAB!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgID_88nv8wE%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-01-27T01:17:01Z",
+      "iso_date_of_last_edit": "2025-01-27T01:17:01Z",
+      "source": "Google",
+      "review_id": "ChdDSUhNMG9nS0VJQ0FnSURfODhudjh3RRAB",
+      "user": {
+        "name": "Reviewer 29",
+        "link": "https://example.com/contrib/29",
+        "contributor_id": "contributor_29",
+        "thumbnail": "https://example.com/avatar/29.jpg",
+        "reviews": 5,
+        "photos": 0
+      },
+      "snippet": "The location was not open i go there different days and times the store is never open",
+      "extracted_snippet": {
+        "original": "The location was not open i go there different days and times the store is never open"
+      },
+      "details": {
+        "service": 1
+      },
+      "likes": 1
+    },
+    {
+      "position": 20,
+      "link": "https://www.google.com/maps/reviews/data=!4m8!14m7!1m6!2m5!1sChZDSUhNMG9nS0VJQ0FnSUNfaWZ1V1d3EAE!2m1!1s0x0:0x2be30fcff506fec8!3m1!1s2@1:CIHM0ogKEICAgIC_ifuWWw%7C%7C?hl=en",
+      "rating": 1.0,
+      "date": "a year ago",
+      "iso_date": "2025-01-17T05:36:07Z",
+      "iso_date_of_last_edit": "2025-01-17T05:36:07Z",
+      "source": "Google",
+      "review_id": "ChZDSUhNMG9nS0VJQ0FnSUNfaWZ1V1d3EAE",
+      "user": {
+        "name": "Reviewer 30",
+        "link": "https://example.com/contrib/30",
+        "contributor_id": "contributor_30",
+        "thumbnail": "https://example.com/avatar/30.jpg",
+        "local_guide": true,
+        "reviews": 142,
+        "photos": 137
+      },
+      "snippet": "The hours listed is not correct.  Went there around 7pm and it's already closed even though the website clearly states 8pm closing.  No idea what the actual hours are and the phone number doesn't reach anyone.",
+      "extracted_snippet": {
+        "original": "The hours listed is not correct.  Went there around 7pm and it's already closed even though the website clearly states 8pm closing.  No idea what the actual hours are and the phone number doesn't reach anyone."
+      },
+      "details": {
+        "food": 3,
+        "service": 2,
+        "atmosphere": 3
+      },
+      "likes": 1
+    }
+  ],
+  "serpapi_pagination": {
+    "next": "https://serpapi.com/search.json?data_id=0x89c2537da9b3163d%3A0x2be30fcff506fec8&engine=google_maps_reviews&hl=en&next_page_token=CjEIARIpCgoAP72GuNPQlP__EhBikOam9BwftLPYs8kAAAAAGgn94MMCa409CU8YACIA%3A30&num=20&sort_by=newestFirst",
+    "next_page_token": "CjEIARIpCgoAP72GuNPQlP__EhBikOam9BwftLPYs8kAAAAAGgn94MMCa409CU8YACIA:30"
+  }
+}
