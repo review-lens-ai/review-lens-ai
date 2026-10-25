@@ -46,3 +46,7 @@ class TargetResponse(BaseModel):
     ingestion_status: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class TargetList(BaseModel):
+    items: list[TargetResponse]
