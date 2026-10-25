@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/client";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+if (!API_URL) {
+  throw new Error("NEXT_PUBLIC_API_URL is not set. Copy frontend/.env.example to frontend/.env.local.");
+}
 
 export class ApiError extends Error {
   constructor(

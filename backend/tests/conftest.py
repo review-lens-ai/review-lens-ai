@@ -1,4 +1,11 @@
+import os
 import time
+
+# Fake settings, set before importing the app: main.py checks them at import (fail fast).
+# Real env vars override backend/.env, so tests never use anyone's real values.
+SUPABASE_URL = "https://test-project.supabase.co"
+os.environ["SUPABASE_URL"] = SUPABASE_URL
+os.environ["DATABASE_URL"] = "postgresql://user:fake-password@localhost:5432/test"
 
 import jwt
 import pytest
@@ -9,7 +16,6 @@ from app.auth import get_key_resolver
 from app.core.config import get_settings
 from app.main import app
 
-SUPABASE_URL = "https://test-project.supabase.co"
 ISSUER = f"{SUPABASE_URL}/auth/v1"
 
 
@@ -27,8 +33,7 @@ def trusted_key():
 
 
 @pytest.fixture
-def client(monkeypatch, trusted_key):
-    monkeypatch.setenv("SUPABASE_URL", SUPABASE_URL)
+def client(trusted_key):
     get_settings.cache_clear()
     app.dependency_overrides[get_key_resolver] = lambda: FakeResolver(
         trusted_key.public_key()

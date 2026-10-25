@@ -13,7 +13,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<Me>("/api/me")
+    apiFetch<Me>("/api/v1/me")
       .then(setMe)
       .catch((e) => {
         if (e instanceof ApiError && e.status === 401) {
