@@ -5,11 +5,14 @@ if (!API_URL) {
   throw new Error("NEXT_PUBLIC_API_URL is not set. Copy frontend/.env.example to frontend/.env.local.");
 }
 
+export type FieldIssue = { field: string; message: string };
+
 export class ApiError extends Error {
   constructor(
     public status: number,
     public code: string,
     message: string,
+    public details: FieldIssue[] = [],
   ) {
     super(message);
   }
@@ -31,6 +34,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
       res.status,
       body?.error?.code ?? "UNKNOWN",
       body?.error?.message ?? "Something went wrong. Please try again.",
+      body?.error?.details ?? [],
     );
   }
   return body as T;

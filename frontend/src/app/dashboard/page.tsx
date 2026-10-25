@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import { createClient } from "@/lib/supabase/client";
@@ -45,9 +46,14 @@ export default function DashboardPage() {
           <span className="text-sm text-gray-500">Verified by the backend: {me.user_id}</span>
         </p>
       )}
-      <button onClick={logout} className="w-fit rounded border px-4 py-2">
-        Log out
-      </button>
+      <div className="flex gap-3">
+        <Link href="/targets/new" className="rounded bg-black px-4 py-2 text-white">
+          New target
+        </Link>
+        <button onClick={logout} className="rounded border px-4 py-2">
+          Log out
+        </button>
+      </div>
     </main>
   );
 }
