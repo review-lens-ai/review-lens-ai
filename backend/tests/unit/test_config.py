@@ -1,6 +1,6 @@
 import pytest
 
-from app.config import Settings
+from app.core.config import Settings
 
 SUPABASE_URL = "https://test-project.supabase.co"
 DATABASE_URL = "postgresql://user:fake-password@localhost:5432/test"
