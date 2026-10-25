@@ -6,6 +6,7 @@ never from the request.
 """
 
 from typing import Annotated
+from uuid import UUID
 
 import psycopg
 from fastapi import APIRouter, Depends
@@ -34,6 +35,13 @@ def list_targets(owner_id: OwnerId, repo: Repo) -> dict:
     """S1-017: only the signed-in user's targets. The owner filter runs in SQL
     (TargetRepository.list_for_owner), not in the browser."""
     return {"items": repo.list_for_owner(owner_id)}
+
+
+@router.get("/{target_id}", response_model=TargetResponse)
+def get_target(target_id: UUID, owner_id: OwnerId, repo: Repo) -> dict:
+    """S1-018: one target for its workspace. Another user's target is a 404,
+    indistinguishable from one that does not exist."""
+    return repo.get_owned(target_id, owner_id)
 
 
 @router.post("", status_code=201, response_model=TargetResponse)
