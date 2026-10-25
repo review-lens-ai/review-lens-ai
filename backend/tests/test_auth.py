@@ -1,3 +1,5 @@
+import re
+
 from cryptography.hazmat.primitives.asymmetric import ec
 
 from tests.conftest import auth
@@ -25,3 +27,23 @@ def test_forged_token_signed_by_attacker_key_is_rejected(client, make_token):
 def test_expired_token_is_rejected(client, make_token):
     r = client.get("/api/v1/me", headers=auth(make_token(exp=1)))
     assert r.status_code == 401
+
+
+def test_every_api_route_requires_a_token(client):
+    paths = client.app.openapi()["paths"]
+    api_routes = [
+        (method, re.sub(r"\{[^}]+\}", "x", path))
+        for path, ops in paths.items()
+        if path.startswith("/api/")
+        for method in ops
+    ]
+    assert api_routes, "expected at least one /api route"
+    for method, path in api_routes:
+        r = client.request(method, path)
+        assert r.status_code == 401, (
+            f"{method.upper()} {path} is reachable without a token"
+        )
+
+
+def test_health_is_public(client):
+    assert client.get("/health").status_code == 200
