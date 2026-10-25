@@ -97,7 +97,8 @@ def main(argv: list[str] | None = None) -> int:
     except psycopg.Error:
         # Details were logged above; never print the connection string.
         print(
-            "Migration failed. See the error above; nothing was partially applied.",
+            "Migration failed. The failing migration was rolled back; earlier ones stay applied. "
+            "Fix the error above and run the script again.",
             file=sys.stderr,
         )
         return 1
