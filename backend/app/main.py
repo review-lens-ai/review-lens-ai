@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import me
+from app.api.router import api_router
 from app.core.config import get_settings
 from app.core.errors import register_error_handlers
 
@@ -20,8 +20,7 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
-# Every router under /api must depend on get_current_user (S1-BR-004).
-app.include_router(me.router, prefix="/api/v1")
+app.include_router(api_router)
 
 
 @app.get("/health")

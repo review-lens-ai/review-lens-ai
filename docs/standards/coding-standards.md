@@ -18,7 +18,7 @@ review-lens-ai/
 │   │   ├── worker.py     # Background worker entry point
 │   │   ├── core/         # config.py (env vars, secrets), errors.py
 │   │   ├── auth.py       # Supabase token verification, ownership checks
-│   │   ├── api/          # HTTP endpoints
+│   │   ├── api/          # HTTP endpoints, mounted on router.py
 │   │   ├── services/     # Processing logic
 │   │   ├── adapters/     # External providers (SerpApi)
 │   │   ├── schemas/      # Request/response shapes
@@ -67,6 +67,8 @@ Use these terms everywhere. No synonyms.
 
 - Paths: `/api/v1` prefix, plural nouns, kebab-case.
 - Query params and JSON fields: snake_case. Matches Python and the database, no conversion layer.
+- Mount every router on `api_router` (`app/api/router.py`). It adds the `/api/v1` prefix and requires a verified user (S1-BR-004).
+- Public endpoints (e.g. `/health`) live outside `api_router`.
 
 ### Environment variables
 
