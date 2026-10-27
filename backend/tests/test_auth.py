@@ -1,4 +1,5 @@
 import re
+import time
 
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -43,6 +44,13 @@ def test_rejected_requests_return_only_the_error_body(client, make_token):
         assert set(r.json()["error"]) == {"code", "message"}
         assert "user-a" not in r.text
         assert "Error" not in r.json()["error"]["message"]  # no exception names
+
+
+def test_token_issued_slightly_in_the_future_is_accepted(client, make_token):
+    # A server clock a few seconds behind Supabase must not reject fresh tokens.
+    token = make_token(iat=int(time.time()) + 5)
+    r = client.get("/api/v1/me", headers=auth(token))
+    assert r.status_code == 200
 
 
 def test_every_api_route_requires_a_token(client):
