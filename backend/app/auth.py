@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 # Asymmetric only: never accept "none" or HS256 (algorithm-confusion attacks).
 ALLOWED_ALGORITHMS = ["RS256", "ES256"]
 AUDIENCE = "authenticated"
+# Tolerates small clock differences between this server and Supabase.
+CLOCK_SKEW_SECONDS = 30
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -63,6 +65,7 @@ def get_current_user(
             audience=AUDIENCE,
             issuer=get_settings().jwt_issuer,
             options={"require": ["exp", "sub"]},
+            leeway=CLOCK_SKEW_SECONDS,
         )
     except jwt.PyJWTError as exc:
         # Detail goes to logs only; the client just learns the session is invalid.

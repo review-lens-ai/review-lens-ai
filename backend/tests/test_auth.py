@@ -1,4 +1,5 @@
 import re
+import time
 
 from cryptography.hazmat.primitives.asymmetric import ec
 
@@ -27,6 +28,29 @@ def test_forged_token_signed_by_attacker_key_is_rejected(client, make_token):
 def test_expired_token_is_rejected(client, make_token):
     r = client.get("/api/v1/me", headers=auth(make_token(exp=1)))
     assert r.status_code == 401
+
+
+def test_rejected_requests_return_only_the_error_body(client, make_token):
+    attacker = ec.generate_private_key(ec.SECP256R1())
+    for headers in (
+        {},
+        auth("not-a-jwt"),
+        auth(make_token(exp=1)),
+        auth(make_token(key=attacker)),
+    ):
+        r = client.get("/api/v1/me", headers=headers)
+        assert r.status_code == 401
+        assert list(r.json()) == ["error"]
+        assert set(r.json()["error"]) == {"code", "message"}
+        assert "user-a" not in r.text
+        assert "Error" not in r.json()["error"]["message"]  # no exception names
+
+
+def test_token_issued_slightly_in_the_future_is_accepted(client, make_token):
+    # A server clock a few seconds behind Supabase must not reject fresh tokens.
+    token = make_token(iat=int(time.time()) + 5)
+    r = client.get("/api/v1/me", headers=auth(token))
+    assert r.status_code == 200
 
 
 def test_every_api_route_requires_a_token(client):
