@@ -71,3 +71,14 @@ def get_current_user(
             "Your session is invalid or has expired. Please sign in again."
         ) from exc
     return CurrentUser(id=claims["sub"], email=claims.get("email"))
+
+
+def get_current_user_id(
+    user: Annotated[CurrentUser, Depends(get_current_user)],
+) -> str:
+    """The verified user's id (the JWT "sub" claim = public.users.id).
+
+    This is the ONLY source of ownership. Endpoints that create or read
+    user-owned data take their owner from here, never from the request body.
+    """
+    return user.id
