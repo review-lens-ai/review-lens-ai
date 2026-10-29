@@ -49,7 +49,7 @@ class Settings(BaseSettings):
             ]
             if not missing:
                 raise
-            # "from None" drops the original error, which can echo input values (secrets)
+            # "from None" drops the original error, which can echo secret values
             raise RuntimeError(
                 f"Missing required setting: {', '.join(missing)}"
             ) from None

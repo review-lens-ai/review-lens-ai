@@ -44,3 +44,18 @@ Starts the backend (http://localhost:8000) and frontend (http://localhost:3000) 
 - [Coding Standards](docs/standards/coding-standards.md)
 - [Engineering Philosophy](docs/standards/philosophy.md)
 - [AI-Assisted Development](docs/standards/ai-assisted-development.md)
+
+## Quality checks
+
+```bash
+./scripts/check.sh
+```
+
+Runs everything CI will run, and stops at the first failure:
+
+| Layer    | Lint                | Format                         | Types               | Tests          |
+| -------- | ------------------- | ------------------------------ | ------------------- | -------------- |
+| Backend  | `ruff check .`      | `ruff format --check .`        | n/a                 | `pytest`       |
+| Frontend | `npm run lint`      | `npm run format:check`         | `npm run typecheck` | `npm test`     |
+
+Fix formatting automatically with `ruff format .` (backend) and `npm run format` (frontend). Rules live in `backend/pyproject.toml` (`[tool.ruff]`) and `frontend/.prettierrc.json`, so results do not depend on anyone's editor. Tests never open a browser or call a live service.
