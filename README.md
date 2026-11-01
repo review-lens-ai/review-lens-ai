@@ -59,3 +59,5 @@ Runs everything CI will run, and stops at the first failure:
 | Frontend | `npm run lint`      | `npm run format:check`         | `npm run typecheck` | `npm test`     |
 
 Fix formatting automatically with `ruff format .` (backend) and `npm run format` (frontend). Rules live in `backend/pyproject.toml` (`[tool.ruff]`) and `frontend/.prettierrc.json`, so results do not depend on anyone's editor. Tests never open a browser or call a live service.
+
+Backend coverage (lines and branches) for any file: `cd backend && uv run pytest --cov=app.auth --cov-branch --cov-report=term-missing`.
