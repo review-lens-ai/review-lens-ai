@@ -16,6 +16,9 @@ Rules this module enforces:
 - REQUIRED: non-blank review text and a whole-number rating from 1 to 5. A record
   missing either is REJECTED with a fixed reason. One bad record never stops the
   rest of the batch, and nothing here raises because of a bad record.
+- ORIGINAL TEXT: when Google translates a review, the reviewer's own words are
+  kept (extracted_snippet.original), not the translation. snippet is used only
+  when there is no original.
 - OPTIONAL: the source review id, reviewer display name, date, link and useful
   extras are kept when present. If one is missing or malformed it becomes None
   (or is left out of source_metadata); the review itself is still kept.
@@ -121,7 +124,7 @@ def normalize_review(raw: Any) -> tuple[ReviewCreate | None, RejectionReason | N
     if not isinstance(raw, dict):
         return None, RejectionReason.NOT_A_RECORD
 
-    review_text = _clean_text(raw.get("snippet"))
+    review_text = _review_text(raw)
     if review_text is None:
         return None, RejectionReason.MISSING_TEXT
 
@@ -153,6 +156,21 @@ def _clean_text(value: Any) -> str | None:
         return None
     cleaned = value.replace("\x00", "").strip()
     return cleaned or None
+
+
+def _review_text(raw: dict) -> str | None:
+    """The reviewer's own words, or None if the record has no usable text.
+
+    SerpApi puts the review in "snippet". When Google translated it, the
+    original is also in extracted_snippet.original (and the translation in
+    extracted_snippet.translated). The original wins; snippet is the fallback.
+    """
+    extracted = raw.get("extracted_snippet")
+    if isinstance(extracted, dict):
+        original = _clean_text(extracted.get("original"))
+        if original is not None:
+            return original
+    return _clean_text(raw.get("snippet"))
 
 
 def _parse_rating(value: Any) -> int | None:

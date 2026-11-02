@@ -98,6 +98,42 @@ def test_missing_or_unusable_review_text_is_rejected(snippet):
     assert reason == RejectionReason.MISSING_TEXT
 
 
+# --- Original text, not the translation ---------------------------------------
+
+
+def test_original_text_is_kept_instead_of_the_translation():
+    review, _ = normalize_review(
+        raw_review(
+            snippet="Great burgers, slow service.",
+            extracted_snippet={
+                "original": "Hamburguesas geniales, servicio lento.",
+                "translated": "Great burgers, slow service.",
+            },
+        )
+    )
+    assert review.review_text == "Hamburguesas geniales, servicio lento."
+
+
+@pytest.mark.parametrize(
+    "extracted",
+    [_MISSING, None, {}, {"original": "   "}, {"original": None}, "not an object"],
+)
+def test_snippet_is_used_when_there_is_no_original(extracted):
+    review, reason = normalize_review(
+        raw_review(snippet="Good fries.", extracted_snippet=extracted)
+    )
+    assert reason is None
+    assert review.review_text == "Good fries."
+
+
+def test_original_text_alone_is_enough_to_keep_a_review():
+    review, reason = normalize_review(
+        raw_review(snippet=_MISSING, extracted_snippet={"original": "Muy bueno."})
+    )
+    assert reason is None
+    assert review.review_text == "Muy bueno."
+
+
 # --- Missing or invalid rating ------------------------------------------------
 
 
