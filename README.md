@@ -44,6 +44,7 @@ Starts the backend (http://localhost:8000) and frontend (http://localhost:3000) 
 - [Coding Standards](docs/standards/coding-standards.md)
 - [Engineering Philosophy](docs/standards/philosophy.md)
 - [AI-Assisted Development](docs/standards/ai-assisted-development.md)
+- [Data and Security Guardrails](docs/standards/data-security-guardrails.md)
 
 ## Quality checks
 
