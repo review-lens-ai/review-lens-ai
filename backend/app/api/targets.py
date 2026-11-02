@@ -44,6 +44,12 @@ def get_target(target_id: UUID, owner_id: OwnerId, repo: Repo) -> dict:
     return repo.get_owned(target_id, owner_id)
 
 
+@router.delete("/{target_id}", status_code=204)
+def delete_target(target_id: UUID, owner_id: OwnerId, repo: Repo) -> None:
+    """S1-012: delete one of your own targets. Another user's target is a 404."""
+    repo.delete_owned(target_id, owner_id)
+
+
 @router.post("", status_code=201, response_model=TargetResponse)
 def create_target(payload: TargetCreate, owner_id: OwnerId, repo: Repo) -> dict:
     """S1-015: create a target owned by the signed-in user."""

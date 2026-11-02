@@ -67,3 +67,17 @@ class TargetRepository:
         if row is None:
             raise NotFoundError("Target not found.")
         return row
+
+    def delete_owned(self, target_id: UUID | str, owner_id: UUID | str) -> None:
+        """Delete the target if `owner_id` owns it; otherwise NotFoundError.
+        Runs and reviews are removed by their foreign-key cascade."""
+        row = self._conn.execute(
+            """
+            delete from public.analysis_targets
+             where id = %s and owner_id = %s
+            returning id
+            """,
+            (target_id, owner_id),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError("Target not found.")
