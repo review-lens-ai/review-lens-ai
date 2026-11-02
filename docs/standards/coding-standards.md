@@ -37,7 +37,7 @@ review-lens-ai/
 
 ## 2. Naming
 
-Follow each language's standard: PEP 8, common TypeScript conventions, Postgres snake_case. Ruff (`N` rules) and ESLint (`naming-convention`) enforce what they can.
+Follow each language's standard: PEP 8, common TypeScript conventions, Postgres snake_case. Ruff (`N` rules) and ESLint (`@typescript-eslint/naming-convention`, `eslint-plugin-check-file`) enforce what they can. Object properties are not checked, since JSON fields are snake_case (see API).
 
 ### Domain glossary
 
@@ -52,6 +52,8 @@ Use these terms everywhere. No synonyms.
 ### Code
 
 - Schemas: `<Entity>Create`, `<Entity>Response`.
+- Identifiers: camelCase; PascalCase for components and types; UPPER_CASE for constants.
+  Components live in `src/components/`.
 - TypeScript files: PascalCase for components (`TargetCard.tsx`), kebab-case otherwise (`api-client.ts`).
 - Next.js routes: lowercase folders, private folders prefixed `_`, reserved file names only (`page.tsx`, `layout.tsx`).
 
