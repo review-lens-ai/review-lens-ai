@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
-import { ingestionLabel, platformLabel, type Target } from "@/lib/targets";
+import { platformLabel, type Target } from "@/lib/targets";
+import { failureMessage, fetchLatestRun, runDetail, type IngestionRun } from "@/lib/ingestionRuns";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 
 export default function TargetWorkspacePage() {
   const router = useRouter();
@@ -12,10 +14,17 @@ export default function TargetWorkspacePage() {
   const [target, setTarget] = useState<Target | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // S1-023: newest ingestion attempt (null = never ingested).
+  const [latestRun, setLatestRun] = useState<IngestionRun | null>(null);
 
   useEffect(() => {
     apiFetch<Target>(`/api/v1/targets/${id}`)
-      .then(setTarget)
+      .then((t) => {
+        setTarget(t);
+        // Details for the status line. If this one call fails, the badge still
+        // shows the status from the target itself, so the page stays usable.
+        fetchLatestRun(id).then(setLatestRun).catch(() => setLatestRun(null));
+      })
       .catch((e) => {
         if (e instanceof ApiError && e.status === 401) {
           router.replace("/login");
@@ -81,8 +90,21 @@ export default function TargetWorkspacePage() {
           </a>
         </dd>
         <dt className="text-gray-600 dark:text-gray-400">Ingestion</dt>
-        <dd>{ingestionLabel(target.ingestion_status)}</dd>
+        {/* S1-023: status badge + detail line (ui-ux-standards.md §7.3).
+            aria-live lets screen readers announce when the status changes. */}
+        <dd aria-live="polite" className="flex flex-wrap items-center gap-2">
+          <StatusBadge status={latestRun?.status ?? target.ingestion_status} />
+          <span className="text-gray-600 dark:text-gray-400">{runDetail(latestRun)}</span>
+        </dd>
       </dl>
+
+      {latestRun?.status === "failed" && (
+        // S1-023: a failed run is always visible and never looks like a success (§7.3).
+        <div role="alert" className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <p className="font-medium">{failureMessage(latestRun.error_code).title}</p>
+          <p>{failureMessage(latestRun.error_code).next}</p>
+        </div>
+      )}
 
       <section className="flex flex-col gap-2">
         <h2 className="text-lg font-medium">Collect reviews</h2>
