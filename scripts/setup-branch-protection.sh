@@ -13,7 +13,7 @@ protect_branch() {
     "repos/$REPO/branches/$branch/protection" \
     --input - <<EOF
 {
-  "required_status_checks": null,
+  "required_status_checks": { "strict": true, "contexts": ["check"] },
   "enforce_admins": true,
   "required_pull_request_reviews": {
     "dismiss_stale_reviews": true,
