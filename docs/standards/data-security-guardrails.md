@@ -9,9 +9,9 @@ ReviewLens is multi-user. Every user-owned read and write must stay inside the s
 ## 1. Identity provider
 
 - **Supabase Auth**, email and password. Users self-register, sign in, sign out and (once built) reset their password through Supabase.
-- There is no "Sign in with Google". It was removed in S1-009 (PR #26). Google Maps is the review **source**, not a login method.
+- There is no Google sign-in. Google Maps is only where the reviews come from.
 - Registering with an email that already has an account must not create a second account (spec 4.1).
-- Sign-up and sign-in happen on `/login` (`frontend/src/app/login/page.tsx`), which calls Supabase directly through the browser client (`frontend/src/lib/supabase/client.ts`). If Supabase requires email confirmation, sign-up returns no session and the page asks the user to confirm their email first.
+- Sign-up and sign-in happen on `/login` (`frontend/src/app/login/page.tsx`), which calls Supabase directly through the browser client (`frontend/src/lib/supabase/client.ts`). Sign-up sends a verification link to the user's email; they can sign in only after clicking it, so the page asks them to check their email.
 - On sign-in the browser receives a JWT access token (and a refresh token), kept in the Supabase session.
 - The browser sends that token to the backend as `Authorization: Bearer <token>` on every call (`frontend/src/lib/api.ts`).
 - The backend verifies it in `backend/app/auth.py`:
@@ -41,8 +41,10 @@ JWT "sub"  =  auth.users.id  =  public.users.id  ←  analysis_targets.owner_id
 | IngestionRun | `ingestion_runs` | `target_id` → target's `owner_id` |
 | Review | `reviews` | `target_id` and `run_id` → target's `owner_id` |
 | Ingestion rejection | `ingestion_rejections` | `run_id` → run → target's `owner_id` |
+| Ingestion stage | `ingestion_stages` | `run_id` → run → target's `owner_id` |
+| Raw provider page | `ingestion_raw_pages` | `run_id` → run → target's `owner_id` |
 
-- Ownership is transitive: runs, reviews and rejections are reachable only through a target the user owns.
+- Ownership is transitive: runs, reviews, rejections, stages and raw pages are reachable only through a target the user owns.
 - `reviews` uses a composite foreign key `(run_id, target_id)`, so a review can never point at another target's run.
 - Deleting a user cascades to their targets and everything under them.
 
@@ -54,11 +56,11 @@ Three layers. Only the second one actually protects data from our own backend.
 | --- | --- | --- |
 | 1. Authentication | `api_router` in `backend/app/api/router.py` | Every `/api/v1` route requires a verified token (S1-BR-004). Public routes such as `/health` live outside it. |
 | 2. Ownership filter | Repositories in `backend/app/repositories/` | Every query on user-owned data filters by `owner_id` in SQL (S1-BR-009). |
-| 3. Data API lockout | Every migration | Row Level Security on with no policies, and all grants revoked from `anon` and `authenticated`. |
+| 3. Data API lockout | Every table in the `public` schema | Row Level Security on with no policies, and all grants revoked from `anon` and `authenticated`. Today that is `users`, `analysis_targets`, `ingestion_runs`, `reviews`, `ingestion_rejections`, `ingestion_stages` and `ingestion_raw_pages`. |
 
 ### Why we don't use per-user RLS policies
 
-RLS is on for every table, but it locks out Supabase's public Data API, not our backend. We deliberately do **not** write per-user policies such as `auth.uid() = owner_id`. Here is why.
+RLS is on for every table in the `public` schema, but it locks out Supabase's public Data API, not our backend. We deliberately do **not** write per-user policies such as `auth.uid() = owner_id`. Here is why.
 
 **RLS filters by who is connected to the database.** A per-user policy only works when the user's own token reaches Postgres, which is what happens when a browser queries tables directly with `supabase.from(...)`. Our browser never does that. Every request goes:
 
@@ -70,7 +72,9 @@ FastAPI connects with one login for everyone: the `postgres` role in `DATABASE_U
 
 **That is why layer 2 is the one that matters.** The owner filter in our repositories is the only thing that keeps one user's rows away from another's. If a repository query forgets `AND owner_id = %s`, Postgres returns the row anyway.
 
-**Why layer 3 still exists.** Supabase also exposes every table through its auto-generated Data API. The publishable key is public (it ships in our frontend), so anyone can call that API. Those requests run as the `anon` or `authenticated` roles, and RLS *does* apply to them. RLS on with **no** policies means "deny every row" for those roles, and the `REVOKE` removes their table permissions. Supabase grants new tables to `anon` and `authenticated` by default, so the `REVOKE` is required in every migration. Together they make that side door read and write nothing.
+**Why layer 3 still exists.** Supabase also exposes every table in the `public` schema through its auto-generated Data API. The publishable key is public (it ships in our frontend), so anyone can call that API. Those requests run as the `anon` or `authenticated` roles, and RLS *does* apply to them. RLS on with **no** policies means "deny every row" for those roles, and the `REVOKE` removes their table permissions. Supabase grants new tables in `public` to `anon` and `authenticated` by default, so every migration that creates a table in `public` must also enable RLS and `REVOKE` in the same file. Together they make that side door read and write nothing.
+
+The Data API only reaches the `public` schema. The migration script's own bookkeeping table, `supabase_migrations.schema_migrations`, lives in a different schema, is not exposed, and is not locked the same way.
 
 **Why we chose this design.**
 
@@ -88,7 +92,10 @@ FastAPI connects with one login for everyone: the `postgres` role in `DATABASE_U
 - Child records (runs, reviews): load the parent target with `get_owned(target_id, user_id)` first, then query the children.
 - Someone else's record raises `NotFoundError` (**404**), exactly like a missing one. Never 403: a different answer would confirm the id exists (S1-BR-008).
 
-**The frontend guard is a convenience only.** `frontend/src/proxy.ts` (PR #37) checks the session with Supabase's `getClaims()`, which verifies the token's signature, and redirects signed-out visitors to `/login` (S1-BR-003). Every page is protected unless it is on the proxy's public list. Logging out signs out of Supabase and sends the user to `/login`; with the proxy in place, pressing Back does not show protected data (S1-BR-006). The backend still re-checks the token on every call.
+**The frontend guard is a convenience only.** `frontend/src/proxy.ts` (PR #37) checks the session with Supabase's `getClaims()`, which verifies the token's signature, and redirects signed-out visitors to `/login` (S1-BR-003). Every page is protected unless it is on the proxy's public list. Logging out signs out of Supabase and sends the user to `/login` (S1-BR-006). After that:
+
+- Loading any protected page sends the user to `/login`.
+- Every backend call is re-checked, so even an old page still in the browser cannot load fresh data without a valid token.
 
 ## 5. Why client-supplied owner ids are never trusted
 
@@ -109,6 +116,9 @@ Anything in a request body, query string or header other than the verified token
 | `OPENROUTER_API_KEY` | `backend/.env`, Render | **Yes** |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_API_URL` | `frontend/.env.local`, Vercel | No, public by design |
 | Supabase service-role key | **Not used** | It bypasses RLS |
+| `TEST_DATABASE_URL` | Set in your terminal when running database tests, e.g. `postgresql://postgres:postgres@localhost:5432/postgres` | No: a throwaway local database with fake data |
+
+`TEST_DATABASE_URL` tells the database tests which database to use. Without it they are skipped. It must never point at the real Supabase project, because tests create and delete rows; the tests refuse any address containing `supabase.co`.
 
 Rules (S1-BR-011):
 
