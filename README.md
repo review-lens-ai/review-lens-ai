@@ -51,7 +51,7 @@ Starts the backend (http://localhost:8000) and frontend (http://localhost:3000) 
 ./scripts/check.sh
 ```
 
-Runs everything CI will run, and stops at the first failure:
+Runs every check CI runs except the production build (`cd frontend && npm run build`), and stops at the first failure:
 
 | Layer    | Lint                | Format                         | Types               | Tests          |
 | -------- | ------------------- | ------------------------------ | ------------------- | -------------- |

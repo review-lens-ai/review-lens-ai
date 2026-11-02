@@ -85,8 +85,11 @@ Use these terms everywhere. No synonyms.
 
 ### Git
 
-- Branches, PRs: `<type>/<SNUM><gh issue><description>`, e.g. `feat/S1-001--create-target`.
-- Commits: `<type>/<description>`.
+- Branches, PRs: `<type>/<SNUM>-<description>`, e.g. `feat/S1-001-create-target`.
+  A branch covering several stories lists them all: `feat/S1-006-S1-007-quality-and-ci`.
+- Commits: `<type>/<description>`, e.g. `fix/regenerate npm lockfile`.
+  Story IDs go in the body as `Refs: S1-006` (several allowed), not the subject.
+- Types: feat, fix, test, chore, docs, ci.
 
 ## 3. Formatting and linting
 
