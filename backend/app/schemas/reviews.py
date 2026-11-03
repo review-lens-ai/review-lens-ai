@@ -46,5 +46,8 @@ class ReviewResponse(BaseModel):
     created_at: datetime
 
 
-class ReviewList(BaseModel):
+class ReviewPage(BaseModel):
     items: list[ReviewResponse]
+    total: int  # all of the target's reviews, not just this page
+    limit: int
+    offset: int
