@@ -27,24 +27,33 @@ def make_target(conn):
 
 @pytest.fixture
 def make_run(conn):
-    """A finished run. Finished runs are valid both before and after the 'queued'
-    status and the one-active-run rule in #32, and a target can have many."""
+    """A finished run (COMPLETED or FAILED). Finished runs are outside the
+    one-active-run rule, so a target can have many. The schema requires a start
+    time, at least one ingested review for COMPLETED, and an error code for FAILED."""
 
-    def _make(target_id, status="succeeded"):
+    def _make(target_id, status="COMPLETED"):
         return conn.execute(
             """
-            insert into public.ingestion_runs (target_id, status, finished_at)
-            values (%s, %s, now())
+            insert into public.ingestion_runs
+                (target_id, status, started_at, finished_at, reviews_ingested, error_code)
+            values (%s, %s, now(), now(), %s, %s)
             returning id
             """,
-            (target_id, status),
+            (
+                target_id,
+                status,
+                1 if status == "COMPLETED" else 0,
+                "UNEXPECTED" if status == "FAILED" else None,
+            ),
         ).fetchone()["id"]
 
     return _make
 
 
 def _review(text="Great slice", rating=5, **fields) -> ReviewCreate:
-    return ReviewCreate(rating=rating, review_text=text, **fields)
+    return ReviewCreate(
+        rating=rating, review_text=text, mapping_version="serpapi@1", **fields
+    )
 
 
 def test_saved_review_text_and_rating_match_the_normalized_input(
@@ -56,7 +65,6 @@ def test_saved_review_text_and_rating_match_the_normalized_input(
     review = _review(
         "Crust was perfect",
         4,
-        author_name="Sam",
         source_review_id="r1",
         source_url="https://example.com/r1",
         source_metadata={"likes": 3},
@@ -67,7 +75,7 @@ def test_saved_review_text_and_rating_match_the_normalized_input(
     [saved] = repo.list_for_target(target["id"], owner)
     assert saved["review_text"] == "Crust was perfect"
     assert saved["rating"] == 4
-    assert saved["author_name"] == "Sam"
+    assert saved["mapping_version"] == "serpapi@1"
     assert saved["source_review_id"] == "r1"
     assert saved["source_url"] == "https://example.com/r1"
     assert saved["source_metadata"] == {"likes": 3}
@@ -215,7 +223,7 @@ def test_failed_run_leaves_earlier_reviews_in_place(
     target = make_target(owner)
     repo.bulk_insert(make_run(target["id"]), target["id"], owner, [_review("Earlier")])
 
-    make_run(target["id"], status="failed")
+    make_run(target["id"], status="FAILED")
 
     texts = [r["review_text"] for r in repo.list_for_target(target["id"], owner)]
     assert texts == ["Earlier"]

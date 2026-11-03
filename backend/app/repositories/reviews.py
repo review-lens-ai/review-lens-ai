@@ -50,7 +50,7 @@ class ReviewRepository:
                 saved += self._conn.execute(
                     """
                     insert into public.reviews (
-                        target_id, run_id, rating, review_text, author_name,
+                        target_id, run_id, rating, review_text, mapping_version,
                         reviewed_at, source_review_id, source_url, source_metadata
                     )
                     values (%s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -61,7 +61,7 @@ class ReviewRepository:
                         run_id,
                         review.rating,
                         review.review_text,
-                        review.author_name,
+                        review.mapping_version,
                         review.reviewed_at,
                         review.source_review_id,
                         review.source_url,
@@ -96,7 +96,7 @@ class ReviewRepository:
         self._targets.get_owned(target_id, owner_id)
         return self._conn.execute(
             """
-            select id, target_id, run_id, rating, review_text, author_name,
+            select id, target_id, run_id, rating, review_text, mapping_version,
                    reviewed_at, source_review_id, source_url, source_metadata,
                    created_at
               from public.reviews

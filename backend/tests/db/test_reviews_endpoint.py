@@ -28,8 +28,9 @@ def make_target_with_review(conn):
         target = TargetRepository(conn).create(owner_id, "Joe's", "google_maps", URL)
         run_id = conn.execute(
             """
-            insert into public.ingestion_runs (target_id, status, finished_at)
-            values (%s, 'succeeded', now())
+            insert into public.ingestion_runs
+                (target_id, status, started_at, finished_at, reviews_ingested)
+            values (%s, 'COMPLETED', now(), now(), 1)
             returning id
             """,
             (target["id"],),
@@ -38,7 +39,14 @@ def make_target_with_review(conn):
             run_id,
             target["id"],
             owner_id,
-            [ReviewCreate(rating=5, review_text=text, source_metadata={"likes": 1})],
+            [
+                ReviewCreate(
+                    rating=5,
+                    review_text=text,
+                    mapping_version="serpapi@1",
+                    source_metadata={"likes": 1},
+                )
+            ],
         )
         return str(target["id"])
 

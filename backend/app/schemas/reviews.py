@@ -38,7 +38,7 @@ class ReviewResponse(BaseModel):
     run_id: UUID
     rating: int
     review_text: str
-    author_name: str | None
+    mapping_version: str
     reviewed_at: datetime | None
     source_review_id: str | None
     source_url: str | None
