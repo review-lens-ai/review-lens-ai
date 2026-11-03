@@ -55,7 +55,7 @@ def test_queued_run_is_reported_as_queued(api, setup):
 
     r = _latest(api, setup["target_id"], setup["token_a"])
     assert r.status_code == 200
-    assert r.json()["run"]["status"] == "queued"
+    assert r.json()["run"]["status"] == "QUEUED"
     assert r.json()["run"]["finished_at"] is None
 
 
@@ -63,7 +63,7 @@ def test_running_run_is_reported_as_running(api, setup):
     _start(setup)
 
     run = _latest(api, setup["target_id"], setup["token_a"]).json()["run"]
-    assert run["status"] == "running"
+    assert run["status"] == "RUNNING"
     assert run["finished_at"] is None
 
 
@@ -73,7 +73,7 @@ def test_successful_run_reports_status_and_review_count(api, setup):
     runs.mark_succeeded(run["id"], reviews_ingested=42)
 
     body = _latest(api, setup["target_id"], setup["token_a"]).json()["run"]
-    assert body["status"] == "succeeded"
+    assert body["status"] == "COMPLETED"
     assert body["reviews_ingested"] == 42
     assert body["reviews_rejected"] == 0
     assert body["error_code"] is None
@@ -85,7 +85,7 @@ def test_run_with_skipped_reviews_is_reported_as_partial(api, setup):
     setup["runs"].mark_succeeded(run["id"], reviews_ingested=40, reviews_rejected=2)
 
     body = _latest(api, setup["target_id"], setup["token_a"]).json()["run"]
-    assert body["status"] == "partial"
+    assert body["status"] == "PARTIAL"
     assert body["reviews_rejected"] == 2
 
 
@@ -98,8 +98,8 @@ def test_failed_run_reports_only_the_safe_error_code(api, setup):
 
     r = _latest(api, setup["target_id"], setup["token_a"])
     body = r.json()["run"]
-    assert body["status"] == "failed"
-    assert body["error_code"] == "source_unreachable"
+    assert body["status"] == "FAILED"
+    assert body["error_code"] == "SOURCE_UNREACHABLE"
     assert "serpapi" not in r.text.lower()
 
 
