@@ -30,6 +30,10 @@ class TargetCreate(BaseModel):
             raise ValueError("Enter a name for what you want to analyze.")
         if len(value) > MAX_NAME_LENGTH:
             raise ValueError(f"Keep the name under {MAX_NAME_LENGTH} characters.")
+        if not value.isprintable():
+            raise ValueError("The name can't contain line breaks or hidden characters.")
+        if not any(ch.isalnum() for ch in value):
+            raise ValueError("The name needs at least one letter or number.")
         return value
 
     @field_validator("source_url")

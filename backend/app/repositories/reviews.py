@@ -11,6 +11,10 @@ Rules this module enforces:
 - OWNERSHIP: FastAPI bypasses Row Level Security, so every method checks the owner
   through the parent target first. Another user's target is NotFoundError, exactly
   like a missing one, so IDs cannot be probed.
+- RUNNING RUNS ONLY: reviews and rejections are saved only while their run is
+  RUNNING (InvalidRunTransitionError otherwise), so nothing can be added to a run
+  that is queued or already finished. Ownership is checked first, so another
+  user's run is a 404 whatever its state.
 - DUPLICATES: a review whose source_review_id this target already has is skipped,
   and the first copy wins. Reviews with no source_review_id are always saved.
 - COUNTS: bulk_insert returns the rows actually inserted, so a run never reports
@@ -25,6 +29,7 @@ import psycopg
 from psycopg.types.json import Jsonb
 
 from app.core.errors import NotFoundError
+from app.repositories.ingestion_runs import InvalidRunTransitionError
 from app.repositories.targets import TargetRepository
 from app.schemas.reviews import ReviewCreate
 from app.services.normalize_reviews import RejectedRecord
@@ -90,9 +95,15 @@ class ReviewRepository:
                 )
 
     def list_for_target(
-        self, target_id: UUID | str, owner_id: UUID | str
+        self,
+        target_id: UUID | str,
+        owner_id: UUID | str,
+        *,
+        limit: int | None = None,
+        offset: int = 0,
     ) -> list[dict]:
-        """Reviews of a target the user owns, newest first; otherwise NotFoundError."""
+        """Reviews of a target the user owns, newest first; otherwise NotFoundError.
+        limit=None returns them all."""
         self._targets.get_owned(target_id, owner_id)
         return self._conn.execute(
             """
@@ -101,23 +112,40 @@ class ReviewRepository:
                    created_at
               from public.reviews
              where target_id = %s
+             -- id last: pages never overlap or skip a review.
              order by reviewed_at desc nulls last, created_at desc, id
+             limit %s offset %s
             """,
-            (target_id,),
+            (target_id, limit, offset),
         ).fetchall()
+
+    def count_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> int:
+        """How many reviews a target the user owns has; otherwise NotFoundError."""
+        self._targets.get_owned(target_id, owner_id)
+        return self._conn.execute(
+            "select count(*) as total from public.reviews where target_id = %s",
+            (target_id,),
+        ).fetchone()["total"]
 
     def _require_owned_run(
         self, run_id: UUID | str, target_id: UUID | str, owner_id: UUID | str
     ) -> None:
-        """NotFoundError unless the run belongs to this target and the user owns it."""
+        """NotFoundError unless the run belongs to this target and the user owns it;
+        InvalidRunTransitionError unless the run is RUNNING. The run row stays
+        locked until the transaction ends, so it cannot finish mid-save."""
         row = self._conn.execute(
             """
-            select 1
+            select r.status::text as status
               from public.ingestion_runs r
               join public.analysis_targets t on t.id = r.target_id
              where r.id = %s and r.target_id = %s and t.owner_id = %s
+               for update of r
             """,
             (run_id, target_id, owner_id),
         ).fetchone()
         if row is None:
             raise NotFoundError("Target not found.")
+        if row["status"] != "RUNNING":
+            raise InvalidRunTransitionError(
+                "Reviews can only be saved while the ingestion run is running."
+            )
