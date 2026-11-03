@@ -18,6 +18,15 @@ class AuthenticationError(AppError):
     message = "Please sign in to continue."
 
 
+class NotFoundError(AppError):
+    """Also used when a resource exists but belongs to another user, so a
+    caller cannot tell the two cases apart (S1-BR-008)."""
+
+    status_code = 404
+    code = "NOT_FOUND"
+    message = "We couldn't find what you were looking for."
+
+
 def error_body(code: str, message: str) -> dict:
     return {"error": {"code": code, "message": message}}
 
