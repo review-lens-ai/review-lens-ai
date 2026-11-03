@@ -104,7 +104,17 @@ TBD.
 
 ## 5. API responses
 
-TBD.
+- Lists: `{"items": [...]}`.
+- A list that can grow without bound (e.g. reviews) is paginated: `?limit=&offset=`,
+  default 50, max 100. The response adds `total`, `limit` and `offset`.
+  The ordering ends with a unique column (`id`), so pages never overlap or skip a row.
+- On a paginated list, `items` is one page, not everything. Clients read `total` to
+  know there is more; a client that ignores it shows a partial list as if complete.
+- Small lists (e.g. a user's targets) stay plain `{items}`. Two shapes is the
+  tradeoff for paging only what needs it.
+- Offset paging is a choice for this project's size, not a rule. Rows shift when
+  new data arrives mid-paging, and deep offsets get slow. If a list needs infinite
+  scroll or gets large, switch it to cursor paging (`?after=<last id>`).
 
 ## 6. Logging
 
