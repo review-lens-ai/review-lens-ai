@@ -26,6 +26,14 @@ export function isActive(status: IngestionStatus | null | undefined): boolean {
   return status === "QUEUED" || status === "RUNNING";
 }
 
+// S1-019: queue a new run. The backend answers at once with the QUEUED run;
+// the worker does the work and fetchLatestRun reports progress.
+export async function startIngestionRun(targetId: string): Promise<IngestionRun> {
+  return apiFetch<IngestionRun>(`/api/v1/targets/${targetId}/ingestion-runs`, {
+    method: "POST",
+  });
+}
+
 export async function fetchLatestRun(targetId: string): Promise<IngestionRun | null> {
   const body = await apiFetch<{ run: IngestionRun | null }>(
     `/api/v1/targets/${targetId}/ingestion-runs/latest`,
