@@ -99,7 +99,11 @@ def serpapi(page_2=None):
 @pytest.fixture
 def target(conn, make_user):
     owner = make_user()
-    return TargetRepository(conn).create(owner, "Smashburger", "google_maps", PLACE_URL)
+    created = TargetRepository(conn).create(
+        owner, "Smashburger", "google_maps", PLACE_URL
+    )
+    # create() returns the API view of a target, which leaves out owner_id.
+    return {**created, "owner_id": owner}
 
 
 @pytest.fixture
