@@ -60,7 +60,7 @@ RLS is enabled on every table with no policies, and all privileges are revoked f
 - `tests/db/test_targets_endpoints.py`: the owner stored in the database is the token's user.
 - `tests/api/test_delete_target.py`: the same rules against an in-memory repository.
 
-The database tests need `TEST_DATABASE_URL` pointing at a throwaway Postgres. Without it they are skipped, not failed:
+CI runs the database tests on every pull request against a throwaway Postgres service. To run them locally, point `TEST_DATABASE_URL` at a throwaway Postgres; without it they are skipped, not failed:
 
 ```bash
 TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres uv run pytest
@@ -69,4 +69,3 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres uv run 
 ## Known limits
 
 - A malformed target id returns 422 (validation), not 404.
-- CI does not set `TEST_DATABASE_URL` yet, so the database tests are skipped there until a workflow provides a Postgres service.

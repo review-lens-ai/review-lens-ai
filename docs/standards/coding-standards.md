@@ -10,7 +10,7 @@ Engineering philosophy is located in [Engineering Philosophy](philosophy.md).
 review-lens-ai/
 ├── frontend/src/
 │   ├── app/              # Pages, layouts, routes
-│   ├── components/       # Reusable UI components
+│   │   └── _components/  # Reusable UI components (shadcn primitives in ui/)
 │   └── lib/              # API clients, utilities
 ├── backend/
 │   ├── app/
@@ -53,8 +53,12 @@ Use these terms everywhere. No synonyms.
 
 - Schemas: `<Entity>Create`, `<Entity>Response`.
 - Identifiers: camelCase; PascalCase for components and types; UPPER_CASE for constants.
-  Components live in `src/components/`.
-- TypeScript files: PascalCase for components (`TargetCard.tsx`), kebab-case otherwise (`api-client.ts`).
+  The exported component is PascalCase even though its file is kebab-case:
+  `status-badge.tsx` exports `StatusBadge`.
+- TypeScript files: kebab-case (`status-badge.tsx`, `api-client.ts`), enforced by the
+  `check-file` lint rule. Shared components live in `src/app/_components/`
+  (shadcn primitives in `src/app/_components/ui/`). `src/components/` is not used:
+  the lint rule would require PascalCase file names there, and shadcn generates kebab-case.
 - Next.js routes: lowercase folders, private folders prefixed `_`, reserved file names only (`page.tsx`, `layout.tsx`).
 
 ### Database
