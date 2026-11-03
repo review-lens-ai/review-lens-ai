@@ -9,7 +9,9 @@ Where this sits in ingestion (S1-019 to S1-022):
     result = normalize_pages(pages)   # S1-021: this module
     ...                               # S1-022: save result.reviews and
                                       #   result.rejected for the run
-    runs.mark_succeeded(run_id, len(result.reviews), len(result.rejected))
+    runs.mark_completed(
+        run_id, len(result.reviews), len(result.rejected), result.duplicates
+    )
 
 Rules this module enforces:
 
@@ -19,14 +21,14 @@ Rules this module enforces:
 - ORIGINAL TEXT: when Google translates a review, the reviewer's own words are
   kept (extracted_snippet.original), not the translation. snippet is used only
   when there is no original.
-- OPTIONAL: the source review id, reviewer display name, date, link and useful
-  extras are kept when present. If one is missing or malformed it becomes None
-  (or is left out of source_metadata); the review itself is still kept.
-- MINIMAL PEOPLE DATA: the reviewer's display name is kept in author_name, as
-  S1-021 asks. Everything else that identifies or shows a person is dropped:
-  profile links, avatars, contributor ids, attached images and owner replies.
-  Rejected records are stored without the name either, since diagnosing a bad
-  record does not need it.
+- OPTIONAL: the source review id, date, link and useful extras are kept when
+  present. If one is missing or malformed it becomes None (or is left out of
+  source_metadata); the review itself is still kept.
+- NO PEOPLE DATA: nothing that names, identifies or shows a reviewer is kept:
+  display names, profile links, avatars, contributor ids, attached images and
+  owner replies. The same applies to rejected records.
+- MAPPING VERSION: every review records which mapping wrote it (MAPPING_VERSION),
+  so rows from an older mapping can be found after the mapping changes.
 - DUPLICATES: the same review can come back on several pages and sort orders.
   The first copy is kept; later copies are counted in `duplicates`, not
   rejected, because they are not bad data. Normalize all of a run's pages in
@@ -50,8 +52,10 @@ from app.schemas.reviews import ReviewCreate
 MIN_RATING = 1
 MAX_RATING = 5
 
-# Reviewer fields that identify a person. Only "name" is ever kept, as
-# author_name on a saved review; all of them are removed from rejected records.
+# Bump when the SerpApi -> reviews mapping changes (stored in reviews.mapping_version).
+MAPPING_VERSION = "serpapi@1"
+
+# Reviewer fields that identify a person. None of them is ever stored.
 _IDENTITY_FIELDS = frozenset({"name", "link", "thumbnail", "contributor_id"})
 # Reviewer fields kept as metadata: they describe the reviewer, not who they are.
 _REVIEWER_STATS = ("local_guide", "reviews", "photos")
@@ -137,7 +141,7 @@ def normalize_review(raw: Any) -> tuple[ReviewCreate | None, RejectionReason | N
     review = ReviewCreate(
         rating=rating,
         review_text=review_text,
-        author_name=_reviewer_name(raw.get("user")),
+        mapping_version=MAPPING_VERSION,
         reviewed_at=_parse_datetime(raw.get("iso_date")),
         source_review_id=_clean_text(raw.get("review_id")),
         source_url=_https_url(raw.get("link")),
@@ -203,13 +207,6 @@ def _parse_datetime(value: Any) -> datetime | None:
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return parsed
-
-
-def _reviewer_name(user: Any) -> str | None:
-    """The reviewer's display name (user.name), or None if absent or blank."""
-    if not isinstance(user, dict):
-        return None
-    return _clean_text(user.get("name"))
 
 
 def _https_url(value: Any) -> str | None:
