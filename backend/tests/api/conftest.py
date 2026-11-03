@@ -43,6 +43,13 @@ class FakeTargetRepository:
             raise NotFoundError("Target not found.")
         return self.rows[key]
 
+    def delete_owned(self, target_id, owner_id):
+        key = str(target_id)
+        if key not in self.rows or self.owners[key] != owner_id:
+            raise NotFoundError("Target not found.")
+        del self.rows[key]
+        del self.owners[key]
+
 
 @pytest.fixture
 def repo(client):
