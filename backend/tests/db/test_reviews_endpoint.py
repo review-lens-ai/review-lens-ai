@@ -27,11 +27,11 @@ def api(client, conn):
 def make_target_with_review(conn):
     def _make(owner_id, text="Great slice", count=1) -> str:
         target = TargetRepository(conn).create(owner_id, "Joe's", "google_maps", URL)
+        # Reviews are saved while the run is RUNNING, then it finishes, as in the worker.
         run_id = conn.execute(
             """
-            insert into public.ingestion_runs
-                (target_id, status, started_at, finished_at, reviews_ingested)
-            values (%s, 'COMPLETED', now(), now(), 1)
+            insert into public.ingestion_runs (target_id, status, started_at)
+            values (%s, 'RUNNING', now())
             returning id
             """,
             (target["id"],),
@@ -49,6 +49,14 @@ def make_target_with_review(conn):
                 )
                 for _ in range(count)
             ],
+        )
+        conn.execute(
+            """
+            update public.ingestion_runs
+               set status = 'COMPLETED', finished_at = now(), reviews_ingested = 1
+             where id = %s
+            """,
+            (run_id,),
         )
         return str(target["id"])
 

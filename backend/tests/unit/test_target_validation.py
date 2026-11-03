@@ -10,10 +10,11 @@ from app.platforms import validate_source_url
 from app.schemas.targets import MAX_NAME_LENGTH, TargetCreate
 
 VALID_URLS = [
-    "https://www.google.com/maps/place/Joes+Pizza/@40.73,-73.99,17z",
-    "https://google.com/maps/place/Joes+Pizza",
-    "https://www.google.co.uk/maps/place/Pret",
-    "https://maps.google.com/?cid=12345",
+    "https://www.google.com/maps/place/Joes+Pizza/@40.73,-73.99,17z/data=!1s0x1:0x2",
+    "https://google.com/maps/place/Joes+Pizza/data=!4m5!1s0x89c2537da9b3163d:0x2be30fcff506fec8",
+    "https://www.google.co.uk/maps/place/Pret/data=!1s0x1:0x2",
+    "https://maps.google.com/maps?ftid=0x1:0x2",
+    "https://www.google.com/maps?ftid=0x89c2537da9b3163d:0x2be30fcff506fec8",
     "https://maps.app.goo.gl/AbC123xyz",
     "https://goo.gl/maps/AbC123xyz",
 ]
@@ -35,6 +36,19 @@ INVALID_URLS = [
     "https://maps.app.goo.gl/",  # share link with no id
     "https://www.google.com/maps/place/a b",
     "https://www.google.com/maps/" + "a" * 2100,
+    "https://www.google.com/maps",  # Maps, but no place
+    "https://www.google.com/maps/",
+    "https://www.google.com/maps/place/",  # place path with no place
+    "https://www.google.com/maps/search/pizza+newark",  # search results
+    "https://www.google.com/maps/dir/Newark/Boston",  # directions
+    "https://www.google.com/maps/@40.73,-73.99,15z",  # a map view
+    "https://maps.google.com/",
+    "https://maps.google.com/?q=pizza",  # search, not a place id
+    "https://maps.google.com/?cid=12345",  # cid has no place id we can use
+    "https://www.google.com/maps/place/Joes+Pizza",  # no place id in the link
+    "https://www.google.com/maps?ftid=abc",  # ftid must be a place id
+    "https://goo.gl/maps/",
+    "https://www.google.com/maps/place/x\x00y",  # hidden character
 ]
 
 
@@ -131,3 +145,30 @@ def test_valid_input_passes_through_the_endpoint(validation_client):
         "/echo", json={"name": "Joe's", "source_url": VALID_URLS[3]}
     )
     assert r.status_code == 200
+
+
+@pytest.mark.parametrize("name", ["!!!", "---", "   ...   ", "🍕🍕"])
+def test_a_name_with_no_letter_or_number_is_rejected(name):
+    with pytest.raises(ValidationError):
+        TargetCreate(name=name, source_url=VALID_URLS[0])
+
+
+@pytest.mark.parametrize("name", ["Joe\nPizza", "Joe\tPizza", "Joe\x00Pizza"])
+def test_a_name_with_line_breaks_or_hidden_characters_is_rejected(name):
+    with pytest.raises(ValidationError):
+        TargetCreate(name=name, source_url=VALID_URLS[0])
+
+
+@pytest.mark.parametrize("name", ["7-Eleven", "Café Zoë", "A&W", "42"])
+def test_ordinary_names_with_symbols_or_digits_are_accepted(name):
+    assert TargetCreate(name=name, source_url=VALID_URLS[0]).name == name
+
+
+def test_a_link_without_a_place_gets_a_message_that_says_so():
+    with pytest.raises(ValueError, match="one specific place"):
+        validate_source_url("https://www.google.com/maps/search/pizza")
+
+
+def test_a_non_maps_link_still_gets_the_wrong_platform_message():
+    with pytest.raises(ValueError, match="isn't from Google Maps"):
+        validate_source_url("https://www.yelp.com/biz/joes-pizza")
