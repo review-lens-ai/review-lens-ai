@@ -12,23 +12,7 @@ import {
   startIngestionRun,
   type IngestionRun,
 } from "./ingestion-runs";
-
-function run(overrides: Partial<IngestionRun>): IngestionRun {
-  return {
-    id: "run-1",
-    target_id: "target-1",
-    job_type: "INGESTION",
-    status: "COMPLETED",
-    queued_at: "2026-10-24T19:09:00Z",
-    started_at: "2026-10-24T19:10:00Z",
-    finished_at: "2026-10-24T19:12:00Z",
-    reviews_ingested: 0,
-    reviews_rejected: 0,
-    reviews_duplicate: 0,
-    error_code: null,
-    ...overrides,
-  };
-}
+import { ingestionRun } from "@/test/factories";
 
 describe("runDetail (S1-023 status line)", () => {
   it("says nothing was collected when there is no run", () => {
@@ -36,29 +20,29 @@ describe("runDetail (S1-023 status line)", () => {
   });
 
   it("explains a queued run is waiting", () => {
-    expect(runDetail(run({ status: "QUEUED", finished_at: null }))).toBe(
+    expect(runDetail(ingestionRun({ status: "QUEUED", finished_at: null }))).toBe(
       "Waiting to start collecting reviews.",
     );
   });
 
   it("uses the singular for one review", () => {
-    expect(runDetail(run({ reviews_ingested: 1 }))).toMatch(/^1 review · /);
+    expect(runDetail(ingestionRun({ reviews_ingested: 1 }))).toMatch(/^1 review · /);
   });
 
   it("uses the plural and leaves out skipped when none were skipped", () => {
-    const text = runDetail(run({ reviews_ingested: 42 }));
+    const text = runDetail(ingestionRun({ reviews_ingested: 42 }));
     expect(text).toMatch(/^42 reviews · /);
     expect(text).not.toContain("skipped");
   });
 
   it("adds the skipped count for a partial run", () => {
     expect(
-      runDetail(run({ status: "PARTIAL", reviews_ingested: 38, reviews_rejected: 4 })),
+      runDetail(ingestionRun({ status: "PARTIAL", reviews_ingested: 38, reviews_rejected: 4 })),
     ).toMatch(/^38 reviews · 4 skipped · /);
   });
 
   it("never crashes on a status it does not know", () => {
-    const unknown = run({ status: "archived" as IngestionRun["status"] });
+    const unknown = ingestionRun({ status: "archived" as IngestionRun["status"] });
     expect(runDetail(unknown)).toBe("No reviews collected yet.");
   });
 });
@@ -97,7 +81,7 @@ describe("reviewCount", () => {
 
 describe("startIngestionRun (S1-019)", () => {
   it("POSTs to the target's ingestion-runs and returns the queued run", async () => {
-    const queued = run({ status: "QUEUED", started_at: null, finished_at: null });
+    const queued = ingestionRun({ status: "QUEUED", started_at: null, finished_at: null });
     vi.mocked(apiFetch).mockResolvedValueOnce(queued);
 
     await expect(startIngestionRun("target-1")).resolves.toEqual(queued);

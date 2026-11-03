@@ -124,4 +124,62 @@ New dependencies must be approved by the team. In the PR, link the official sour
 
 ## 8. Testing
 
-TBD.
+### Frontend
+
+Two kinds of tests. `npm test` runs both, and CI runs `npm test`.
+
+| Kind | File name | Covers | Runs in | Run alone |
+|---|---|---|---|---|
+| Unit | `<module>.test.ts` | One function, e.g. `lib/ingestion-runs.ts` | Node | `npm run test:unit` |
+| Integration | `<page>.integration.test.tsx` | A whole page: render it, click, check what it shows | jsdom (a pretend browser) | `npm run test:integration` |
+
+Tools:
+
+- **Vitest** runs the tests.
+- **React Testing Library** renders a page and finds and clicks things the way a user would
+  (by role and visible text, not by CSS class).
+- **MSW** (Mock Service Worker) plays the backend: each test lists the endpoints the page
+  calls and what they return. Nothing leaves the test.
+
+Shared test code lives in `frontend/src/test/`. Use it instead of writing your own copy:
+
+| File | What it gives you |
+|---|---|
+| `factories.ts` | `ingestionRun({...})`, `target({...})`: a valid object, with only the fields you pass changed |
+| `responses.ts` | `jsonResponse(body, status)`, `apiErrorResponse(status, code, message)` |
+| `server.ts` | The MSW `server` and the fake `API` base URL |
+| `integration-setup.ts` | Runs around every integration test: starts MSW, clears the page and handlers after each test |
+| `index.ts` | Everything above plus Testing Library and MSW, so an integration test has one import: `from "@/test"` |
+
+When a backend type gains a field, add it to `factories.ts` once.
+
+#### Writing an integration test
+
+Example: `frontend/src/app/targets/[id]/page.integration.test.tsx`.
+
+1. **Mock what the page uses but the test doesn't cover** with `vi.mock(...)` at the top of the
+   file, e.g. `next/navigation` (router, URL params) and the Supabase client.
+2. **Set up the backend** with `server.use(...)`, one handler per endpoint the page calls:
+
+   ```ts
+   server.use(
+     http.get(`${API}/api/v1/targets/${TARGET_ID}`, () => jsonResponse(target({ id: TARGET_ID }))),
+     http.post(`${API}/api/v1/targets/${TARGET_ID}/ingestion-runs`, () =>
+       apiErrorResponse(409, "CONFLICT", "Already running."),
+     ),
+   );
+   ```
+
+   If the page calls an endpoint with no handler, the test fails and names the request.
+   When several tests open the same page, put these handlers in one helper in the test file.
+3. **Render, wait, act, check:** `render(<Page />)`, wait for it to load with
+   `await screen.findBy...`, click with `fireEvent.click(...)`, then check what the user sees.
+4. To change what the backend returns partway through a test, call `server.use(...)` again.
+   The newest handler wins.
+
+#### Limits
+
+- Integration tests check the page with a fake backend. They don't check the real backend or
+  the deployed app.
+- They are tied to the whole page, so a change to an unrelated part of the page (its heading,
+  another request) can break them. Logic that can be tested on its own belongs in a unit test.
