@@ -2,23 +2,28 @@
 // GET /api/v1/targets/{id}/ingestion-runs/latest (snake_case, as sent).
 import { apiFetch } from "@/lib/api";
 
-// queued -> running -> succeeded / partial / failed (a queued run can also fail).
-export type IngestionStatus = "queued" | "running" | "succeeded" | "partial" | "failed";
+// QUEUED -> RUNNING -> COMPLETED / PARTIAL / FAILED (a queued run can also fail,
+// and a failed run can be retried back to QUEUED). Same values as the database enum.
+export type IngestionStatus = "QUEUED" | "RUNNING" | "COMPLETED" | "PARTIAL" | "FAILED";
 
 export type IngestionRun = {
   id: string;
   target_id: string;
+  job_type: "INGESTION" | "ENRICHMENT";
   status: IngestionStatus;
-  started_at: string;
+  queued_at: string;
+  // null while the run waits in the queue, or if it failed before starting.
+  started_at: string | null;
   finished_at: string | null;
   reviews_ingested: number;
   reviews_rejected: number;
+  reviews_duplicate: number;
   error_code: string | null;
 };
 
 // While a run is in one of these states, the workspace keeps checking for updates.
 export function isActive(status: IngestionStatus | null | undefined): boolean {
-  return status === "queued" || status === "running";
+  return status === "QUEUED" || status === "RUNNING";
 }
 
 export async function fetchLatestRun(targetId: string): Promise<IngestionRun | null> {
@@ -32,19 +37,19 @@ export async function fetchLatestRun(targetId: string): Promise<IngestionRun | n
 // Wording comes from docs/standards/ui-ux-standards.md §6.3. The backend only ever
 // sends one of these short codes, never raw error text.
 const FAILURE_MESSAGES: Record<string, { title: string; next: string }> = {
-  source_unreachable: {
+  SOURCE_UNREACHABLE: {
     title: "We couldn't reach this page.",
     next: "Check the URL or try again in a few minutes.",
   },
-  no_reviews_found: {
+  NO_REVIEWS_FOUND: {
     title: "This page didn't return any reviews.",
     next: "Make sure it's a Google Maps page with reviews.",
   },
-  quota_exceeded: {
+  QUOTA_EXCEEDED: {
     title: "Review collection is temporarily unavailable.",
     next: "Try again later.",
   },
-  timeout: {
+  TIMEOUT: {
     title: "Collecting reviews took too long.",
     next: "Try again.",
   },
@@ -77,17 +82,17 @@ export function reviewCount(n: number): string {
 // The detail line next to the status badge (ui-ux-standards.md §7.3).
 export function runDetail(run: IngestionRun | null): string {
   if (!run) return "No reviews collected yet.";
-  const when = formatRunTime(run.finished_at ?? run.started_at);
+  const when = formatRunTime(run.finished_at ?? run.started_at ?? run.queued_at);
   const skipped = run.reviews_rejected > 0 ? ` · ${run.reviews_rejected} skipped` : "";
   switch (run.status) {
-    case "queued":
+    case "QUEUED":
       return "Waiting to start collecting reviews.";
-    case "running":
+    case "RUNNING":
       return "Collecting reviews from Google Maps. This can take up to a minute.";
-    case "succeeded":
-    case "partial":
+    case "COMPLETED":
+    case "PARTIAL":
       return `${reviewCount(run.reviews_ingested)}${skipped} · ${when}`;
-    case "failed":
+    case "FAILED":
       return `Latest run failed ${when}`;
     default:
       // A status this version doesn't know yet: show something safe, never crash.

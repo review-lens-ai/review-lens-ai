@@ -12,6 +12,7 @@ import pytest
 
 from app.core.errors import NotFoundError
 from app.repositories.targets import TargetRepository
+from tests.db.conftest import insert_run
 
 URL = "https://www.google.com/maps/place/Joes+Pizza"
 
@@ -28,13 +29,8 @@ def _backdate(conn, target_id, interval):
     )
 
 
-def _run(conn, target_id, status, started_ago):
-    finished = "null" if status in ("queued", "running") else "now()"
-    conn.execute(
-        "insert into public.ingestion_runs (target_id, status, started_at, finished_at) "
-        f"values (%s, %s, now() - %s::interval, {finished})",
-        (target_id, status, started_ago),
-    )
+def _run(conn, target_id, status, queued_ago):
+    insert_run(conn, target_id, status, age=queued_ago)
 
 
 # --- order ------------------------------------------------------------------------
@@ -65,30 +61,30 @@ def test_the_status_comes_from_the_newest_run_whatever_order_runs_were_saved(
 ):
     owner = make_user()
     target = repo.create(owner, "Joe's Pizza", "google_maps", URL)
-    runs = [("failed", "1 hour"), ("succeeded", "2 hours")]  # failed is the newer run
+    runs = [("FAILED", "1 hour"), ("COMPLETED", "2 hours")]  # failed is the newer run
     for status, ago in runs if newest_first else reversed(runs):
         _run(conn, target["id"], status, ago)
 
-    assert repo.get_owned(target["id"], owner)["ingestion_status"] == "failed"
-    assert repo.list_for_owner(owner)[0]["ingestion_status"] == "failed"
+    assert repo.get_owned(target["id"], owner)["ingestion_status"] == "FAILED"
+    assert repo.list_for_owner(owner)[0]["ingestion_status"] == "FAILED"
 
 
 def test_an_unfinished_run_shows_as_its_own_status(conn, repo, make_user):
     owner = make_user()
     target = repo.create(owner, "Joe's Pizza", "google_maps", URL)
-    _run(conn, target["id"], "running", "1 minute")
+    _run(conn, target["id"], "RUNNING", "1 minute")
 
-    assert repo.get_owned(target["id"], owner)["ingestion_status"] == "running"
+    assert repo.get_owned(target["id"], owner)["ingestion_status"] == "RUNNING"
 
 
 def test_another_targets_run_never_changes_this_targets_status(conn, repo, make_user):
     owner = make_user()
     never_ingested = repo.create(owner, "Never ingested", "google_maps", URL)
     ingested = repo.create(owner, "Ingested", "google_maps", URL)
-    _run(conn, ingested["id"], "failed", "1 hour")
+    _run(conn, ingested["id"], "FAILED", "1 hour")
 
     assert repo.get_owned(never_ingested["id"], owner)["ingestion_status"] is None
-    assert repo.get_owned(ingested["id"], owner)["ingestion_status"] == "failed"
+    assert repo.get_owned(ingested["id"], owner)["ingestion_status"] == "FAILED"
 
 
 # --- ownership edges -----------------------------------------------------------------
@@ -156,25 +152,7 @@ def test_a_one_character_name_is_stored(repo, make_user):
     assert created["name"] == "J"
 
 
-@pytest.mark.parametrize(
-    "name",
-    [
-        "",
-        "   ",
-        pytest.param(
-            "\t\n",
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason=(
-                    "KNOWN GAP: the check uses btrim(name), which only trims spaces, "
-                    "so a name made of tabs or newlines passes the database check. "
-                    "The API blocks it, but the database should too. Needs a new "
-                    "migration; remove this xfail when that lands."
-                ),
-            ),
-        ),
-    ],
-)
+@pytest.mark.parametrize("name", ["", "   ", "\t\n"])
 def test_a_blank_name_is_refused_by_the_database(repo, make_user, name):
     with pytest.raises(psycopg.errors.CheckViolation):
         repo.create(make_user(), name, "google_maps", URL)

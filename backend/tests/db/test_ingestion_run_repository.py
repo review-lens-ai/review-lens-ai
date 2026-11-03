@@ -45,10 +45,12 @@ def running_run(runs, owned_target):
 
 
 def _age(conn, run_id, by):
-    """Pretend a run started `by` ago."""
+    """Pretend a run was queued (and, if it started, started) `by` ago."""
     conn.execute(
-        "update public.ingestion_runs set started_at = now() - %s where id = %s",
-        (by, run_id),
+        "update public.ingestion_runs set queued_at = now() - %(by)s, "
+        "started_at = case when started_at is null then null else now() - %(by)s end "
+        "where id = %(id)s",
+        {"by": by, "id": run_id},
     )
 
 
@@ -59,7 +61,7 @@ def test_new_run_starts_as_queued(runs, owned_target):
     target_id, owner = owned_target
     run = runs.create_run(target_id, owner)
 
-    assert run["status"] == "queued"
+    assert run["status"] == "QUEUED"
     assert run["target_id"] == target_id
     assert run["finished_at"] is None
     assert run["reviews_ingested"] == 0
@@ -70,7 +72,7 @@ def test_queued_run_can_start_running(runs, owned_target):
     run = runs.create_run(target_id, owner)
 
     started = runs.mark_running(run["id"])
-    assert started["status"] == "running"
+    assert started["status"] == "RUNNING"
     assert started["finished_at"] is None
 
 
@@ -85,7 +87,7 @@ def test_mark_running_twice_is_refused(runs, running_run):
 def test_successful_run_records_counts_and_finish_time(runs, running_run):
     done = runs.mark_succeeded(running_run["id"], reviews_ingested=42)
 
-    assert done["status"] == "succeeded"
+    assert done["status"] == "COMPLETED"
     assert done["reviews_ingested"] == 42
     assert done["reviews_rejected"] == 0
     assert done["error_code"] is None
@@ -96,14 +98,14 @@ def test_success_with_skipped_reviews_is_partial(runs, running_run):
     done = runs.mark_succeeded(
         running_run["id"], reviews_ingested=38, reviews_rejected=4
     )
-    assert done["status"] == "partial"
+    assert done["status"] == "PARTIAL"
     assert done["reviews_ingested"] == 38
     assert done["reviews_rejected"] == 4
 
 
 def test_mark_partial_records_both_counts(runs, running_run):
     done = runs.mark_partial(running_run["id"], reviews_ingested=5, reviews_rejected=1)
-    assert done["status"] == "partial"
+    assert done["status"] == "PARTIAL"
 
 
 def test_mark_partial_needs_saved_and_skipped_reviews(runs, running_run):
@@ -114,8 +116,8 @@ def test_mark_partial_needs_saved_and_skipped_reviews(runs, running_run):
 def test_zero_saved_reviews_is_a_failure_not_a_success(runs, running_run):
     done = runs.mark_succeeded(running_run["id"], reviews_ingested=0)
 
-    assert done["status"] == "failed"
-    assert done["error_code"] == "no_reviews_found"
+    assert done["status"] == "FAILED"
+    assert done["error_code"] == "NO_REVIEWS_FOUND"
 
 
 def test_queued_run_cannot_succeed_without_running(runs, owned_target):
@@ -132,16 +134,16 @@ def test_queued_run_can_fail_when_it_cannot_start(runs, owned_target):
     run = runs.create_run(target_id, owner)
 
     failed = runs.mark_failed(run["id"], ErrorCode.QUOTA_EXCEEDED)
-    assert failed["status"] == "failed"
-    assert failed["error_code"] == "quota_exceeded"
+    assert failed["status"] == "FAILED"
+    assert failed["error_code"] == "QUOTA_EXCEEDED"
     assert failed["finished_at"] is not None
 
 
 def test_running_run_can_fail(runs, running_run):
     failed = runs.mark_failed(running_run["id"], ErrorCode.SOURCE_UNREACHABLE)
 
-    assert failed["status"] == "failed"
-    assert failed["error_code"] == "source_unreachable"
+    assert failed["status"] == "FAILED"
+    assert failed["error_code"] == "SOURCE_UNREACHABLE"
     assert failed["reviews_ingested"] == 0
 
 
@@ -214,7 +216,7 @@ def test_new_run_can_start_after_previous_one_finished(runs, running_run):
     owner = _owner_of(runs, target_id)
 
     second = runs.create_run(target_id, owner)
-    assert second["status"] == "queued"
+    assert second["status"] == "QUEUED"
 
 
 def test_two_simultaneous_creates_give_one_run_and_one_conflict(migrated_database):
@@ -280,14 +282,14 @@ def test_stale_active_run_is_failed_as_timeout_and_a_new_run_can_start(
 
     new = runs.create_run(target_id, owner)
 
-    assert new["status"] == "queued"
+    assert new["status"] == "QUEUED"
     old = conn.execute(
         "select status::text as status, error_code, finished_at "
         "from public.ingestion_runs where id = %s",
         (stuck["id"],),
     ).fetchone()
-    assert old["status"] == "failed"
-    assert old["error_code"] == "timeout"
+    assert old["status"] == "FAILED"
+    assert old["error_code"] == "TIMEOUT"
     assert old["finished_at"] is not None
 
 
@@ -319,7 +321,7 @@ def test_latest_returns_the_newest_run(conn, runs, owned_target):
 
     latest = runs.latest_for_target(target_id, owner)
     assert latest["id"] == second["id"]
-    assert latest["status"] == "failed"
+    assert latest["status"] == "FAILED"
 
 
 def test_user_b_cannot_create_a_run_on_user_a_target(runs, owned_target, make_user):
@@ -339,3 +341,83 @@ def _owner_of(runs, target_id):
     return runs._conn.execute(
         "select owner_id from public.analysis_targets where id = %s", (target_id,)
     ).fetchone()["owner_id"]
+
+
+# --- duplicates and retry ------------------------------------------------------------
+
+
+def test_duplicates_are_counted_apart_from_skipped_reviews(runs, running_run):
+    done = runs.mark_succeeded(
+        running_run["id"], reviews_ingested=55, reviews_rejected=0, reviews_duplicate=23
+    )
+    # A duplicate is not bad data, so it does not make the run partial.
+    assert done["status"] == "COMPLETED"
+    assert done["reviews_duplicate"] == 23
+
+
+def test_a_new_run_is_an_ingestion_job_with_a_queue_time(runs, owned_target):
+    target_id, owner = owned_target
+    run = runs.create_run(target_id, owner)
+    assert run["job_type"] == "INGESTION"
+    assert run["queued_at"] is not None
+    assert run["started_at"] is None
+
+
+def test_retry_puts_the_same_failed_run_back_in_the_queue(runs, running_run):
+    runs.mark_failed(running_run["id"], ErrorCode.TIMEOUT)
+
+    retried = runs.requeue(running_run["id"])
+
+    assert retried["id"] == running_run["id"]
+    assert retried["status"] == "QUEUED"
+    assert retried["queued_at"] is not None
+    assert retried["started_at"] is None
+    assert retried["finished_at"] is None
+    assert retried["error_code"] is None
+
+
+def test_retried_run_keeps_its_stages(conn, runs, running_run):
+    conn.execute(
+        "insert into public.ingestion_stages (run_id, stage, status) "
+        "values (%s, 'INGESTION', 'COMPLETED')",
+        (running_run["id"],),
+    )
+    runs.mark_failed(running_run["id"], ErrorCode.TIMEOUT)
+    runs.requeue(running_run["id"])
+
+    stage = conn.execute(
+        "select status::text as status from public.ingestion_stages where run_id = %s",
+        (running_run["id"],),
+    ).fetchone()
+    assert stage["status"] == "COMPLETED"
+
+
+@pytest.mark.parametrize("finish", ["COMPLETED", "PARTIAL"])
+def test_only_a_failed_run_can_be_retried(runs, running_run, finish):
+    rejected = 2 if finish == "PARTIAL" else 0
+    runs.mark_succeeded(
+        running_run["id"], reviews_ingested=5, reviews_rejected=rejected
+    )
+    with pytest.raises(InvalidRunTransitionError):
+        runs.requeue(running_run["id"])
+
+
+def test_retry_is_refused_while_another_run_is_active(
+    conn, runs, running_run, owned_target
+):
+    target_id, owner = owned_target
+    runs.mark_failed(running_run["id"], ErrorCode.TIMEOUT)
+    other = runs.create_run(target_id, owner)
+
+    with pytest.raises(ConflictError):
+        runs.requeue(running_run["id"])
+    # The savepoint kept the transaction usable, and neither run changed.
+    statuses = conn.execute(
+        "select id, status::text as status from public.ingestion_runs "
+        "where target_id = %s",
+        (target_id,),
+    ).fetchall()
+    assert {r["id"]: r["status"] for r in statuses} == {
+        running_run["id"]: "FAILED",
+        other["id"]: "QUEUED",
+    }

@@ -4,6 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, field_validator
 
 from app.platforms import validate_source_url
+from app.schemas.ingestion_runs import IngestionStatus
 
 MAX_NAME_LENGTH = 200
 
@@ -43,7 +44,7 @@ class TargetResponse(BaseModel):
     platform: str
     source_url: str
     # Status of the newest ingestion run; None means "no ingestion yet".
-    ingestion_status: str | None
+    ingestion_status: IngestionStatus | None
     created_at: datetime
     updated_at: datetime
 

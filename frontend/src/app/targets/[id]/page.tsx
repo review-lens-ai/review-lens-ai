@@ -162,7 +162,7 @@ function TargetWorkspace() {
         </dd>
       </dl>
 
-      {latestRun?.status === "failed" && (
+      {latestRun?.status === "FAILED" && (
         // S1-023: a failed run is always visible and never looks like a success (§7.3).
         <div
           role="alert"
