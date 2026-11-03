@@ -147,7 +147,7 @@ A place with no reviews is **not** an error: the result has no pages. The worker
 
 ## 8. Testing
 
-`backend/tests/unit/test_serpapi.py` never calls SerpApi or Google: every request goes to a fake transport (`httpx.MockTransport`).
+`backend/tests/unit/serpapi/` never calls SerpApi or Google: every request goes to a fake transport (`httpx.MockTransport`).
 
 - Two **recorded real pages** (Smashburger, Newark, newest first) from the SerpApi spike are the fixtures: `backend/app/fixtures/serpapi_reviews_with_missing_text.json` (also used by S1-021) and `serpapi_reviews_next_page.json`. Reviewer identities were replaced with fakes by the spike; four staff first names inside one review's text are replaced with `[name]`.
 - Error responses follow SerpApi's [status and error codes page](https://serpapi.com/api-status-and-error-codes); they were not recorded live.
