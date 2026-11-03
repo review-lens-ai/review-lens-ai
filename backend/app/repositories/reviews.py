@@ -90,9 +90,15 @@ class ReviewRepository:
                 )
 
     def list_for_target(
-        self, target_id: UUID | str, owner_id: UUID | str
+        self,
+        target_id: UUID | str,
+        owner_id: UUID | str,
+        *,
+        limit: int | None = None,
+        offset: int = 0,
     ) -> list[dict]:
-        """Reviews of a target the user owns, newest first; otherwise NotFoundError."""
+        """Reviews of a target the user owns, newest first; otherwise NotFoundError.
+        limit=None returns them all."""
         self._targets.get_owned(target_id, owner_id)
         return self._conn.execute(
             """
@@ -101,10 +107,20 @@ class ReviewRepository:
                    created_at
               from public.reviews
              where target_id = %s
+             -- id last: pages never overlap or skip a review.
              order by reviewed_at desc nulls last, created_at desc, id
+             limit %s offset %s
             """,
-            (target_id,),
+            (target_id, limit, offset),
         ).fetchall()
+
+    def count_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> int:
+        """How many reviews a target the user owns has; otherwise NotFoundError."""
+        self._targets.get_owned(target_id, owner_id)
+        return self._conn.execute(
+            "select count(*) as total from public.reviews where target_id = %s",
+            (target_id,),
+        ).fetchone()["total"]
 
     def _require_owned_run(
         self, run_id: UUID | str, target_id: UUID | str, owner_id: UUID | str

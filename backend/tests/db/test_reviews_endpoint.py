@@ -5,6 +5,7 @@ Skipped without TEST_DATABASE_URL.
 
 import pytest
 
+from app.api.targets import MAX_REVIEW_PAGE_SIZE, REVIEW_PAGE_SIZE
 from app.db import get_connection
 from app.main import app
 from app.repositories.reviews import ReviewRepository
@@ -24,7 +25,7 @@ def api(client, conn):
 
 @pytest.fixture
 def make_target_with_review(conn):
-    def _make(owner_id, text="Great slice") -> str:
+    def _make(owner_id, text="Great slice", count=1) -> str:
         target = TargetRepository(conn).create(owner_id, "Joe's", "google_maps", URL)
         run_id = conn.execute(
             """
@@ -46,6 +47,7 @@ def make_target_with_review(conn):
                     mapping_version="serpapi@1",
                     source_metadata={"likes": 1},
                 )
+                for _ in range(count)
             ],
         )
         return str(target["id"])
@@ -80,7 +82,64 @@ def test_target_with_no_reviews_returns_an_empty_list(api, conn, make_user, make
     )
 
     assert r.status_code == 200
-    assert r.json() == {"items": []}
+    assert r.json() == {
+        "items": [],
+        "total": 0,
+        "limit": REVIEW_PAGE_SIZE,
+        "offset": 0,
+    }
+
+
+def test_first_page_is_one_page_size_and_the_total_counts_all(
+    api, make_user, make_token, make_target_with_review
+):
+    owner = make_user()
+    target_id = make_target_with_review(owner, count=REVIEW_PAGE_SIZE + 1)
+
+    r = api.get(
+        f"/api/v1/targets/{target_id}/reviews", headers=auth(make_token(str(owner)))
+    )
+
+    body = r.json()
+    assert len(body["items"]) == REVIEW_PAGE_SIZE
+    assert body["total"] == REVIEW_PAGE_SIZE + 1
+    assert (body["limit"], body["offset"]) == (REVIEW_PAGE_SIZE, 0)
+
+
+def test_pages_return_every_review_once_in_order(
+    api, make_user, make_token, make_target_with_review
+):
+    owner = make_user()
+    target_id = make_target_with_review(owner, count=5)
+    url = f"/api/v1/targets/{target_id}/reviews"
+    headers = auth(make_token(str(owner)))
+
+    pages = [
+        api.get(f"{url}?limit=2&offset={offset}", headers=headers).json()
+        for offset in (0, 2, 4)
+    ]
+    everything = api.get(f"{url}?limit={MAX_REVIEW_PAGE_SIZE}", headers=headers).json()
+
+    assert [len(p["items"]) for p in pages] == [2, 2, 1]
+    assert {p["total"] for p in pages} == {5}
+    paged_ids = [review["id"] for p in pages for review in p["items"]]
+    assert paged_ids == [review["id"] for review in everything["items"]]
+
+
+def test_offset_past_the_end_returns_no_reviews_but_the_total(
+    api, make_user, make_token, make_target_with_review
+):
+    owner = make_user()
+    target_id = make_target_with_review(owner, count=3)
+
+    r = api.get(
+        f"/api/v1/targets/{target_id}/reviews?offset=10",
+        headers=auth(make_token(str(owner))),
+    )
+
+    assert r.status_code == 200
+    assert r.json()["items"] == []
+    assert r.json()["total"] == 3
 
 
 def test_each_target_returns_only_its_own_reviews(
