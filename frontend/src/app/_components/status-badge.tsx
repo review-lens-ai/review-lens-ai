@@ -15,27 +15,27 @@ const NOT_INGESTED: Badge = {
 };
 
 const BADGES: Record<IngestionStatus, Badge> = {
-  queued: {
+  QUEUED: {
     icon: "◌",
     label: "Queued",
     className: "border-gray-300 bg-white text-gray-700",
   },
-  running: {
+  RUNNING: {
     icon: "◐",
     label: "Ingesting…",
     className: "border-sky-200 bg-sky-50 text-sky-700",
   },
-  succeeded: {
+  COMPLETED: {
     icon: "●",
     label: "Ingested",
     className: "border-green-200 bg-green-50 text-green-700",
   },
-  partial: {
+  PARTIAL: {
     icon: "◑",
     label: "Partially ingested",
     className: "border-amber-200 bg-amber-50 text-amber-700",
   },
-  failed: {
+  FAILED: {
     icon: "✕",
     label: "Failed",
     className: "border-red-200 bg-red-50 text-red-700",
@@ -51,7 +51,7 @@ export function StatusBadge({ status }: { status: string | null | undefined }) {
     <span
       className={`inline-flex items-center gap-1 rounded-full border px-3 py-0.5 text-xs font-medium ${badge.className}`}
     >
-      <span aria-hidden="true" className={status === "running" ? "animate-pulse" : undefined}>
+      <span aria-hidden="true" className={status === "RUNNING" ? "animate-pulse" : undefined}>
         {badge.icon}
       </span>
       {badge.label}

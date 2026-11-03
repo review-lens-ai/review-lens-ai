@@ -15,11 +15,14 @@ function run(overrides: Partial<IngestionRun>): IngestionRun {
   return {
     id: "run-1",
     target_id: "target-1",
-    status: "succeeded",
+    job_type: "INGESTION",
+    status: "COMPLETED",
+    queued_at: "2026-10-24T19:09:00Z",
     started_at: "2026-10-24T19:10:00Z",
     finished_at: "2026-10-24T19:12:00Z",
     reviews_ingested: 0,
     reviews_rejected: 0,
+    reviews_duplicate: 0,
     error_code: null,
     ...overrides,
   };
@@ -31,7 +34,7 @@ describe("runDetail (S1-023 status line)", () => {
   });
 
   it("explains a queued run is waiting", () => {
-    expect(runDetail(run({ status: "queued", finished_at: null }))).toBe(
+    expect(runDetail(run({ status: "QUEUED", finished_at: null }))).toBe(
       "Waiting to start collecting reviews.",
     );
   });
@@ -48,7 +51,7 @@ describe("runDetail (S1-023 status line)", () => {
 
   it("adds the skipped count for a partial run", () => {
     expect(
-      runDetail(run({ status: "partial", reviews_ingested: 38, reviews_rejected: 4 })),
+      runDetail(run({ status: "PARTIAL", reviews_ingested: 38, reviews_rejected: 4 })),
     ).toMatch(/^38 reviews · 4 skipped · /);
   });
 
@@ -60,18 +63,18 @@ describe("runDetail (S1-023 status line)", () => {
 
 describe("isActive", () => {
   it("is true only while a run is queued or running", () => {
-    expect(isActive("queued")).toBe(true);
-    expect(isActive("running")).toBe(true);
-    expect(isActive("succeeded")).toBe(false);
-    expect(isActive("partial")).toBe(false);
-    expect(isActive("failed")).toBe(false);
+    expect(isActive("QUEUED")).toBe(true);
+    expect(isActive("RUNNING")).toBe(true);
+    expect(isActive("COMPLETED")).toBe(false);
+    expect(isActive("PARTIAL")).toBe(false);
+    expect(isActive("FAILED")).toBe(false);
     expect(isActive(null)).toBe(false);
   });
 });
 
 describe("failureMessage", () => {
   it("maps a known code to its friendly message", () => {
-    expect(failureMessage("quota_exceeded").title).toBe(
+    expect(failureMessage("QUOTA_EXCEEDED").title).toBe(
       "Review collection is temporarily unavailable.",
     );
   });
