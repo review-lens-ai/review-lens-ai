@@ -4,6 +4,7 @@ import pytest
 
 from app.core.errors import NotFoundError
 from app.repositories.targets import TargetRepository
+from tests.db.conftest import insert_run
 
 URL = "https://www.google.com/maps/place/Joes+Pizza"
 
@@ -62,9 +63,5 @@ def test_ingestion_status_is_none_until_a_run_exists_then_shows_the_latest(
     target = repo.create(owner, "Joe's Pizza", "google_maps", URL)
     assert repo.get_owned(target["id"], owner)["ingestion_status"] is None
 
-    conn.execute(
-        "insert into public.ingestion_runs (target_id, status, finished_at) "
-        "values (%s, 'failed', now())",
-        (target["id"],),
-    )
-    assert repo.get_owned(target["id"], owner)["ingestion_status"] == "failed"
+    insert_run(conn, target["id"], "FAILED")
+    assert repo.get_owned(target["id"], owner)["ingestion_status"] == "FAILED"

@@ -17,6 +17,31 @@ from app.db.migrate import apply_migrations
 
 STUB_SQL = Path(__file__).with_name("supabase_stub.sql")
 
+FINAL_STATUSES = ("COMPLETED", "PARTIAL", "FAILED")
+
+
+def insert_run(conn, target_id, status="QUEUED", age="0 seconds"):
+    """Insert an ingestion run in `status`, queued `age` ago, that meets every
+    ingestion_runs rule: only a QUEUED run lacks started_at, a finished run has
+    finished_at, only a FAILED run has an error_code, and a COMPLETED or PARTIAL
+    run saved at least one review."""
+    started = "null" if status == "QUEUED" else "now() - %(age)s::interval"
+    finished = "now()" if status in FINAL_STATUSES else "null"
+    return conn.execute(
+        "insert into public.ingestion_runs "
+        "(target_id, status, queued_at, started_at, finished_at, error_code, "
+        "reviews_ingested) "
+        f"values (%(target)s, %(status)s, now() - %(age)s::interval, {started}, "
+        f"{finished}, %(error_code)s, %(ingested)s) returning id",
+        {
+            "target": target_id,
+            "status": status,
+            "age": age,
+            "error_code": "UNEXPECTED" if status == "FAILED" else None,
+            "ingested": 1 if status in ("COMPLETED", "PARTIAL") else 0,
+        },
+    ).fetchone()["id"]
+
 
 @pytest.fixture(scope="session")
 def test_database_url() -> str:
