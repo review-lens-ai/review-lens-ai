@@ -152,6 +152,18 @@ def test_user_b_cannot_read_reviews_through_user_a_target(
         repo.list_for_target(target["id"], user_b)
 
 
+def test_user_b_cannot_count_reviews_of_user_a_target(
+    repo, make_user, make_target, make_run
+):
+    user_a, user_b = make_user(), make_user()
+    target = make_target(user_a)
+    repo.bulk_insert(make_run(target["id"]), target["id"], user_a, [_review()])
+
+    assert repo.count_for_target(target["id"], user_a) == 1
+    with pytest.raises(NotFoundError):
+        repo.count_for_target(target["id"], user_b)
+
+
 def test_user_b_cannot_save_reviews_under_user_a_target(
     conn, repo, make_user, make_target, make_run
 ):

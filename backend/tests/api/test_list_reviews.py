@@ -4,7 +4,13 @@ in-memory fake with the same ownership rule (the real SQL is in tests/db)."""
 import uuid
 from datetime import UTC, datetime
 
-from app.api.targets import get_review_repository
+import pytest
+
+from app.api.targets import (
+    MAX_REVIEW_OFFSET,
+    MAX_REVIEW_PAGE_SIZE,
+    get_review_repository,
+)
 from app.core.errors import NotFoundError
 from app.main import app
 from tests.conftest import auth
@@ -16,9 +22,16 @@ TARGET_ID = str(uuid.uuid4())
 class FakeReviewRepository:
     """One target, owned by user-a, with one review."""
 
-    def list_for_target(self, target_id, owner_id):
+    def _require_owner(self, target_id, owner_id):
         if str(target_id) != TARGET_ID or owner_id != "user-a":
             raise NotFoundError("Target not found.")
+
+    def count_for_target(self, target_id, owner_id):
+        self._require_owner(target_id, owner_id)
+        return 1
+
+    def list_for_target(self, target_id, owner_id, *, limit=None, offset=0):
+        self._require_owner(target_id, owner_id)
         return [
             {
                 "id": uuid.uuid4(),
@@ -72,6 +85,29 @@ def test_listing_reviews_with_a_malformed_target_id_is_rejected(client, make_tok
     app.dependency_overrides[get_review_repository] = lambda: None
 
     r = client.get("/api/v1/targets/not-a-uuid/reviews", headers=auth(make_token()))
+
+    assert r.status_code == 422
+    assert r.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "limit=0",
+        f"limit={MAX_REVIEW_PAGE_SIZE + 1}",
+        "limit=abc",
+        "offset=-1",
+        f"offset={MAX_REVIEW_OFFSET + 1}",
+        f"offset={2**63}",  # past Postgres bigint: a 422, not a database error
+        "offset=abc",
+    ],
+)
+def test_page_outside_the_allowed_range_is_rejected(client, make_token, query):
+    app.dependency_overrides[get_review_repository] = lambda: None
+
+    r = client.get(
+        f"/api/v1/targets/{UNKNOWN_ID}/reviews?{query}", headers=auth(make_token())
+    )
 
     assert r.status_code == 422
     assert r.json()["error"]["code"] == "VALIDATION_ERROR"

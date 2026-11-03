@@ -76,7 +76,7 @@ No route writes reviews directly. Reviews are created only by the worker, for a 
   - A sweep of every route under `/api/v1/targets/{target_id}`: user B gets 404 with no data, and user A's target, runs and reviews are unchanged. New routes are covered automatically.
   - User B starting ingestion on user A's target: 404, nothing queued, the provider never called, no reviews created.
 
-The database tests need `TEST_DATABASE_URL` pointing at a throwaway Postgres. Without it they are skipped, not failed:
+CI runs the database tests on every pull request against a throwaway Postgres service. To run them locally, point `TEST_DATABASE_URL` at a throwaway Postgres; without it they are skipped, not failed:
 
 ```bash
 TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres uv run pytest
