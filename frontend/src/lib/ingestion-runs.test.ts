@@ -3,11 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 // These tests cover pure wording/logic only; no network or env needed.
 vi.mock("@/lib/api", () => ({ apiFetch: vi.fn() }));
 
+import { apiFetch } from "@/lib/api";
 import {
   failureMessage,
   isActive,
   reviewCount,
   runDetail,
+  startIngestionRun,
   type IngestionRun,
 } from "./ingestion-runs";
 
@@ -90,5 +92,26 @@ describe("reviewCount", () => {
     expect(reviewCount(0)).toBe("0 reviews");
     expect(reviewCount(1)).toBe("1 review");
     expect(reviewCount(2)).toBe("2 reviews");
+  });
+});
+
+describe("startIngestionRun (S1-019)", () => {
+  it("POSTs to the target's ingestion-runs and returns the queued run", async () => {
+    const queued = run({ status: "QUEUED", started_at: null, finished_at: null });
+    vi.mocked(apiFetch).mockResolvedValueOnce(queued);
+
+    await expect(startIngestionRun("target-1")).resolves.toEqual(queued);
+    expect(apiFetch).toHaveBeenCalledWith("/api/v1/targets/target-1/ingestion-runs", {
+      method: "POST",
+    });
+  });
+
+  it("passes a refusal (e.g. 409, a run is already active) on to the page", async () => {
+    const conflict = Object.assign(new Error("Reviews are already being collected"), {
+      status: 409,
+    });
+    vi.mocked(apiFetch).mockRejectedValueOnce(conflict);
+
+    await expect(startIngestionRun("target-1")).rejects.toBe(conflict);
   });
 });
