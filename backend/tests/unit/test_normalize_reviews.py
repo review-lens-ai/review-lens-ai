@@ -12,6 +12,7 @@ from app.services.normalize_reviews import (
     normalize_pages,
     normalize_review,
     normalize_reviews,
+    scrub_page,
 )
 
 FIXTURES = Path(__file__).resolve().parents[2] / "app" / "fixtures"
@@ -233,6 +234,27 @@ def test_rejected_records_are_stored_without_people_data():
         "photos": 7,
     }
     assert rejected.raw_record["review_id"] == "review-1"  # still diagnosable
+
+
+def test_scrub_page_removes_reviewer_identity_from_every_review():
+    page = {
+        "place_info": {"title": "Smashburger"},
+        "reviews": [raw_review(review_id="a"), raw_review(review_id="b"), "odd"],
+    }
+
+    scrubbed = scrub_page(page)
+
+    stored = json.dumps(scrubbed)
+    for leaked in ["Reviewer 01", "contrib/01", "contributor_01", "avatar", "Thanks"]:
+        assert leaked not in stored
+    assert scrubbed["place_info"] == {"title": "Smashburger"}  # place data kept
+    assert [r["review_id"] for r in scrubbed["reviews"][:2]] == ["a", "b"]
+    assert page["reviews"][0]["user"]["name"] == "Reviewer 01"  # input untouched
+
+
+def test_scrubbed_page_normalizes_to_the_same_reviews():
+    page = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    assert normalize_pages([scrub_page(page)]) == normalize_pages([page])
 
 
 # --- Batches ------------------------------------------------------------------
