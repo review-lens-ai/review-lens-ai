@@ -7,11 +7,10 @@ Where this sits in ingestion (S1-019 to S1-022):
     pages = ...                       # S1-020: the provider's pages for one run,
                                       #   as saved in ingestion_raw_pages.payload
     result = normalize_pages(pages)   # S1-021: this module
-    ...                               # S1-022: save result.reviews and
-                                      #   result.rejected for the run
-    runs.mark_completed(
-        run_id, len(result.reviews), len(result.rejected), result.duplicates
-    )
+    saved = ...                       # S1-022: save result.reviews and
+                                      #   result.rejected; count the rows
+                                      #   actually inserted
+    runs.mark_succeeded(run_id, saved, len(result.rejected), result.duplicates)
 
 Rules this module enforces:
 
@@ -26,7 +25,8 @@ Rules this module enforces:
   source_metadata); the review itself is still kept.
 - NO PEOPLE DATA: nothing that names, identifies or shows a reviewer is kept:
   display names, profile links, avatars, contributor ids, attached images and
-  owner replies. The same applies to rejected records.
+  owner replies. The same applies to rejected records, and to the raw provider
+  pages S1-020 returns for storage (scrub_page).
 - MAPPING VERSION: every review records which mapping wrote it (MAPPING_VERSION),
   so rows from an older mapping can be found after the mapping changes.
 - DUPLICATES: the same review can come back on several pages and sort orders.
@@ -250,8 +250,25 @@ def _page_reviews(page: Any) -> list:
     return []
 
 
+def scrub_page(page: Any) -> Any:
+    """A copy of one provider page that is safe to store in ingestion_raw_pages.
+
+    Every review on it loses what identifies its reviewer, by the same rule as a
+    rejected record, and the whole page is made jsonb-safe. The SerpApi adapter
+    (S1-020) applies this to every page before returning it, so a raw page never
+    holds reviewer names, and normalizing a stored page gives the same reviews.
+    """
+    if not isinstance(page, dict):
+        return _json_safe(page)
+    scrubbed = dict(page)
+    if isinstance(page.get("reviews"), list):
+        scrubbed["reviews"] = [_without_people_data(r) for r in page["reviews"]]
+    return _json_safe(scrubbed)
+
+
 def _without_people_data(raw: Any) -> Any:
-    """A copy of a rejected record that is safe to store for diagnosis."""
+    """A copy of one review record with nothing that identifies its reviewer,
+    safe to store: used for rejected records and, through scrub_page, raw pages."""
     if not isinstance(raw, dict):
         return _json_safe(raw)
     cleaned = {key: value for key, value in raw.items() if key not in _PEOPLE_FIELDS}

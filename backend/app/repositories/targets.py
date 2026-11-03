@@ -4,13 +4,19 @@ OWNERSHIP RULE: this module is the only place that queries analysis_targets.
 FastAPI connects as the `postgres` role, which bypasses Row Level Security, so
 every query here filters by owner_id itself. Another user's target is reported
 as NotFoundError, never as "forbidden", so IDs cannot be probed.
+
+One exception: get_for_run is for the ingestion worker (app/worker.py), which
+works from a run id, not from a request. The run was created by
+IngestionRunRepository.create_run, which checked ownership first. Never call
+get_for_run with an id that came from a request.
 """
 
 from uuid import UUID
 
 import psycopg
+from psycopg.types.json import Jsonb
 
-from app.core.errors import NotFoundError
+from app.core.errors import ConflictError, NotFoundError
 
 # The newest ingestion run's status, or NULL when the target was never ingested.
 # "Newest" is the most recently queued run (queued_at; a queued run has no started_at).
@@ -23,6 +29,13 @@ _LATEST_STATUS = """
 """
 
 _COLUMNS = f"t.id, t.name, t.platform, t.source_url, t.created_at, t.updated_at, {_LATEST_STATUS}"
+
+
+class DuplicatePlaceError(ConflictError):
+    """The owner already has another target for this place (one target per
+    place per owner, analysis_targets_owner_place_key)."""
+
+    message = "You already have a target for this place."
 
 
 class TargetRepository:
@@ -79,6 +92,61 @@ class TargetRepository:
             returning id
             """,
             (target_id, owner_id),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError("Target not found.")
+
+    def get_for_run(self, run_id: UUID | str) -> dict:
+        """The target an ingestion run belongs to, with its owner. Worker only:
+        see the module docstring. NotFoundError if the run does not exist."""
+        row = self._conn.execute(
+            """
+            select t.id, t.owner_id, t.platform, t.source_url, t.source_place_id
+              from public.ingestion_runs r
+              join public.analysis_targets t on t.id = r.target_id
+             where r.id = %s
+            """,
+            (run_id,),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError("Target not found.")
+        return row
+
+    def save_place_id(
+        self, target_id: UUID | str, owner_id: UUID | str, place_id: str
+    ) -> None:
+        """Remember the provider's id for the place (S1-020 resolves it from the
+        link), so later runs skip the lookup. DuplicatePlaceError if the owner
+        already has another target for the same place."""
+        try:
+            # A savepoint, so a clash does not abort the caller's transaction.
+            with self._conn.transaction():
+                row = self._conn.execute(
+                    """
+                    update public.analysis_targets set source_place_id = %s
+                     where id = %s and owner_id = %s
+                    returning id
+                    """,
+                    (place_id, target_id, owner_id),
+                ).fetchone()
+        except psycopg.errors.UniqueViolation:
+            raise DuplicatePlaceError() from None
+        if row is None:
+            raise NotFoundError("Target not found.")
+
+    def save_place_details(
+        self, target_id: UUID | str, owner_id: UUID | str, details: dict
+    ) -> None:
+        """What the provider says about the place (analysis_targets.source_metadata:
+        title, address, category, rating, review count). The user's own `name`
+        is never changed."""
+        row = self._conn.execute(
+            """
+            update public.analysis_targets set source_metadata = %s
+             where id = %s and owner_id = %s
+            returning id
+            """,
+            (Jsonb(details), target_id, owner_id),
         ).fetchone()
         if row is None:
             raise NotFoundError("Target not found.")
