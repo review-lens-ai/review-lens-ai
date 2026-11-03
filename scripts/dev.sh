@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Runs the frontend (Next.js) and backend (FastAPI) dev servers together.
-# Ctrl+C stops both.
+# Runs the frontend (Next.js), the backend (FastAPI) and the ingestion worker
+# together. Ctrl+C stops all three.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -22,6 +22,7 @@ cleanup() {
 trap cleanup SIGINT SIGTERM EXIT
 
 (cd "$ROOT_DIR/backend" && uv run fastapi dev app/main.py) &
+(cd "$ROOT_DIR/backend" && uv run python -m app.worker) &
 (cd "$ROOT_DIR/frontend" && npm run dev) &
 
 wait
