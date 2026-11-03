@@ -8,6 +8,7 @@ they come from the run, not from the review source.
 
 from datetime import datetime
 from typing import Any
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -29,3 +30,21 @@ class ReviewCreate(BaseModel):
     source_review_id: str | None = None
     source_url: str | None = None
     source_metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ReviewResponse(BaseModel):
+    id: UUID
+    target_id: UUID
+    run_id: UUID
+    rating: int
+    review_text: str
+    mapping_version: str
+    reviewed_at: datetime | None
+    source_review_id: str | None
+    source_url: str | None
+    source_metadata: dict[str, Any]
+    created_at: datetime
+
+
+class ReviewList(BaseModel):
+    items: list[ReviewResponse]
