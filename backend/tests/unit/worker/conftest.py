@@ -3,7 +3,7 @@
 The real SerpApi adapter answers from the two recorded Smashburger pages through
 a fake transport. The repositories are small in-memory fakes that write every
 call to one shared event log, so the tests can check the order of steps.
-The same flow against a real Postgres is in tests/db/test_ingestion_worker.py.
+The same flow against a real Postgres is in tests/db/ingestion_worker/.
 """
 
 import json

@@ -153,7 +153,7 @@ A place with no reviews is **not** an error: the result has no pages. The worker
 - Error responses follow SerpApi's [status and error codes page](https://serpapi.com/api-status-and-error-codes); they were not recorded live.
 - A handoff test feeds the fetched pages into S1-021's `normalize_pages`: 18 reviews kept, 12 rating-only rejected, and fetched = kept + rejected + duplicates.
 - `backend/tests/unit/worker/` runs the worker with the real adapter and in-memory repositories: the order of steps, commits and rollbacks, retries, and every failure code.
-- `backend/tests/db/test_ingestion_worker.py` runs it against Postgres (set `TEST_DATABASE_URL`, as for the other database tests), with only SerpApi and S1-022's review store faked.
+- `backend/tests/db/ingestion_worker/` runs it against Postgres (set `TEST_DATABASE_URL`, as for the other database tests), with only SerpApi and S1-022's review store faked.
 
 ## 9. Not covered yet
 
