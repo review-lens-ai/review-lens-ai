@@ -2,7 +2,8 @@
 // GET /api/v1/targets/{id}/ingestion-runs/latest (snake_case, as sent).
 import { apiFetch } from "@/lib/api";
 
-export type IngestionStatus = "running" | "succeeded" | "partial" | "failed";
+// queued -> running -> succeeded / partial / failed (a queued run can also fail).
+export type IngestionStatus = "queued" | "running" | "succeeded" | "partial" | "failed";
 
 export type IngestionRun = {
   id: string;
@@ -14,6 +15,11 @@ export type IngestionRun = {
   reviews_rejected: number;
   error_code: string | null;
 };
+
+// While a run is in one of these states, the workspace keeps checking for updates.
+export function isActive(status: IngestionStatus | null | undefined): boolean {
+  return status === "queued" || status === "running";
+}
 
 export async function fetchLatestRun(targetId: string): Promise<IngestionRun | null> {
   const body = await apiFetch<{ run: IngestionRun | null }>(
@@ -63,17 +69,28 @@ export function formatRunTime(iso: string): string {
   });
 }
 
+// "1 review", "42 reviews"
+export function reviewCount(n: number): string {
+  return `${n} ${n === 1 ? "review" : "reviews"}`;
+}
+
 // The detail line next to the status badge (ui-ux-standards.md §7.3).
 export function runDetail(run: IngestionRun | null): string {
   if (!run) return "No reviews collected yet.";
+  const when = formatRunTime(run.finished_at ?? run.started_at);
+  const skipped = run.reviews_rejected > 0 ? ` · ${run.reviews_rejected} skipped` : "";
   switch (run.status) {
+    case "queued":
+      return "Waiting to start collecting reviews.";
     case "running":
       return "Collecting reviews from Google Maps. This can take up to a minute.";
     case "succeeded":
-      return `${run.reviews_ingested} reviews · ${formatRunTime(run.finished_at ?? run.started_at)}`;
     case "partial":
-      return `${run.reviews_ingested} reviews saved, ${run.reviews_rejected} skipped.`;
+      return `${reviewCount(run.reviews_ingested)}${skipped} · ${when}`;
     case "failed":
-      return `Latest run failed ${formatRunTime(run.finished_at ?? run.started_at)}`;
+      return `Latest run failed ${when}`;
+    default:
+      // A status this version doesn't know yet: show something safe, never crash.
+      return "No reviews collected yet.";
   }
 }

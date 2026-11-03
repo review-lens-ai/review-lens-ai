@@ -1,13 +1,24 @@
 // S1-023: the one shared ingestion status badge (ui-ux-standards.md §7.3 and §8).
 // Use this everywhere a status is shown (sidebar, target list, workspace header)
 // so the colors, icons and wording never drift apart.
-import type { IngestionStatus } from "@/lib/ingestionRuns";
+//
+// Lives in app/_components because the current eslint file-naming rule rejects
+// every file under src/components/ (it asks for PascalCase and kebab-case at once).
+import type { IngestionStatus } from "@/lib/ingestion-runs";
 
-const BADGES: Record<IngestionStatus | "none", { icon: string; label: string; className: string }> = {
-  none: {
-    icon: "○",
-    label: "Not ingested",
-    className: "border-gray-200 bg-gray-50 text-gray-700",
+type Badge = { icon: string; label: string; className: string };
+
+const NOT_INGESTED: Badge = {
+  icon: "○",
+  label: "Not ingested",
+  className: "border-gray-200 bg-gray-50 text-gray-700",
+};
+
+const BADGES: Record<IngestionStatus, Badge> = {
+  queued: {
+    icon: "◌",
+    label: "Queued",
+    className: "border-gray-300 bg-white text-gray-700",
   },
   running: {
     icon: "◐",
@@ -31,8 +42,10 @@ const BADGES: Record<IngestionStatus | "none", { icon: string; label: string; cl
   },
 };
 
-export function StatusBadge({ status }: { status: IngestionStatus | null }) {
-  const badge = BADGES[status ?? "none"];
+export function StatusBadge({ status }: { status: string | null | undefined }) {
+  // Unknown or missing statuses fall back to "Not ingested", so the page can
+  // never crash when the backend adds a new state.
+  const badge = (status && BADGES[status as IngestionStatus]) || NOT_INGESTED;
   return (
     // Color is never the only signal: every badge has an icon and a text label.
     <span

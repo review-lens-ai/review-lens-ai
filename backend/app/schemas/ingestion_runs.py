@@ -10,7 +10,7 @@ class IngestionRunResponse(BaseModel):
 
     id: UUID
     target_id: UUID
-    status: Literal["running", "succeeded", "partial", "failed"]
+    status: Literal["queued", "running", "succeeded", "partial", "failed"]
     started_at: datetime
     # None while the run is still going.
     finished_at: datetime | None

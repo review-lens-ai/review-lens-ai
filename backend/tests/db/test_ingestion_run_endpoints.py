@@ -32,6 +32,12 @@ def setup(conn, make_user, make_token):
     }
 
 
+def _start(setup):
+    """Create a run and move it to running, as the pipeline would."""
+    runs = setup["runs"]
+    return runs.mark_running(runs.create_run(setup["target_id"], setup["user_a"])["id"])
+
+
 def _latest(api, target_id, token):
     return api.get(
         f"/api/v1/targets/{target_id}/ingestion-runs/latest", headers=auth(token)
@@ -44,8 +50,17 @@ def test_never_ingested_target_has_no_run(api, setup):
     assert r.json() == {"run": None}
 
 
+def test_queued_run_is_reported_as_queued(api, setup):
+    setup["runs"].create_run(setup["target_id"], setup["user_a"])
+
+    r = _latest(api, setup["target_id"], setup["token_a"])
+    assert r.status_code == 200
+    assert r.json()["run"]["status"] == "queued"
+    assert r.json()["run"]["finished_at"] is None
+
+
 def test_running_run_is_reported_as_running(api, setup):
-    setup["runs"].start_run(setup["target_id"], setup["user_a"])
+    _start(setup)
 
     run = _latest(api, setup["target_id"], setup["token_a"]).json()["run"]
     assert run["status"] == "running"
@@ -54,20 +69,29 @@ def test_running_run_is_reported_as_running(api, setup):
 
 def test_successful_run_reports_status_and_review_count(api, setup):
     runs = setup["runs"]
-    run = runs.start_run(setup["target_id"], setup["user_a"])
-    runs.mark_succeeded(run["id"], reviews_ingested=42, reviews_rejected=2)
+    run = _start(setup)
+    runs.mark_succeeded(run["id"], reviews_ingested=42)
 
     body = _latest(api, setup["target_id"], setup["token_a"]).json()["run"]
     assert body["status"] == "succeeded"
     assert body["reviews_ingested"] == 42
-    assert body["reviews_rejected"] == 2
+    assert body["reviews_rejected"] == 0
     assert body["error_code"] is None
     assert body["finished_at"] is not None
 
 
+def test_run_with_skipped_reviews_is_reported_as_partial(api, setup):
+    run = _start(setup)
+    setup["runs"].mark_succeeded(run["id"], reviews_ingested=40, reviews_rejected=2)
+
+    body = _latest(api, setup["target_id"], setup["token_a"]).json()["run"]
+    assert body["status"] == "partial"
+    assert body["reviews_rejected"] == 2
+
+
 def test_failed_run_reports_only_the_safe_error_code(api, setup):
     runs = setup["runs"]
-    run = runs.start_run(setup["target_id"], setup["user_a"])
+    run = _start(setup)
     runs.mark_failed(
         run["id"], ErrorCode.SOURCE_UNREACHABLE, detail="ConnectTimeout to serpapi"
     )
@@ -81,7 +105,7 @@ def test_failed_run_reports_only_the_safe_error_code(api, setup):
 
 def test_user_b_gets_not_found_for_user_a_ingestion_result(api, setup):
     runs = setup["runs"]
-    run = runs.start_run(setup["target_id"], setup["user_a"])
+    run = _start(setup)
     runs.mark_succeeded(run["id"], reviews_ingested=42)
 
     r = _latest(api, setup["target_id"], setup["token_b"])
