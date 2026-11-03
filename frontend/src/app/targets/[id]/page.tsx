@@ -93,7 +93,9 @@ function TargetWorkspace({ id }: { id: string }) {
   // S1-023: newest ingestion attempt (null = never ingested).
   const [latestRun, setLatestRun] = useState<IngestionRun | null>(null);
   // null while loading; reviewsFailed keeps a load failure from looking like "no reviews".
+  // reviews holds only the pages loaded so far; reviewTotal is all of the target's reviews.
   const [reviews, setReviews] = useState<Review[] | null>(null);
+  const [reviewTotal, setReviewTotal] = useState(0);
   const [reviewsFailed, setReviewsFailed] = useState(false);
   const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
   // S1-019: a start request is on its way, and why the last one was refused.
@@ -191,10 +193,12 @@ function TargetWorkspace({ id }: { id: string }) {
   useEffect(() => {
     if (!everIngested) return;
     let stopped = false;
+    // Always page 1, replacing what was loaded: a finished run shifts the rows (#68).
     fetchReviews(id)
-      .then((items) => {
+      .then((page) => {
         if (stopped) return;
-        setReviews(items);
+        setReviews(page.items);
+        setReviewTotal(page.total);
         setReviewsFailed(false);
       })
       .catch(() => {
@@ -204,6 +208,19 @@ function TargetWorkspace({ id }: { id: string }) {
       stopped = true;
     };
   }, [id, everIngested, finishedAt]);
+
+  // The next page, after the reviews already loaded. Throws if the request fails, so
+  // the Reviews panel can say so and keep the cards it already shows.
+  async function loadMoreReviews() {
+    const loaded = reviews ?? [];
+    const page = await fetchReviews(id, loaded.length);
+    // A run that finishes mid-paging can repeat a few reviews on the next page.
+    const seen = new Set(loaded.map((review) => review.id));
+    const added = page.items.filter((review) => !seen.has(review.id));
+    setReviews([...loaded, ...added]);
+    // Nothing new means the list ended early, so stop offering more.
+    setReviewTotal(added.length > 0 ? page.total : loaded.length);
+  }
 
   if (notFound) {
     return (
@@ -248,12 +265,12 @@ function TargetWorkspace({ id }: { id: string }) {
       <TargetContextHeader
         target={target}
         run={latestRun}
-        reviewsKept={reviews?.length ?? 0}
+        reviewsKept={reviewTotal}
         ingest={ingest}
       />
 
       {latestRun?.status === "FAILED" && (
-        <RunFailedBanner run={latestRun} reviewsKept={reviews?.length ?? 0} ingest={ingest} />
+        <RunFailedBanner run={latestRun} reviewsKept={reviewTotal} ingest={ingest} />
       )}
       {latestRun?.status === "COMPLETED" && dismissedRunId !== latestRun.id && (
         <Alert className="border-success/30 bg-success/10">
@@ -284,7 +301,13 @@ function TargetWorkspace({ id }: { id: string }) {
         <IngestionPanel target={target} run={latestRun} />
       </TabsContent>
       <TabsContent value="reviews">
-        <ReviewsPanel everIngested={everIngested} reviews={reviews} failed={reviewsFailed} />
+        <ReviewsPanel
+          everIngested={everIngested}
+          reviews={reviews}
+          total={reviewTotal}
+          failed={reviewsFailed}
+          onLoadMore={loadMoreReviews}
+        />
       </TabsContent>
     </Tabs>
   );
@@ -338,7 +361,7 @@ function TargetContextHeader({
           {runDetail(run)}
           {run?.status === "FAILED" &&
             reviewsKept > 0 &&
-            ` · Showing ${reviewCount(reviewsKept)} from earlier runs`}
+            ` · ${reviewCount(reviewsKept)} from earlier runs`}
         </span>
       </div>
 
@@ -439,15 +462,40 @@ function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | n
 function ReviewsPanel({
   everIngested,
   reviews,
+  total,
   failed,
+  onLoadMore,
 }: {
   everIngested: boolean;
   reviews: Review[] | null;
+  total: number;
   failed: boolean;
+  onLoadMore: () => Promise<void>;
 }) {
   const [visible, setVisible] = useState(REVIEWS_PAGE_SIZE);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [moreFailed, setMoreFailed] = useState(false);
 
-  if (!everIngested || reviews?.length === 0) {
+  // Shows the next few cards, asking the server for the next page first when the
+  // reviews already loaded run out.
+  async function showMore() {
+    const next = visible + REVIEWS_PAGE_SIZE;
+    if (reviews && next > reviews.length && reviews.length < total) {
+      setLoadingMore(true);
+      setMoreFailed(false);
+      try {
+        await onLoadMore();
+      } catch {
+        setMoreFailed(true);
+        return;
+      } finally {
+        setLoadingMore(false);
+      }
+    }
+    setVisible(next);
+  }
+
+  if (!everIngested || (reviews !== null && total === 0)) {
     return (
       // The one Ingest button lives in the header above, so this only points to it.
       <EmptyState
@@ -484,7 +532,7 @@ function ReviewsPanel({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">Reviews</h2>
         <p className="text-sm text-muted-foreground">
-          Showing {shown.length} of {reviews.length}
+          Showing {shown.length} of {total}
         </p>
       </div>
       <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -492,13 +540,14 @@ function ReviewsPanel({
           <ReviewCard key={review.id} review={review} />
         ))}
       </div>
-      {shown.length < reviews.length && (
-        <Button
-          variant="outline"
-          className="w-fit"
-          onClick={() => setVisible(visible + REVIEWS_PAGE_SIZE)}
-        >
-          Show more reviews
+      {moreFailed && (
+        <p role="alert" className="text-sm text-destructive">
+          We couldn&apos;t load more reviews. Try again in a few minutes.
+        </p>
+      )}
+      {shown.length < total && (
+        <Button variant="outline" className="w-fit" onClick={showMore} disabled={loadingMore}>
+          {loadingMore ? "Loading…" : "Show more reviews"}
         </Button>
       )}
     </section>

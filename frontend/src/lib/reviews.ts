@@ -15,14 +15,30 @@ export type Review = {
   created_at: string;
 };
 
+// One page of a target's reviews. The endpoint is paginated (coding-standards.md §5):
+// items is one page, not everything, and total counts all of the target's reviews.
+export type ReviewPage = {
+  items: Review[];
+  total: number;
+  limit: number;
+  offset: number;
+};
+
 // How many cards to add each time the user asks for more.
 export const REVIEWS_PAGE_SIZE = 4;
 
+// How many reviews to ask the server for at a time (the endpoint allows up to 100).
+export const REVIEWS_FETCH_SIZE = 50;
+
 const LONG_REVIEW_LENGTH = 280;
 
-export async function fetchReviews(targetId: string): Promise<Review[]> {
-  const body = await apiFetch<{ items: Review[] }>(`/api/v1/targets/${targetId}/reviews`);
-  return body.items;
+// offset is how many reviews are already loaded, so the next call continues from there.
+export async function fetchReviews(targetId: string, offset = 0): Promise<ReviewPage> {
+  const query = new URLSearchParams({
+    limit: String(REVIEWS_FETCH_SIZE),
+    offset: String(offset),
+  });
+  return apiFetch<ReviewPage>(`/api/v1/targets/${targetId}/reviews?${query}`);
 }
 
 export function isLongReview(text: string): boolean {

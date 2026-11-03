@@ -12,6 +12,8 @@ import {
   ingestionRun,
   jsonResponse,
   render,
+  review,
+  reviewPage,
   screen,
   server,
   target,
@@ -66,7 +68,7 @@ function backendHas(latestRun: IngestionRun | null) {
 
   server.use(
     http.get(TARGET_URL, () => jsonResponse(target({ id: TARGET_ID, ingestion_status: status }))),
-    http.get(REVIEWS_URL, () => jsonResponse({ items: [] })),
+    http.get(REVIEWS_URL, () => jsonResponse(reviewPage([]))),
     http.get(LATEST_RUN_URL, () => jsonResponse({ run: latestRun })),
   );
 }
@@ -300,5 +302,69 @@ describe("workspace layout", () => {
 
     await screen.findByText("Never started");
     expect(screen.queryByText("Not started yet")).toBeNull();
+  });
+});
+
+// The reviews endpoint is paginated (#68): items is one page, total is every review.
+describe("reviews list", () => {
+  const completedRun = ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" });
+
+  function reviewsNumbered(from: number, count: number) {
+    return Array.from({ length: count }, (_, i) =>
+      review({ id: `review-${from + i}`, review_text: `Review number ${from + i}` }),
+    );
+  }
+
+  // The backend holds `total` reviews and answers each request from its offset.
+  // Returns the offsets asked for, so a test can check which pages were fetched.
+  function backendHoldsReviews(total: number, firstPageSize: number) {
+    const offsetsAsked: string[] = [];
+    server.use(
+      http.get(REVIEWS_URL, ({ request }) => {
+        const offset = Number(new URL(request.url).searchParams.get("offset") ?? 0);
+        offsetsAsked.push(String(offset));
+        const size = offset === 0 ? firstPageSize : total - offset;
+        return jsonResponse(reviewPage(reviewsNumbered(offset, size), { total, offset }));
+      }),
+    );
+    return offsetsAsked;
+  }
+
+  it("counts every review of the target, not just the page loaded", async () => {
+    backendHas(completedRun);
+    backendHoldsReviews(60, 4);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText("Showing 4 of 60");
+    expect(screen.getByRole("button", { name: "Show more reviews" })).toBeTruthy();
+  });
+
+  it("show more fetches the next page when the loaded reviews run out", async () => {
+    backendHas(completedRun);
+    const offsetsAsked = backendHoldsReviews(6, 4);
+    await openWorkspace("Ingested");
+    await screen.findByText("Showing 4 of 6");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show more reviews" }));
+
+    await screen.findByText("Showing 6 of 6");
+    expect(offsetsAsked).toEqual(["0", "4"]);
+    expect(screen.getByText("Review number 5")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Show more reviews" })).toBeNull();
+  });
+
+  it("a failed show more keeps the reviews already shown and says so", async () => {
+    backendHas(completedRun);
+    backendHoldsReviews(6, 4);
+    await openWorkspace("Ingested");
+    await screen.findByText("Showing 4 of 6");
+    server.use(http.get(REVIEWS_URL, () => HttpResponse.error()));
+
+    fireEvent.click(screen.getByRole("button", { name: "Show more reviews" }));
+
+    await screen.findByText("We couldn't load more reviews. Try again in a few minutes.");
+    expect(screen.getByText("Showing 4 of 6")).toBeTruthy();
+    expect(screen.getByText("Review number 0")).toBeTruthy();
   });
 });
