@@ -24,19 +24,17 @@ export type ReviewPage = {
   offset: number;
 };
 
-// How many cards to add each time the user asks for more.
-export const REVIEWS_PAGE_SIZE = 4;
-
-// How many reviews to ask the server for at a time (the endpoint allows up to 100).
-export const REVIEWS_FETCH_SIZE = 50;
+// Reviews per page in the workspace; each Next/Previous asks the server for one page
+// (the endpoint allows up to 100).
+export const REVIEWS_PAGE_SIZE = 12;
 
 const LONG_REVIEW_LENGTH = 280;
 
-// offset is how many reviews are already loaded, so the next call continues from there.
-export async function fetchReviews(targetId: string, offset = 0): Promise<ReviewPage> {
+// page is 0 for the first page; the server skips page * REVIEWS_PAGE_SIZE reviews.
+export async function fetchReviews(targetId: string, page = 0): Promise<ReviewPage> {
   const query = new URLSearchParams({
-    limit: String(REVIEWS_FETCH_SIZE),
-    offset: String(offset),
+    limit: String(REVIEWS_PAGE_SIZE),
+    offset: String(page * REVIEWS_PAGE_SIZE),
   });
   return apiFetch<ReviewPage>(`/api/v1/targets/${targetId}/reviews?${query}`);
 }

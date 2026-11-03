@@ -315,56 +315,130 @@ describe("reviews list", () => {
     );
   }
 
-  // The backend holds `total` reviews and answers each request from its offset.
-  // Returns the offsets asked for, so a test can check which pages were fetched.
-  function backendHoldsReviews(total: number, firstPageSize: number) {
-    const offsetsAsked: string[] = [];
+  // The backend holds `total` reviews and answers each request from its limit and
+  // offset, like the real endpoint. Returns the offsets asked for, so a test can
+  // check which pages were fetched.
+  function backendHoldsReviews(total: number) {
+    const offsetsAsked: number[] = [];
     server.use(
       http.get(REVIEWS_URL, ({ request }) => {
-        const offset = Number(new URL(request.url).searchParams.get("offset") ?? 0);
-        offsetsAsked.push(String(offset));
-        const size = offset === 0 ? firstPageSize : total - offset;
-        return jsonResponse(reviewPage(reviewsNumbered(offset, size), { total, offset }));
+        const query = new URL(request.url).searchParams;
+        const limit = Number(query.get("limit") ?? 50);
+        const offset = Number(query.get("offset") ?? 0);
+        offsetsAsked.push(offset);
+        const size = Math.max(0, Math.min(limit, total - offset));
+        return jsonResponse(reviewPage(reviewsNumbered(offset, size), { total, limit, offset }));
       }),
     );
     return offsetsAsked;
   }
 
-  it("counts every review of the target, not just the page loaded", async () => {
+  function button(name: string) {
+    return screen.getByRole<HTMLButtonElement>("button", { name });
+  }
+
+  it("shows the first page and counts every review of the target", async () => {
     backendHas(completedRun);
-    backendHoldsReviews(60, 4);
+    backendHoldsReviews(30);
 
     await openWorkspace("Ingested");
 
-    await screen.findByText("Showing 4 of 60");
-    expect(screen.getByRole("button", { name: "Show more reviews" })).toBeTruthy();
+    await screen.findByText("Showing 1–12 of 30");
+    expect(screen.getByText("Review number 0")).toBeTruthy();
+    expect(screen.queryByText("Review number 12")).toBeNull();
+    expect(button("Previous").disabled).toBe(true);
+    expect(button("Next").disabled).toBe(false);
   });
 
-  it("show more fetches the next page when the loaded reviews run out", async () => {
+  it("next and previous fetch the neighbouring pages from the server", async () => {
     backendHas(completedRun);
-    const offsetsAsked = backendHoldsReviews(6, 4);
+    const offsetsAsked = backendHoldsReviews(30);
     await openWorkspace("Ingested");
-    await screen.findByText("Showing 4 of 6");
+    await screen.findByText("Showing 1–12 of 30");
 
-    fireEvent.click(screen.getByRole("button", { name: "Show more reviews" }));
+    fireEvent.click(button("Next"));
+    await screen.findByText("Showing 13–24 of 30");
+    expect(screen.getByText("Review number 12")).toBeTruthy();
+    expect(screen.queryByText("Review number 0")).toBeNull();
 
-    await screen.findByText("Showing 6 of 6");
-    expect(offsetsAsked).toEqual(["0", "4"]);
-    expect(screen.getByText("Review number 5")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "Show more reviews" })).toBeNull();
+    fireEvent.click(button("Previous"));
+    await screen.findByText("Showing 1–12 of 30");
+
+    expect(offsetsAsked).toEqual([0, 12, 0]);
   });
 
-  it("a failed show more keeps the reviews already shown and says so", async () => {
+  it("next is disabled on the last page", async () => {
     backendHas(completedRun);
-    backendHoldsReviews(6, 4);
+    backendHoldsReviews(15);
     await openWorkspace("Ingested");
-    await screen.findByText("Showing 4 of 6");
+    await screen.findByText("Showing 1–12 of 15");
+
+    fireEvent.click(button("Next"));
+
+    await screen.findByText("Showing 13–15 of 15");
+    await waitFor(() => expect(button("Next").disabled).toBe(true));
+    expect(button("Previous").disabled).toBe(false);
+  });
+
+  it("a target with one page of reviews has no page buttons", async () => {
+    backendHas(completedRun);
+    backendHoldsReviews(5);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText("Showing 1–5 of 5");
+    expect(screen.queryByRole("button", { name: "Next" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Previous" })).toBeNull();
+  });
+
+  // The list reloads page 1 whenever the run's finished_at changes. Starting a run
+  // changes it (to null) without waiting for a poll, so it exercises the same reload
+  // a finishing run triggers.
+  it("goes back to page 1 when the latest run changes", async () => {
+    backendHas(completedRun);
+    const offsetsAsked = backendHoldsReviews(30);
+    startingARunReturns(() => jsonResponse(queuedRun, 202));
+    await openWorkspace("Ingested");
+    fireEvent.click(button("Next"));
+    await screen.findByText("Showing 13–24 of 30");
+
+    fireEvent.click(ingestButtons()[0]);
+
+    await screen.findByText("Queued");
+    await screen.findByText("Showing 1–12 of 30");
+    expect(offsetsAsked).toEqual([0, 12, 0]);
+  });
+
+  it("the success banner says how many reviews were added and the new total", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3, reviews_duplicate: 2 }));
+    backendHoldsReviews(8);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText("3 reviews added from Google Maps · 8 in total.");
+  });
+
+  it("the success banner says when every review was already saved", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 0, reviews_duplicate: 5 }));
+    backendHoldsReviews(5);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText("No reviews added: all 5 reviews from Google Maps were already saved.");
+  });
+
+  it("a failed page change keeps the page on screen and says so", async () => {
+    backendHas(completedRun);
+    backendHoldsReviews(30);
+    await openWorkspace("Ingested");
+    await screen.findByText("Showing 1–12 of 30");
     server.use(http.get(REVIEWS_URL, () => HttpResponse.error()));
 
-    fireEvent.click(screen.getByRole("button", { name: "Show more reviews" }));
+    fireEvent.click(button("Next"));
 
-    await screen.findByText("We couldn't load more reviews. Try again in a few minutes.");
-    expect(screen.getByText("Showing 4 of 6")).toBeTruthy();
+    await screen.findByText("We couldn't load that page of reviews. Try again in a few minutes.");
+    expect(screen.getByText("Showing 1–12 of 30")).toBeTruthy();
     expect(screen.getByText("Review number 0")).toBeTruthy();
+    await waitFor(() => expect(button("Next").disabled).toBe(false));
   });
 });

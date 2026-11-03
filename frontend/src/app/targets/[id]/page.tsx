@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -93,10 +93,16 @@ function TargetWorkspace({ id }: { id: string }) {
   // S1-023: newest ingestion attempt (null = never ingested).
   const [latestRun, setLatestRun] = useState<IngestionRun | null>(null);
   // null while loading; reviewsFailed keeps a load failure from looking like "no reviews".
-  // reviews holds only the pages loaded so far; reviewTotal is all of the target's reviews.
+  // reviews is the page on screen (reviewPage, 0 = first); reviewTotal is all of the
+  // target's reviews. pageFailed is a Next/Previous that failed while a page is shown.
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [reviewTotal, setReviewTotal] = useState(0);
+  const [reviewPage, setReviewPage] = useState(0);
   const [reviewsFailed, setReviewsFailed] = useState(false);
+  const [pageLoading, setPageLoading] = useState(false);
+  const [pageFailed, setPageFailed] = useState(false);
+  // Counts review requests, so an older answer never replaces a newer page.
+  const reviewRequest = useRef(0);
   const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
   // S1-019: a start request is on its way, and why the last one was refused.
   const [starting, setStarting] = useState(false);
@@ -193,33 +199,47 @@ function TargetWorkspace({ id }: { id: string }) {
   useEffect(() => {
     if (!everIngested) return;
     let stopped = false;
-    // Always page 1, replacing what was loaded: a finished run shifts the rows (#68).
-    fetchReviews(id)
+    const request = ++reviewRequest.current;
+    // Still the newest review request, and the target hasn't changed since.
+    const current = () => !stopped && request === reviewRequest.current;
+    // Back to page 1 whenever a run finishes: new reviews push older ones down (#68).
+    fetchReviews(id, 0)
       .then((page) => {
-        if (stopped) return;
+        if (!current()) return;
         setReviews(page.items);
         setReviewTotal(page.total);
+        setReviewPage(0);
         setReviewsFailed(false);
+        setPageFailed(false);
+        // A Next/Previous still loading was overtaken by this reload.
+        setPageLoading(false);
       })
       .catch(() => {
-        if (!stopped) setReviewsFailed(true);
+        if (!current()) return;
+        setReviewsFailed(true);
+        setPageLoading(false);
       });
     return () => {
       stopped = true;
     };
   }, [id, everIngested, finishedAt]);
 
-  // The next page, after the reviews already loaded. Throws if the request fails, so
-  // the Reviews panel can say so and keep the cards it already shows.
-  async function loadMoreReviews() {
-    const loaded = reviews ?? [];
-    const page = await fetchReviews(id, loaded.length);
-    // A run that finishes mid-paging can repeat a few reviews on the next page.
-    const seen = new Set(loaded.map((review) => review.id));
-    const added = page.items.filter((review) => !seen.has(review.id));
-    setReviews([...loaded, ...added]);
-    // Nothing new means the list ended early, so stop offering more.
-    setReviewTotal(added.length > 0 ? page.total : loaded.length);
+  // Next/Previous. A failed request keeps the page on screen and says so.
+  async function showReviewPage(page: number) {
+    const request = ++reviewRequest.current;
+    setPageLoading(true);
+    setPageFailed(false);
+    try {
+      const result = await fetchReviews(id, page);
+      if (request !== reviewRequest.current) return;
+      setReviews(result.items);
+      setReviewTotal(result.total);
+      setReviewPage(page);
+    } catch {
+      if (request === reviewRequest.current) setPageFailed(true);
+    } finally {
+      if (request === reviewRequest.current) setPageLoading(false);
+    }
   }
 
   if (notFound) {
@@ -276,8 +296,11 @@ function TargetWorkspace({ id }: { id: string }) {
         <Alert className="border-success/30 bg-success/10">
           <CircleCheckIcon aria-hidden="true" className="text-success" />
           <AlertTitle className="flex items-center justify-between gap-2 font-normal">
-            {reviewCount(latestRun.reviews_ingested)} collected from{" "}
-            {platformLabel(target.platform)}.
+            {completedMessage(
+              latestRun,
+              platformLabel(target.platform),
+              reviews === null ? null : reviewTotal,
+            )}
             <button
               type="button"
               aria-label="Dismiss"
@@ -305,8 +328,11 @@ function TargetWorkspace({ id }: { id: string }) {
           everIngested={everIngested}
           reviews={reviews}
           total={reviewTotal}
+          page={reviewPage}
           failed={reviewsFailed}
-          onLoadMore={loadMoreReviews}
+          pageLoading={pageLoading}
+          pageFailed={pageFailed}
+          onPage={showReviewPage}
         />
       </TabsContent>
     </Tabs>
@@ -361,7 +387,7 @@ function TargetContextHeader({
           {runDetail(run)}
           {run?.status === "FAILED" &&
             reviewsKept > 0 &&
-            ` · ${reviewCount(reviewsKept)} from earlier runs`}
+            ` · Showing ${reviewCount(reviewsKept)} from earlier runs`}
         </span>
       </div>
 
@@ -372,6 +398,19 @@ function TargetContextHeader({
       </TabsList>
     </div>
   );
+}
+
+// S1-023: the success banner. "Added", not "new": a run can bring back reviews an earlier
+// run saved (skipped as duplicates), and the provider may return older reviews. total is
+// everything the target has now, or null until the reviews have loaded.
+function completedMessage(run: IngestionRun, platform: string, total: number | null): string {
+  if (run.reviews_ingested === 0) {
+    return run.reviews_duplicate > 0
+      ? `No reviews added: all ${reviewCount(run.reviews_duplicate)} from ${platform} were already saved.`
+      : "No reviews added.";
+  }
+  const added = `${reviewCount(run.reviews_ingested)} added from ${platform}`;
+  return total === null ? `${added}.` : `${added} · ${total} in total.`;
 }
 
 // S1-023: a failed run is always visible and never looks like a success (§7.3).
@@ -463,38 +502,21 @@ function ReviewsPanel({
   everIngested,
   reviews,
   total,
+  page,
   failed,
-  onLoadMore,
+  pageLoading,
+  pageFailed,
+  onPage,
 }: {
   everIngested: boolean;
   reviews: Review[] | null;
   total: number;
+  page: number;
   failed: boolean;
-  onLoadMore: () => Promise<void>;
+  pageLoading: boolean;
+  pageFailed: boolean;
+  onPage: (page: number) => void;
 }) {
-  const [visible, setVisible] = useState(REVIEWS_PAGE_SIZE);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [moreFailed, setMoreFailed] = useState(false);
-
-  // Shows the next few cards, asking the server for the next page first when the
-  // reviews already loaded run out.
-  async function showMore() {
-    const next = visible + REVIEWS_PAGE_SIZE;
-    if (reviews && next > reviews.length && reviews.length < total) {
-      setLoadingMore(true);
-      setMoreFailed(false);
-      try {
-        await onLoadMore();
-      } catch {
-        setMoreFailed(true);
-        return;
-      } finally {
-        setLoadingMore(false);
-      }
-    }
-    setVisible(next);
-  }
-
   if (!everIngested || (reviews !== null && total === 0)) {
     return (
       // The one Ingest button lives in the header above, so this only points to it.
@@ -525,30 +547,47 @@ function ReviewsPanel({
     );
   }
 
-  const shown = reviews.slice(0, visible);
+  // e.g. "Showing 13–24 of 60": the range is this page, the total is every review.
+  const first = page * REVIEWS_PAGE_SIZE + 1;
+  const last = page * REVIEWS_PAGE_SIZE + reviews.length;
+  const hasPrevious = page > 0;
+  const hasNext = last < total;
 
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">Reviews</h2>
         <p className="text-sm text-muted-foreground">
-          Showing {shown.length} of {total}
+          Showing {first}–{last} of {total}
         </p>
       </div>
       <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {shown.map((review) => (
+        {reviews.map((review) => (
           <ReviewCard key={review.id} review={review} />
         ))}
       </div>
-      {moreFailed && (
+      {pageFailed && (
         <p role="alert" className="text-sm text-destructive">
-          We couldn&apos;t load more reviews. Try again in a few minutes.
+          We couldn&apos;t load that page of reviews. Try again in a few minutes.
         </p>
       )}
-      {shown.length < total && (
-        <Button variant="outline" className="w-fit" onClick={showMore} disabled={loadingMore}>
-          {loadingMore ? "Loading…" : "Show more reviews"}
-        </Button>
+      {(hasPrevious || hasNext) && (
+        <nav aria-label="Review pages" className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onPage(page - 1)}
+            disabled={!hasPrevious || pageLoading}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => onPage(page + 1)}
+            disabled={!hasNext || pageLoading}
+          >
+            Next
+          </Button>
+        </nav>
       )}
     </section>
   );
