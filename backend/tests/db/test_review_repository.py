@@ -1,9 +1,12 @@
 """S1-022: reviews persist under the right target and stay behind its owner."""
 
+from datetime import UTC, datetime
+
 import psycopg
 import pytest
 
 from app.core.errors import NotFoundError
+from app.repositories.ingestion_runs import InvalidRunTransitionError
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
 from app.schemas.reviews import ReviewCreate
@@ -27,27 +30,56 @@ def make_target(conn):
 
 @pytest.fixture
 def make_run(conn):
-    """A finished run (COMPLETED or FAILED). Finished runs are outside the
-    one-active-run rule, so a target can have many. The schema requires a start
-    time, at least one ingested review for COMPLETED, and an error code for FAILED."""
+    """A run in the given state. RUNNING by default: reviews can only be saved
+    while a run is running, as in the worker. A target has at most one QUEUED or
+    RUNNING run, so finish_run the current one before starting another. The
+    schema requires a start time unless QUEUED, at least one ingested review for
+    COMPLETED, and an error code for FAILED."""
 
-    def _make(target_id, status="COMPLETED"):
+    def _make(target_id, status="RUNNING"):
+        now = datetime.now(UTC)
         return conn.execute(
             """
             insert into public.ingestion_runs
                 (target_id, status, started_at, finished_at, reviews_ingested, error_code)
-            values (%s, %s, now(), now(), %s, %s)
+            values (%s, %s, %s, %s, %s, %s)
             returning id
             """,
             (
                 target_id,
                 status,
+                None if status == "QUEUED" else now,
+                now if status in ("COMPLETED", "FAILED") else None,
                 1 if status == "COMPLETED" else 0,
                 "UNEXPECTED" if status == "FAILED" else None,
             ),
         ).fetchone()["id"]
 
     return _make
+
+
+@pytest.fixture
+def finish_run(conn):
+    """Finish a RUNNING run as COMPLETED, as the worker does after saving."""
+
+    def _finish(run_id):
+        conn.execute(
+            """
+            update public.ingestion_runs
+               set status = 'COMPLETED', finished_at = now(), reviews_ingested = 1
+             where id = %s
+            """,
+            (run_id,),
+        )
+
+    return _finish
+
+
+def _rejection_count(conn, run_id) -> int:
+    return conn.execute(
+        "select count(*) as n from public.ingestion_rejections where run_id = %s",
+        (run_id,),
+    ).fetchone()["n"]
 
 
 def _review(text="Great slice", rating=5, **fields) -> ReviewCreate:
@@ -143,11 +175,7 @@ def test_user_b_cannot_save_rejections_under_user_a_run(
     with pytest.raises(NotFoundError):
         repo.save_rejections(run_id, target["id"], user_b, [record])
 
-    count = conn.execute(
-        "select count(*) as n from public.ingestion_rejections where run_id = %s",
-        (run_id,),
-    ).fetchone()["n"]
-    assert count == 0
+    assert _rejection_count(conn, run_id) == 0
 
 
 def test_saving_with_another_targets_run_is_not_found(
@@ -160,16 +188,46 @@ def test_saving_with_another_targets_run_is_not_found(
         repo.bulk_insert(make_run(target_a["id"]), target_b["id"], owner, [_review()])
 
 
-def test_duplicate_source_review_is_skipped_and_the_first_copy_is_kept(
+@pytest.mark.parametrize("status", ["QUEUED", "COMPLETED", "FAILED"])
+def test_nothing_can_be_saved_under_a_run_that_is_not_running(
+    conn, repo, make_user, make_target, make_run, status
+):
+    owner = make_user()
+    target = make_target(owner)
+    run_id = make_run(target["id"], status=status)
+    record = RejectedRecord(RejectionReason.MISSING_RATING, {"snippet": "ok"})
+
+    with pytest.raises(InvalidRunTransitionError):
+        repo.bulk_insert(run_id, target["id"], owner, [_review()])
+    with pytest.raises(InvalidRunTransitionError):
+        repo.save_rejections(run_id, target["id"], owner, [record])
+
+    assert repo.list_for_target(target["id"], owner) == []
+    assert _rejection_count(conn, run_id) == 0
+
+
+def test_another_users_finished_run_is_not_found_rather_than_revealing_its_state(
     repo, make_user, make_target, make_run
+):
+    user_a, user_b = make_user(), make_user()
+    target = make_target(user_a)
+    run_id = make_run(target["id"], status="COMPLETED")
+
+    with pytest.raises(NotFoundError):
+        repo.bulk_insert(run_id, target["id"], user_b, [_review()])
+
+
+def test_duplicate_source_review_is_skipped_and_the_first_copy_is_kept(
+    repo, make_user, make_target, make_run, finish_run
 ):
     owner = make_user()
     target = make_target(owner)
     first_run = make_run(target["id"])
-    later_run = make_run(target["id"])
     repo.bulk_insert(
         first_run, target["id"], owner, [_review("First", source_review_id="r1")]
     )
+    finish_run(first_run)
+    later_run = make_run(target["id"])
 
     saved = repo.bulk_insert(
         later_run,
@@ -217,11 +275,13 @@ def test_reviews_without_a_source_id_are_never_treated_as_duplicates(
 
 
 def test_failed_run_leaves_earlier_reviews_in_place(
-    repo, make_user, make_target, make_run
+    repo, make_user, make_target, make_run, finish_run
 ):
     owner = make_user()
     target = make_target(owner)
-    repo.bulk_insert(make_run(target["id"]), target["id"], owner, [_review("Earlier")])
+    earlier_run = make_run(target["id"])
+    repo.bulk_insert(earlier_run, target["id"], owner, [_review("Earlier")])
+    finish_run(earlier_run)
 
     make_run(target["id"], status="FAILED")
 
@@ -230,11 +290,13 @@ def test_failed_run_leaves_earlier_reviews_in_place(
 
 
 def test_batch_that_fails_midway_saves_nothing_and_keeps_earlier_reviews(
-    repo, make_user, make_target, make_run
+    repo, make_user, make_target, make_run, finish_run
 ):
     owner = make_user()
     target = make_target(owner)
-    repo.bulk_insert(make_run(target["id"]), target["id"], owner, [_review("Earlier")])
+    earlier_run = make_run(target["id"])
+    repo.bulk_insert(earlier_run, target["id"], owner, [_review("Earlier")])
+    finish_run(earlier_run)
     # Passes the schema's min_length but breaks the table's non-blank CHECK.
     batch = [_review("Good"), _review("   ")]
 
