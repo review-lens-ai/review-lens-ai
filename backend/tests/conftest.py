@@ -1,7 +1,7 @@
 import os
 import time
 
-# Fake settings, set before importing the app: main.py checks them at import (fail fast).
+# Fake settings, set before importing the app: main.py checks them at import.
 # Real env vars override backend/.env, so tests never use anyone's real values.
 SUPABASE_URL = "https://test-project.supabase.co"
 os.environ["SUPABASE_URL"] = SUPABASE_URL
