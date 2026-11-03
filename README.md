@@ -37,7 +37,7 @@ The backend fails at startup with `Missing required setting: <NAME>` if `SUPABAS
 ./scripts/dev.sh
 ```
 
-Starts the backend (http://localhost:8000) and frontend (http://localhost:3000) together. Ctrl+C stops both.
+Starts the backend (http://localhost:8000), the frontend (http://localhost:3000) and the ingestion worker (`python -m app.worker`, which processes queued review collections) together. Ctrl+C stops all three.
 
 ## Docs
 

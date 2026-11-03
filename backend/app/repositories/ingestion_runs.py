@@ -11,7 +11,7 @@ Run lifecycle (matches the team's pipeline diagram):
 How the pipeline (S1-019 to S1-022) uses this module:
 
     run = runs.create_run(target_id, owner_id)    # API request:  QUEUED
-    runs.mark_running(run["id"])                  # worker starts: RUNNING
+    runs.claim_next_queued()                      # worker starts: RUNNING
     try:
         ...fetch, normalize and save reviews...
         runs.mark_succeeded(run["id"], saved, skipped, duplicates)
@@ -48,6 +48,7 @@ from enum import StrEnum
 from uuid import UUID
 
 import psycopg
+from psycopg.types.json import Jsonb
 
 from app.core.errors import ConflictError
 from app.repositories.targets import TargetRepository
@@ -167,6 +168,37 @@ class IngestionRunRepository:
                 "Only a queued ingestion run can start running."
             )
         return row
+
+    def claim_next_queued(self) -> dict | None:
+        """The worker (app/worker.py) takes the oldest QUEUED ingestion run and
+        marks it RUNNING, or returns None if nothing is queued.
+
+        FOR UPDATE SKIP LOCKED: two workers asking at the same moment never get
+        the same run. Ownership was checked when the run was created.
+        """
+        return self._conn.execute(
+            f"""
+            update public.ingestion_runs
+               set status = 'RUNNING', started_at = now()
+             where id = (
+                    select id from public.ingestion_runs
+                     where status = 'QUEUED' and job_type = 'INGESTION'
+                     order by queued_at
+                     limit 1
+                       for update skip locked
+                   )
+            returning {_RUN_COLUMNS}
+            """
+        ).fetchone()
+
+    def record_source_metadata(self, run_id: UUID | str, details: dict) -> None:
+        """Store what the run asked the provider for and what happened
+        (ingestion_runs.source_metadata): sort, language, pages planned vs
+        fetched, and why fetching stopped."""
+        self._conn.execute(
+            "update public.ingestion_runs set source_metadata = %s where id = %s",
+            (Jsonb(details), run_id),
+        )
 
     def mark_succeeded(
         self,
