@@ -5,7 +5,7 @@ export type Target = {
   platform: string;
   source_url: string;
   // Status of the newest ingestion run; null means no ingestion yet.
-  ingestion_status: "running" | "succeeded" | "partial" | "failed" | null;
+  ingestion_status: "queued" | "running" | "succeeded" | "partial" | "failed" | null;
   created_at: string;
   updated_at: string;
 };
@@ -24,6 +24,8 @@ export const SUPPORTED_PLATFORM_LABEL = platformLabel("google_maps");
 // What the user sees for the newest ingestion run's status (null = never ingested).
 export function ingestionLabel(status: Target["ingestion_status"]): string {
   switch (status) {
+    case "queued":
+      return "Ingestion queued";
     case "running":
       return "Ingestion in progress";
     case "succeeded":
