@@ -1,0 +1,264 @@
+"""S1-022: reviews persist under the right target and stay behind its owner."""
+
+import psycopg
+import pytest
+
+from app.core.errors import NotFoundError
+from app.repositories.reviews import ReviewRepository
+from app.repositories.targets import TargetRepository
+from app.schemas.reviews import ReviewCreate
+from app.services.normalize_reviews import RejectedRecord, RejectionReason
+
+URL = "https://www.google.com/maps/place/Joes+Pizza"
+
+
+@pytest.fixture
+def repo(conn):
+    return ReviewRepository(conn)
+
+
+@pytest.fixture
+def make_target(conn):
+    def _make(owner_id, name="Joe's Pizza") -> dict:
+        return TargetRepository(conn).create(owner_id, name, "google_maps", URL)
+
+    return _make
+
+
+@pytest.fixture
+def make_run(conn):
+    """A finished run. Finished runs are valid both before and after the 'queued'
+    status and the one-active-run rule in #32, and a target can have many."""
+
+    def _make(target_id, status="succeeded"):
+        return conn.execute(
+            """
+            insert into public.ingestion_runs (target_id, status, finished_at)
+            values (%s, %s, now())
+            returning id
+            """,
+            (target_id, status),
+        ).fetchone()["id"]
+
+    return _make
+
+
+def _review(text="Great slice", rating=5, **fields) -> ReviewCreate:
+    return ReviewCreate(rating=rating, review_text=text, **fields)
+
+
+def test_saved_review_text_and_rating_match_the_normalized_input(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target = make_target(owner)
+    run_id = make_run(target["id"])
+    review = _review(
+        "Crust was perfect",
+        4,
+        author_name="Sam",
+        source_review_id="r1",
+        source_url="https://example.com/r1",
+        source_metadata={"likes": 3},
+    )
+
+    assert repo.bulk_insert(run_id, target["id"], owner, [review]) == 1
+
+    [saved] = repo.list_for_target(target["id"], owner)
+    assert saved["review_text"] == "Crust was perfect"
+    assert saved["rating"] == 4
+    assert saved["author_name"] == "Sam"
+    assert saved["source_review_id"] == "r1"
+    assert saved["source_url"] == "https://example.com/r1"
+    assert saved["source_metadata"] == {"likes": 3}
+
+
+def test_saved_review_is_linked_to_its_target_and_run(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target = make_target(owner)
+    run_id = make_run(target["id"])
+
+    repo.bulk_insert(run_id, target["id"], owner, [_review()])
+
+    [saved] = repo.list_for_target(target["id"], owner)
+    assert saved["target_id"] == target["id"]
+    assert saved["run_id"] == run_id
+
+
+def test_target_a_reviews_do_not_appear_under_target_b(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target_a, target_b = make_target(owner, "A"), make_target(owner, "B")
+    repo.bulk_insert(make_run(target_a["id"]), target_a["id"], owner, [_review("A")])
+    repo.bulk_insert(make_run(target_b["id"]), target_b["id"], owner, [_review("B")])
+
+    texts_a = [r["review_text"] for r in repo.list_for_target(target_a["id"], owner)]
+    texts_b = [r["review_text"] for r in repo.list_for_target(target_b["id"], owner)]
+    assert texts_a == ["A"]
+    assert texts_b == ["B"]
+
+
+def test_user_b_cannot_read_reviews_through_user_a_target(
+    repo, make_user, make_target, make_run
+):
+    user_a, user_b = make_user(), make_user()
+    target = make_target(user_a)
+    repo.bulk_insert(make_run(target["id"]), target["id"], user_a, [_review()])
+
+    with pytest.raises(NotFoundError):
+        repo.list_for_target(target["id"], user_b)
+
+
+def test_user_b_cannot_save_reviews_under_user_a_target(
+    conn, repo, make_user, make_target, make_run
+):
+    user_a, user_b = make_user(), make_user()
+    target = make_target(user_a)
+
+    with pytest.raises(NotFoundError):
+        repo.bulk_insert(make_run(target["id"]), target["id"], user_b, [_review()])
+
+    assert repo.list_for_target(target["id"], user_a) == []
+
+
+def test_user_b_cannot_save_rejections_under_user_a_run(
+    conn, repo, make_user, make_target, make_run
+):
+    user_a, user_b = make_user(), make_user()
+    target = make_target(user_a)
+    run_id = make_run(target["id"])
+    record = RejectedRecord(RejectionReason.MISSING_RATING, {"snippet": "ok"})
+
+    with pytest.raises(NotFoundError):
+        repo.save_rejections(run_id, target["id"], user_b, [record])
+
+    count = conn.execute(
+        "select count(*) as n from public.ingestion_rejections where run_id = %s",
+        (run_id,),
+    ).fetchone()["n"]
+    assert count == 0
+
+
+def test_saving_with_another_targets_run_is_not_found(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target_a, target_b = make_target(owner, "A"), make_target(owner, "B")
+
+    with pytest.raises(NotFoundError):
+        repo.bulk_insert(make_run(target_a["id"]), target_b["id"], owner, [_review()])
+
+
+def test_duplicate_source_review_is_skipped_and_the_first_copy_is_kept(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target = make_target(owner)
+    first_run = make_run(target["id"])
+    later_run = make_run(target["id"])
+    repo.bulk_insert(
+        first_run, target["id"], owner, [_review("First", source_review_id="r1")]
+    )
+
+    saved = repo.bulk_insert(
+        later_run,
+        target["id"],
+        owner,
+        [
+            _review("Second", source_review_id="r1"),
+            _review("New", source_review_id="r2"),
+        ],
+    )
+
+    assert saved == 1
+    rows = {r["source_review_id"]: r for r in repo.list_for_target(target["id"], owner)}
+    assert rows["r1"]["review_text"] == "First"
+    assert rows["r1"]["run_id"] == first_run
+    assert rows["r2"]["run_id"] == later_run
+
+
+def test_same_source_review_can_be_saved_under_two_targets(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target_a, target_b = make_target(owner, "A"), make_target(owner, "B")
+    review = _review(source_review_id="r1")
+
+    assert (
+        repo.bulk_insert(make_run(target_a["id"]), target_a["id"], owner, [review]) == 1
+    )
+    assert (
+        repo.bulk_insert(make_run(target_b["id"]), target_b["id"], owner, [review]) == 1
+    )
+
+
+def test_reviews_without_a_source_id_are_never_treated_as_duplicates(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target = make_target(owner)
+
+    saved = repo.bulk_insert(
+        make_run(target["id"]), target["id"], owner, [_review(), _review()]
+    )
+
+    assert saved == 2
+
+
+def test_failed_run_leaves_earlier_reviews_in_place(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target = make_target(owner)
+    repo.bulk_insert(make_run(target["id"]), target["id"], owner, [_review("Earlier")])
+
+    make_run(target["id"], status="failed")
+
+    texts = [r["review_text"] for r in repo.list_for_target(target["id"], owner)]
+    assert texts == ["Earlier"]
+
+
+def test_batch_that_fails_midway_saves_nothing_and_keeps_earlier_reviews(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target = make_target(owner)
+    repo.bulk_insert(make_run(target["id"]), target["id"], owner, [_review("Earlier")])
+    # Passes the schema's min_length but breaks the table's non-blank CHECK.
+    batch = [_review("Good"), _review("   ")]
+
+    with pytest.raises(psycopg.errors.CheckViolation):
+        repo.bulk_insert(make_run(target["id"]), target["id"], owner, batch)
+
+    texts = [r["review_text"] for r in repo.list_for_target(target["id"], owner)]
+    assert texts == ["Earlier"]
+
+
+def test_rejected_records_are_saved_with_a_reason_and_are_not_reviews(
+    conn, repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target = make_target(owner)
+    run_id = make_run(target["id"])
+    rejected = [
+        RejectedRecord(RejectionReason.MISSING_TEXT, {"rating": 5}),
+        RejectedRecord(RejectionReason.NOT_A_RECORD, "not a dict"),
+    ]
+
+    repo.save_rejections(run_id, target["id"], owner, rejected)
+
+    rows = conn.execute(
+        """
+        select reason, raw_record from public.ingestion_rejections
+         where run_id = %s order by reason
+        """,
+        (run_id,),
+    ).fetchall()
+    assert [(r["reason"], r["raw_record"]) for r in rows] == [
+        ("missing review text", {"rating": 5}),
+        ("not a review record", "not a dict"),
+    ]
+    assert repo.list_for_target(target["id"], owner) == []
