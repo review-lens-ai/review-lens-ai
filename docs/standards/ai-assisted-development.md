@@ -60,7 +60,7 @@ Complete session transcripts are kept in the repository under [`ai-transcripts/`
 
 Raw session files are never committed, because they can contain secrets and personal data. Each transcript is exported from the tool and scrubbed first: keys, tokens, connection strings, `.env` values and personal email addresses are removed, long command output is cut, and internal reasoning blocks and images are left out. The folder's README lists exactly what is changed and how to add a transcript. Every developer adds their own sessions the same way.
 
-From Sprint 2, every PR that used AI also carries a short "AI use" note: what the AI was used for, and what the author checked or tested. (This is a commitment, not yet current practice: Sprint 1 PRs do not have the note, and `.github/pull_request_template.md` does not have the field yet.)
+From Sprint 2, every PR that used AI also carries a short "AI use" note: what the AI was used for, and what the author checked or tested. (The field is in `.github/pull_request_template.md`. Sprint 1 PRs opened before it was added do not have the note.)
 
 ## 7. Extra security review
 
