@@ -13,11 +13,12 @@ from app.platforms import validate_source_url
 from app.schemas.targets import TargetCreate
 
 PREFIX = "https://www.google.com/maps/place/"
-VALID = PREFIX + "Joes+Pizza"
+ID = "/data=!1s0x1:0x2"
+VALID = PREFIX + "Joes+Pizza" + ID
 
 
 def _link_of_length(length: int) -> str:
-    return PREFIX + "a" * (length - len(PREFIX))
+    return PREFIX + "a" * (length - len(PREFIX) - len(ID)) + ID
 
 
 # --- how long a link may be ---------------------------------------------------
@@ -68,20 +69,24 @@ def test_a_name_with_nothing_but_whitespace_is_refused(name):
 
 
 def test_the_standard_https_port_is_accepted():
-    link = "https://www.google.com:443/maps/place/x"
+    link = "https://www.google.com:443/maps/place/x/data=!1s0x1:0x2"
     assert validate_source_url(link) == link
 
 
 @pytest.mark.parametrize("port", ["444", "80", "8443"])
 def test_any_other_port_is_refused(port):
     with pytest.raises(ValueError, match="doesn't look like a Google Maps link"):
-        validate_source_url(f"https://www.google.com:{port}/maps/place/x")
+        validate_source_url(
+            f"https://www.google.com:{port}/maps/place/x/data=!1s0x1:0x2"
+        )
 
 
 @pytest.mark.parametrize("port", ["abc", "99999"])
 def test_a_malformed_port_is_refused_as_not_a_valid_link(port):
     with pytest.raises(ValueError, match="valid link"):
-        validate_source_url(f"https://www.google.com:{port}/maps/place/x")
+        validate_source_url(
+            f"https://www.google.com:{port}/maps/place/x/data=!1s0x1:0x2"
+        )
 
 
 # --- credentials hidden in the link -------------------------------------------
@@ -90,9 +95,9 @@ def test_a_malformed_port_is_refused_as_not_a_valid_link(port):
 @pytest.mark.parametrize(
     "link",
     [
-        "https://user:secret@www.google.com/maps/place/x",
-        "https://user@www.google.com/maps/place/x",
-        "https://:secret@www.google.com/maps/place/x",
+        "https://user:secret@www.google.com/maps/place/x/data=!1s0x1:0x2",
+        "https://user@www.google.com/maps/place/x/data=!1s0x1:0x2",
+        "https://:secret@www.google.com/maps/place/x/data=!1s0x1:0x2",
     ],
 )
 def test_a_link_carrying_a_username_or_password_is_refused(link):
@@ -106,9 +111,9 @@ def test_a_link_carrying_a_username_or_password_is_refused(link):
 @pytest.mark.parametrize(
     "link",
     [
-        "https://WWW.Google.COM/maps/place/x",
-        "HTTPS://www.google.com/maps/place/x",
-        "https://Maps.Google.com/?cid=1",
+        "https://WWW.Google.COM/maps/place/x/data=!1s0x1:0x2",
+        "HTTPS://www.google.com/maps/place/x/data=!1s0x1:0x2",
+        "https://Maps.Google.com/maps?ftid=0x1:0x2",
     ],
 )
 def test_the_scheme_and_host_may_be_written_in_any_case(link):
@@ -121,14 +126,28 @@ def test_the_scheme_and_host_may_be_written_in_any_case(link):
 @pytest.mark.parametrize(
     "link",
     [
-        "https://www.google.com/maps",
-        "https://www.google.com/maps/",
-        "https://www.google.com/maps/place/x",
-        "https://www.google.com/maps?q=cafe",
+        "https://www.google.com/maps/place/x/data=!1s0x1:0x2",
+        "https://www.google.com/maps?ftid=0x89c2537da9b3163d:0x2be30fcff506fec8",
     ],
 )
-def test_links_under_exactly_the_maps_path_are_accepted(link):
+def test_place_links_under_exactly_the_maps_path_are_accepted(link):
     assert validate_source_url(link) == link
+
+
+@pytest.mark.parametrize(
+    "link",
+    [
+        "https://www.google.com/maps",
+        "https://www.google.com/maps/",
+        "https://www.google.com/maps?q=cafe",
+        "https://www.google.com/maps?cid=12345",  # cid has no place id we can use
+        "https://www.google.com/maps/place/Joes+Pizza",  # no place id in the link
+        "https://www.google.com/maps/place/Joes+Pizza/@40.73,-73.99,17z",
+    ],
+)
+def test_maps_links_that_do_not_name_a_place_are_refused(link):
+    with pytest.raises(ValueError, match="one specific place"):
+        validate_source_url(link)
 
 
 @pytest.mark.parametrize(
@@ -154,7 +173,7 @@ def test_other_google_pages_are_refused(link):
     ["google.com", "www.google.com", "google.co.uk", "google.com.au", "www.google.de"],
 )
 def test_google_domains_for_other_countries_are_accepted(host):
-    link = f"https://{host}/maps/place/x"
+    link = f"https://{host}/maps/place/x/data=!1s0x1:0x2"
     assert validate_source_url(link) == link
 
 
@@ -170,7 +189,7 @@ def test_google_domains_for_other_countries_are_accepted(host):
 )
 def test_domains_that_only_resemble_google_are_refused(host):
     with pytest.raises(ValueError, match="isn't from Google Maps"):
-        validate_source_url(f"https://{host}/maps/place/x")
+        validate_source_url(f"https://{host}/maps/place/x/data=!1s0x1:0x2")
 
 
 # --- the other Google Maps link styles ------------------------------------------
@@ -179,8 +198,7 @@ def test_domains_that_only_resemble_google_are_refused(host):
 @pytest.mark.parametrize(
     "link",
     [
-        "https://maps.google.com/",
-        "https://maps.google.com/?cid=12345",
+        "https://maps.google.com/maps?ftid=0x1:0x2",
         "https://maps.app.goo.gl/a",
         "https://maps.app.goo.gl/AbC123xyz",
         "https://goo.gl/maps/abc",
@@ -214,9 +232,9 @@ def test_incomplete_share_links_are_refused(link):
     [
         ("", "Enter the link"),
         ("   ", "Enter the link"),
-        ("http://www.google.com/maps/place/x", "https://"),
-        ("ftp://www.google.com/maps/place/x", "https://"),
-        ("www.google.com/maps/place/x", "https://"),
+        ("http://www.google.com/maps/place/x/data=!1s0x1:0x2", "https://"),
+        ("ftp://www.google.com/maps/place/x/data=!1s0x1:0x2", "https://"),
+        ("www.google.com/maps/place/x/data=!1s0x1:0x2", "https://"),
         ("https://www.google.com/maps/place/a b", "spaces"),
         ("https://www.google.com/maps/place/a\tb", "spaces"),
         ("https://www.google.com/maps/place/a\nb", "spaces"),
@@ -254,4 +272,4 @@ def test_other_hosts_are_refused_on_a_goo_gl_style_path(host):
 def test_only_the_https_scheme_is_accepted(scheme):
     # Includes schemes that sort before and after "https".
     with pytest.raises(ValueError, match="https://"):
-        validate_source_url(f"{scheme}://www.google.com/maps/place/x")
+        validate_source_url(f"{scheme}://www.google.com/maps/place/x/data=!1s0x1:0x2")
