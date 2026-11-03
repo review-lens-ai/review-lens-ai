@@ -19,7 +19,6 @@ import { PlatformBadge } from "@/app/_components/platform-badge";
 import { ReviewCard } from "@/app/_components/review-card";
 import { StatusBadge } from "@/app/_components/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/app/_components/ui/alert";
-import { Badge } from "@/app/_components/ui/badge";
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
@@ -240,8 +239,12 @@ function TargetWorkspace({ id }: { id: string }) {
     disabled: starting || isActive(latestRun?.status ?? target.ingestion_status),
   };
 
+  // A never-ingested target opens on Ingestion, the first step of the flow (§1);
+  // a target with data opens on its Reviews.
+  const firstTab = target.ingestion_status ? "reviews" : "ingestion";
+
   return (
-    <Tabs defaultValue="reviews" className="gap-6">
+    <Tabs defaultValue={firstTab} className="gap-6">
       <TargetContextHeader
         target={target}
         run={latestRun}
@@ -281,12 +284,7 @@ function TargetWorkspace({ id }: { id: string }) {
         <IngestionPanel target={target} run={latestRun} />
       </TabsContent>
       <TabsContent value="reviews">
-        <ReviewsPanel
-          everIngested={everIngested}
-          reviews={reviews}
-          failed={reviewsFailed}
-          ingest={ingest}
-        />
+        <ReviewsPanel everIngested={everIngested} reviews={reviews} failed={reviewsFailed} />
       </TabsContent>
     </Tabs>
   );
@@ -347,13 +345,7 @@ function TargetContextHeader({
       <TabsList variant="line" className="h-11 px-4">
         <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
         <TabsTrigger value="reviews">Reviews</TabsTrigger>
-        {/* Sprint 2 (§3.1): named so the flow is visible, but not built yet. */}
-        <TabsTrigger value="summary" disabled>
-          Summary <Badge variant="secondary">Sprint 2</Badge>
-        </TabsTrigger>
-        <TabsTrigger value="qa" disabled>
-          Q&amp;A <Badge variant="secondary">Sprint 2</Badge>
-        </TabsTrigger>
+        {/* Summary and Q&A are Sprint 2; §3.1 says not to build them in Sprint 1. */}
       </TabsList>
     </div>
   );
@@ -391,19 +383,38 @@ function RunFailedBanner({
   );
 }
 
+// S1-023: what each run state means, in words. The badge above already shows the
+// short label, so this row explains it instead of repeating it.
+const RUN_RESULT: Record<string, string> = {
+  QUEUED: "Waiting for the worker to start",
+  RUNNING: "Collecting reviews now",
+  COMPLETED: "Every review was saved",
+  PARTIAL: "Saved, with some reviews skipped as unusable",
+  FAILED: "Did not finish (see the message above)",
+};
+
+function startedText(run: IngestionRun): string {
+  if (run.started_at) return formatRunTime(run.started_at);
+  return run.status === "FAILED" ? "Never started" : "Not started yet";
+}
+
 function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | null }) {
   if (!run) {
     return (
       <EmptyState
         icon={<InboxIcon />}
-        message="No reviews yet. Ingest reviews from the source URL to get started."
+        title="No ingestion runs yet"
+        message={`Use Ingest reviews above to collect reviews from ${platformLabel(target.platform)}. Each run's progress, counts and any error will show here.`}
       />
     );
   }
 
   const rows: [string, React.ReactNode][] = [
+    ["Result", RUN_RESULT[run.status] ?? "Unknown"],
     ["Source", platformLabel(target.platform)],
-    ["Queued", formatRunTime(run.queued_at)],
+    ["Added to queue", formatRunTime(run.queued_at)],
+    // A run that failed before the worker picked it up never started, and never will.
+    ["Started", startedText(run)],
     ["Finished", run.finished_at ? formatRunTime(run.finished_at) : "Not finished yet"],
     ["Reviews saved", run.reviews_ingested],
     ["Skipped as unusable", run.reviews_rejected],
@@ -429,21 +440,19 @@ function ReviewsPanel({
   everIngested,
   reviews,
   failed,
-  ingest,
 }: {
   everIngested: boolean;
   reviews: Review[] | null;
   failed: boolean;
-  ingest: IngestAction;
 }) {
   const [visible, setVisible] = useState(REVIEWS_PAGE_SIZE);
 
   if (!everIngested || reviews?.length === 0) {
     return (
+      // The one Ingest button lives in the header above, so this only points to it.
       <EmptyState
         icon={<InboxIcon />}
-        message="No reviews yet. Ingest reviews from the source URL to get started."
-        action={<IngestButton ingest={ingest} />}
+        message="No reviews yet. Use Ingest reviews above to collect them from the source URL."
       />
     );
   }

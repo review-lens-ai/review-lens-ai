@@ -91,7 +91,7 @@ async function openWorkspace(expectedStatus: string) {
   });
 }
 
-// The page shows "Ingest reviews" in more than one place (header and empty state).
+// The "Ingest reviews" button(s) on the page (the header has the only one today).
 function ingestButtons() {
   return screen.getAllByRole<HTMLButtonElement>("button", { name: "Ingest reviews" });
 }
@@ -226,5 +226,79 @@ describe("when starting a run is refused", () => {
 
     await screen.findByText("Could not reach the server. Please try again.");
     await waitFor(() => expect(ingestButtons()[0].disabled).toBe(false));
+  });
+});
+
+// Layout rules from the #59 review (ui-ux-standards.md §1, §3.1, §7.3).
+describe("workspace layout", () => {
+  it("a never-ingested target opens on the Ingestion tab", async () => {
+    backendHas(null);
+
+    await openWorkspace("Not ingested");
+
+    const ingestionTab = screen.getByRole("tab", { name: "Ingestion" });
+    expect(ingestionTab.getAttribute("aria-selected")).toBe("true");
+    await screen.findByRole("heading", { name: "No ingestion runs yet" });
+  });
+
+  it("a target with data opens on the Reviews tab", async () => {
+    backendHas(failedRun);
+
+    await openWorkspace("Failed");
+
+    const reviewsTab = screen.getByRole("tab", { name: "Reviews" });
+    expect(reviewsTab.getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("has exactly one Ingest reviews button", async () => {
+    backendHas(null);
+
+    await openWorkspace("Not ingested");
+
+    expect(ingestButtons()).toHaveLength(1);
+  });
+
+  it("does not show the Sprint 2 tabs", async () => {
+    backendHas(null);
+
+    await openWorkspace("Not ingested");
+
+    const tabs = screen.getAllByRole("tab").map((tab) => tab.textContent);
+    expect(tabs).toEqual(["Ingestion", "Reviews"]);
+  });
+
+  it("the Ingestion tab shows the latest run's counts", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "PARTIAL",
+        reviews_ingested: 38,
+        reviews_rejected: 4,
+      }),
+    );
+
+    await openWorkspace("Partially ingested");
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Saved, with some reviews skipped as unusable");
+    expect(screen.getByText("38")).toBeTruthy();
+    expect(screen.getByText("4")).toBeTruthy();
+  });
+
+  it("a run that failed before starting says it never started", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "FAILED",
+        error_code: "QUOTA_EXCEEDED",
+        started_at: null,
+      }),
+    );
+
+    await openWorkspace("Failed");
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Never started");
+    expect(screen.queryByText("Not started yet")).toBeNull();
   });
 });
