@@ -115,8 +115,7 @@ export default function NewTargetPage() {
 
       <Card className="max-w-[560px]">
         <CardContent>
-          {/* autoComplete="off" stops Safari refilling the fields after a refresh. */}
-          <form onSubmit={onSubmit} noValidate autoComplete="off">
+          <form onSubmit={onSubmit} noValidate>
             <FieldGroup className="gap-5">
               {invalidFields > 0 && (
                 <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
