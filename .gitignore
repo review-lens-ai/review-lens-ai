@@ -13,5 +13,14 @@
 .env.*
 !.env.example
 
+# Local reference docs (not committed)
+ClaudeProjRefDocs/
+stories1.md
+techspecs.md
+productreqs.md
+
 # OS
 .DS_Store
+# Coverage reports
+.coverage
+htmlcov/
