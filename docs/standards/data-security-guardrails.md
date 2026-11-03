@@ -116,9 +116,9 @@ Anything in a request body, query string or header other than the verified token
 | `OPENROUTER_API_KEY` | `backend/.env`, Render | **Yes** |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_API_URL` | `frontend/.env.local`, Vercel | No, public by design |
 | Supabase service-role key | **Not used** | It bypasses RLS |
-| `TEST_DATABASE_URL` | Set in your terminal when running database tests, e.g. `postgresql://postgres:postgres@localhost:5432/postgres` | No: a throwaway local database with fake data |
+| `TEST_DATABASE_URL` | Set by CI (`.github/workflows`) for its Postgres service container; optionally in your terminal for a local run | No: a throwaway database with fake data |
 
-`TEST_DATABASE_URL` tells the database tests which database to use. Without it they are skipped. It must never point at the real Supabase project, because tests create and delete rows; the tests refuse any address containing `supabase.co`.
+`TEST_DATABASE_URL` tells the database tests which database to use. Without it they are skipped. CI runs them on every pull request against a throwaway `postgres:17` service container, so you don't need a local database to get them checked. It must never point at the real Supabase project, because tests create and delete rows; the tests refuse any address containing `supabase.co`.
 
 Rules (S1-BR-011):
 
@@ -156,7 +156,7 @@ Minimum cases per user-owned endpoint:
 How to run them:
 
 - API tests use a fake signing key (`backend/tests/conftest.py`): `make_token("user-a")` builds a valid token without calling Supabase.
-- Database tests need `TEST_DATABASE_URL` pointing at a **throwaway local Postgres**. They refuse to run against `supabase.co`, and they skip when the variable is not set.
+- Database tests run in **CI**, against the workflow's throwaway Postgres service. Locally they skip unless `TEST_DATABASE_URL` points at a throwaway Postgres (for example `docker run -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:17`, then `postgresql://postgres:postgres@localhost:5432/postgres`). They refuse to run against `supabase.co`.
 - `test_every_api_route_requires_a_token` walks the OpenAPI spec, so a new route that forgets authentication fails automatically.
 
 PRs that change authentication, authorization, secrets or database permissions must include a security report: each risk, and the test that covers it ([AI-Assisted Development](ai-assisted-development.md)).

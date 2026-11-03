@@ -10,29 +10,30 @@ Engineering philosophy is located in [Engineering Philosophy](philosophy.md).
 review-lens-ai/
 ├── frontend/src/
 │   ├── app/              # Pages, layouts, routes
-│   ├── components/       # Reusable UI components
-│   └── lib/              # API clients, utilities
+│   │   └── _components/  # Reusable UI components (shadcn primitives in ui/)
+│   ├── lib/              # API clients, utilities
+│   └── proxy.ts          # Redirects signed-out users to /login
 ├── backend/
 │   ├── app/
 │   │   ├── main.py       # FastAPI entry point
 │   │   ├── worker.py     # Background worker entry point
-│   │   ├── core/         # config.py (env vars, secrets), errors.py
 │   │   ├── auth.py       # Supabase token verification, ownership checks
+│   │   ├── platforms.py  # Checks and reads the Maps link
+│   │   ├── core/         # config.py (env vars, secrets), errors.py
 │   │   ├── api/          # HTTP endpoints, mounted on router.py
+│   │   ├── schemas/      # Request/response shapes
+│   │   ├── repositories/ # All SQL, filtered by owner
 │   │   ├── services/     # Processing logic
 │   │   ├── adapters/     # External providers (SerpApi)
-│   │   ├── schemas/      # Request/response shapes
+│   │   ├── db/           # Migration runner
 │   │   └── fixtures/     # Recorded provider responses for tests
-│   └── tests/
-├── supabase/
-│   ├── migrations/       # Version-controlled SQL
-│   ├── config.toml       # Local Supabase config
-│   └── seed.sql          # Optional dev data
+│   └── tests/            # api, auth, db, unit
+├── supabase/migrations/  # Version-controlled SQL
 ├── docs/
-│   ├── architecture/     # System design, diagrams
-│   ├── standards/        # Git workflow, coding, AI-assisted development
-│   └── decisions/        # Architecture Decision Records
-└── .github/workflows/    # CI/CD
+│   ├── architecture/     # System design, diagrams (start at architecture.md)
+│   └── standards/        # Coding, philosophy, AI-assisted development, guardrails, UI/UX
+├── scripts/              # setup, dev, check, migrate, branch protection
+└── .github/              # CI workflow, PR template
 ```
 
 ## 2. Naming
@@ -48,13 +49,18 @@ Use these terms everywhere. No synonyms.
 | Thing being analyzed | `AnalysisTarget` | `analysis_targets` |
 | One ingestion attempt | `IngestionRun` | `ingestion_runs` |
 | Normalized review | `Review` | `reviews` |
+| Skipped record | `IngestionRejection` | `ingestion_rejections` |
 
 ### Code
 
 - Schemas: `<Entity>Create`, `<Entity>Response`.
 - Identifiers: camelCase; PascalCase for components and types; UPPER_CASE for constants.
-  Components live in `src/components/`.
-- TypeScript files: PascalCase for components (`TargetCard.tsx`), kebab-case otherwise (`api-client.ts`).
+  The exported component is PascalCase even though its file is kebab-case:
+  `status-badge.tsx` exports `StatusBadge`.
+- TypeScript files: kebab-case (`status-badge.tsx`, `api-client.ts`), enforced by the
+  `check-file` lint rule. Shared components live in `src/app/_components/`
+  (shadcn primitives in `src/app/_components/ui/`). `src/components/` is not used:
+  the lint rule would require PascalCase file names there, and shadcn generates kebab-case.
 - Next.js routes: lowercase folders, private folders prefixed `_`, reserved file names only (`page.tsx`, `layout.tsx`).
 
 ### Database
@@ -104,7 +110,17 @@ TBD.
 
 ## 5. API responses
 
-TBD.
+- Lists: `{"items": [...]}`.
+- A list that can grow without bound (e.g. reviews) is paginated: `?limit=&offset=`,
+  default 50, max 100. The response adds `total`, `limit` and `offset`.
+  The ordering ends with a unique column (`id`), so pages never overlap or skip a row.
+- On a paginated list, `items` is one page, not everything. Clients read `total` to
+  know there is more; a client that ignores it shows a partial list as if complete.
+- Small lists (e.g. a user's targets) stay plain `{items}`. Two shapes is the
+  tradeoff for paging only what needs it.
+- Offset paging is a choice for this project's size, not a rule. Rows shift when
+  new data arrives mid-paging, and deep offsets get slow. If a list needs infinite
+  scroll or gets large, switch it to cursor paging (`?after=<last id>`).
 
 ## 6. Logging
 

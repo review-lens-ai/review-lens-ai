@@ -27,7 +27,7 @@ Where to find values:
 - Supabase dashboard → Project Settings → Database: connection string (`DATABASE_URL`).
 - Review provider's dashboard: `REVIEW_PROVIDER_API_KEY`.
 
-Production secrets go in the Vercel / Render environment settings. CI secrets go in GitHub Actions secrets. The Google OAuth client secret is set only in the Supabase dashboard. The Supabase service-role key is not used (it bypasses RLS).
+Production secrets go in the Vercel / Render environment settings. CI secrets go in GitHub Actions secrets. The Supabase service-role key is not used (it bypasses RLS).
 
 The backend fails at startup with `Missing required setting: <NAME>` if `SUPABASE_URL` or `DATABASE_URL` is missing.
 
