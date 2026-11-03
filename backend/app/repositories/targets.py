@@ -13,11 +13,12 @@ import psycopg
 from app.core.errors import NotFoundError
 
 # The newest ingestion run's status, or NULL when the target was never ingested.
+# "Newest" is the most recently queued run (queued_at; a queued run has no started_at).
 _LATEST_STATUS = """
     (select r.status::text
        from public.ingestion_runs r
       where r.target_id = t.id
-      order by r.started_at desc
+      order by r.queued_at desc
       limit 1) as ingestion_status
 """
 

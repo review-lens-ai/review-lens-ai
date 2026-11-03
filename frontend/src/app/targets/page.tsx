@@ -19,7 +19,9 @@ export default function TargetsPage() {
           router.replace("/login");
           return;
         }
-        setError(e instanceof ApiError ? e.message : "Could not reach the server. Please try again.");
+        setError(
+          e instanceof ApiError ? e.message : "Could not reach the server. Please try again.",
+        );
       });
   }, [router]);
 

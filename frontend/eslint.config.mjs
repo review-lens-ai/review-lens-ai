@@ -23,7 +23,10 @@ const eslintConfig = defineConfig([
       // Files: PascalCase components, kebab-case otherwise; Next.js route folders.
       "check-file/filename-naming-convention": [
         "error",
-        { "src/components/**/*.tsx": "PASCAL_CASE", "src/**/*.{ts,tsx}": "KEBAB_CASE" },
+        {
+          "src/components/**/*.tsx": "PASCAL_CASE",
+          "src/!(components)/**/*.{ts,tsx}": "KEBAB_CASE",
+        },
         { ignoreMiddleExtensions: true },
       ],
       "check-file/folder-naming-convention": ["error", { "src/**/": "NEXT_JS_APP_ROUTER_CASE" }],

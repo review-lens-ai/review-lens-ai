@@ -63,7 +63,7 @@ def test_valid_review_is_normalized_with_its_metadata():
     assert reason is None
     assert review.rating == 4
     assert review.review_text == "Burgers were great, but the line took 40 minutes."
-    assert review.author_name == "Reviewer 01"
+    assert review.mapping_version == "serpapi@1"
     assert review.reviewed_at == datetime(2026, 9, 21, 19, 42, 12, tzinfo=UTC)
     assert review.source_review_id == "review-1"
     assert review.source_url == "https://www.google.com/maps/reviews/data=example"
@@ -163,7 +163,6 @@ def test_review_with_only_text_and_rating_is_kept():
     assert reason is None
     assert review.rating == 3
     assert review.review_text == "Fine."
-    assert review.author_name is None
     assert review.reviewed_at is None
     assert review.source_review_id is None
     assert review.source_url is None
@@ -184,7 +183,6 @@ def test_malformed_optional_fields_are_dropped_not_rejected():
     )
 
     assert reason is None
-    assert review.author_name is None
     assert review.reviewed_at is None
     assert review.source_review_id is None
     assert review.source_url is None
@@ -192,10 +190,10 @@ def test_malformed_optional_fields_are_dropped_not_rejected():
 
 
 @pytest.mark.parametrize("user", [_MISSING, {}, {"name": "   "}, {"name": 5}])
-def test_missing_or_blank_reviewer_name_is_left_empty(user):
+def test_missing_or_odd_reviewer_data_never_rejects_the_review(user):
     review, reason = normalize_review(raw_review(user=user))
     assert reason is None
-    assert review.author_name is None
+    assert review is not None
 
 
 def test_timestamp_without_time_zone_is_treated_as_utc():
@@ -206,13 +204,13 @@ def test_timestamp_without_time_zone_is_treated_as_utc():
 # --- People data --------------------------------------------------------------
 
 
-def test_only_the_reviewer_display_name_is_kept():
+def test_no_reviewer_identity_is_kept():
     review, _ = normalize_review(raw_review())
     stored = review.model_dump_json()
 
-    assert review.author_name == "Reviewer 01"
-    # Profile link, contributor id, avatar, attached photo and owner reply.
+    # Display name, profile link, contributor id, avatar, attached photo and owner reply.
     for leaked in [
+        "Reviewer 01",
         "contrib/01",
         "contributor_01",
         "avatar",
@@ -332,8 +330,8 @@ def test_recorded_serpapi_page_is_normalized():
     assert all(r.review_text for r in result.reviews)
     assert all(r.reviewed_at is not None for r in result.reviews)
     assert all(r.source_review_id for r in result.reviews)
-    # The fixture's names were replaced with fakes before it was committed.
-    assert all(r.author_name.startswith("Reviewer ") for r in result.reviews)
+    # Every saved review says which mapping wrote it.
+    assert all(r.mapping_version == "serpapi@1" for r in result.reviews)
     saved = json.dumps([r.model_dump(mode="json") for r in result.reviews])
     assert "example.com/contrib" not in saved
     assert "example.com/avatar" not in saved

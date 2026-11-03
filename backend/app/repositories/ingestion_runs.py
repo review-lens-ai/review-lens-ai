@@ -2,35 +2,41 @@
 
 Run lifecycle (matches the team's pipeline diagram):
 
-    queued ──► running ──► succeeded
-       │          │   └──► partial   (some records skipped)
-       │          └──────► failed
-       └─────────────────► failed    (could not start)
+    QUEUED ──► RUNNING ──► COMPLETED
+       ▲ │          │   └──► PARTIAL   (some records skipped)
+       │ │          └──────► FAILED
+       │ └─────────────────► FAILED    (could not start)
+       └──── requeue() ◄──── FAILED    (retry: the same run, completed stages kept)
 
 How the pipeline (S1-019 to S1-022) uses this module:
 
-    run = runs.create_run(target_id, owner_id)    # API request:  queued
-    runs.mark_running(run["id"])                  # worker starts: running
+    run = runs.create_run(target_id, owner_id)    # API request:  QUEUED
+    runs.mark_running(run["id"])                  # worker starts: RUNNING
     try:
         ...fetch, normalize and save reviews...
-        runs.mark_succeeded(run["id"], saved, skipped)  # succeeded / partial / failed
+        runs.mark_succeeded(run["id"], saved, skipped, duplicates)
+        #                                         COMPLETED / PARTIAL / FAILED
     except ProviderQuotaError as e:
         runs.mark_failed(run["id"], ErrorCode.QUOTA_EXCEEDED, detail=str(e))
 
 Result rule used by mark_succeeded (S1-BR-023, S1-BR-024):
-- saved > 0 and skipped == 0  -> succeeded
-- saved > 0 and skipped > 0   -> partial
-- saved == 0                  -> failed with NO_REVIEWS_FOUND
-  (a run that saved nothing is never reported as a success)
+- saved > 0 and skipped == 0  -> COMPLETED
+- saved > 0 and skipped > 0   -> PARTIAL
+- saved == 0                  -> FAILED with NO_REVIEWS_FOUND
+  (a run that saved nothing is never reported as a success; the database
+  enforces this too, see the ingestion_runs pipeline migration)
+Duplicates (the same review returned twice) are counted, never treated as skipped.
 
 Other rules this module enforces:
 - OWNERSHIP: a run can only be created or read for a target the user owns.
   Another user's target is NotFoundError, exactly like a missing one (S1-BR-008).
-- ONE ACTIVE RUN: a target has at most one queued or running run. The database
+- ONE ACTIVE RUN: a target has at most one QUEUED or RUNNING run. The database
   enforces it with a unique index; this module turns a clash into ConflictError.
-- NO FAKE SUCCESS: only a running run can succeed; a finished run is locked.
-- STALE RUNS: a queued or running run older than STALE_RUN_AFTER is failed as
-  TIMEOUT before a new run is created, so a crash never blocks a target forever.
+- NO FAKE SUCCESS: only a RUNNING run can succeed. COMPLETED and PARTIAL are
+  final; the only way out of FAILED is requeue().
+- STALE RUNS: a QUEUED or RUNNING run with no progress for STALE_RUN_AFTER (since
+  it was queued or started) is failed as TIMEOUT before a new run is created, so
+  a crash never blocks a target forever.
 - NO LEAKED INTERNALS: error_code is one of a fixed list. Technical detail is
   scrubbed (API keys, query strings) and logged; it is never stored or returned.
 """
@@ -59,11 +65,11 @@ class ErrorCode(StrEnum):
     """Why a run failed. Each code maps to a user-facing message in the
     UI/UX standards (docs/standards/ui-ux-standards.md, section 6.3)."""
 
-    SOURCE_UNREACHABLE = "source_unreachable"
-    NO_REVIEWS_FOUND = "no_reviews_found"
-    QUOTA_EXCEEDED = "quota_exceeded"
-    TIMEOUT = "timeout"
-    UNEXPECTED = "unexpected"
+    SOURCE_UNREACHABLE = "SOURCE_UNREACHABLE"
+    NO_REVIEWS_FOUND = "NO_REVIEWS_FOUND"
+    QUOTA_EXCEEDED = "QUOTA_EXCEEDED"
+    TIMEOUT = "TIMEOUT"
+    UNEXPECTED = "UNEXPECTED"
 
 
 class InvalidRunTransitionError(ConflictError):
@@ -74,8 +80,9 @@ class InvalidRunTransitionError(ConflictError):
 
 
 _RUN_COLUMNS = """
-    id, target_id, status::text as status, started_at, finished_at,
-    reviews_ingested, reviews_rejected, error_code
+    id, target_id, job_type::text as job_type, status::text as status,
+    queued_at, started_at, finished_at,
+    reviews_ingested, reviews_rejected, reviews_duplicate, error_code
 """
 
 _ALREADY_ACTIVE = (
@@ -108,7 +115,7 @@ class IngestionRunRepository:
         self._targets = TargetRepository(conn)
 
     def create_run(self, target_id: UUID | str, owner_id: UUID | str) -> dict:
-        """Queue a new ingestion attempt (status 'queued').
+        """Queue a new ingestion attempt (status QUEUED).
 
         Raises NotFoundError if the user does not own the target, and
         ConflictError if a run for this target is already queued or running.
@@ -121,7 +128,7 @@ class IngestionRunRepository:
         active = self._conn.execute(
             """
             select 1 from public.ingestion_runs
-             where target_id = %s and status in ('queued', 'running')
+             where target_id = %s and status in ('QUEUED', 'RUNNING')
              limit 1
             """,
             (target_id,),
@@ -136,7 +143,7 @@ class IngestionRunRepository:
                 return self._conn.execute(
                     f"""
                     insert into public.ingestion_runs (target_id, status)
-                    values (%s, 'queued')
+                    values (%s, 'QUEUED')
                     returning {_RUN_COLUMNS}
                     """,
                     (target_id,),
@@ -149,8 +156,8 @@ class IngestionRunRepository:
         row = self._conn.execute(
             f"""
             update public.ingestion_runs
-               set status = 'running'
-             where id = %s and status = 'queued'
+               set status = 'RUNNING', started_at = now()
+             where id = %s and status = 'QUEUED'
             returning {_RUN_COLUMNS}
             """,
             (run_id,),
@@ -162,42 +169,54 @@ class IngestionRunRepository:
         return row
 
     def mark_succeeded(
-        self, run_id: UUID | str, reviews_ingested: int, reviews_rejected: int = 0
+        self,
+        run_id: UUID | str,
+        reviews_ingested: int,
+        reviews_rejected: int = 0,
+        reviews_duplicate: int = 0,
     ) -> dict:
-        """Finish a running run using the result rule in the module docstring:
-        succeeded, partial (some skipped) or failed (nothing saved)."""
-        _check_counts(reviews_ingested, reviews_rejected)
+        """Finish a RUNNING run using the result rule in the module docstring:
+        COMPLETED, PARTIAL (some skipped) or FAILED (nothing saved)."""
+        _check_counts(reviews_ingested, reviews_rejected, reviews_duplicate)
         if reviews_ingested == 0:
             return self._finish(
                 run_id,
-                status="failed",
-                allowed_from=("running",),
+                status="FAILED",
+                allowed_from=("RUNNING",),
                 reviews_ingested=0,
                 reviews_rejected=reviews_rejected,
+                reviews_duplicate=reviews_duplicate,
                 error_code=ErrorCode.NO_REVIEWS_FOUND.value,
             )
-        status = "partial" if reviews_rejected > 0 else "succeeded"
+        status = "PARTIAL" if reviews_rejected > 0 else "COMPLETED"
         return self._finish(
             run_id,
             status=status,
-            allowed_from=("running",),
+            allowed_from=("RUNNING",),
             reviews_ingested=reviews_ingested,
             reviews_rejected=reviews_rejected,
+            reviews_duplicate=reviews_duplicate,
             error_code=None,
         )
 
     def mark_partial(
-        self, run_id: UUID | str, reviews_ingested: int, reviews_rejected: int
+        self,
+        run_id: UUID | str,
+        reviews_ingested: int,
+        reviews_rejected: int,
+        reviews_duplicate: int = 0,
     ) -> dict:
-        """Finish a running run where some reviews were saved and some skipped."""
+        """Finish a RUNNING run where some reviews were saved and some skipped."""
         if reviews_ingested <= 0 or reviews_rejected <= 0:
             raise ValueError("A partial run saves some reviews and skips some.")
-        return self.mark_succeeded(run_id, reviews_ingested, reviews_rejected)
+        return self.mark_succeeded(
+            run_id, reviews_ingested, reviews_rejected, reviews_duplicate
+        )
 
     def mark_failed(
         self, run_id: UUID | str, error_code: ErrorCode, detail: str | None = None
     ) -> dict:
-        """Finish a queued or running run as failed.
+        """Finish a QUEUED or RUNNING run as FAILED.
 
         `detail` is the technical reason (exception text, provider message). It
         is scrubbed and written to the server log only, never stored or returned.
@@ -212,12 +231,45 @@ class IngestionRunRepository:
             )
         return self._finish(
             run_id,
-            status="failed",
-            allowed_from=("queued", "running"),
+            status="FAILED",
+            allowed_from=("QUEUED", "RUNNING"),
             reviews_ingested=0,
             reviews_rejected=0,
+            reviews_duplicate=0,
             error_code=error_code.value,
         )
+
+    def requeue(self, run_id: UUID | str) -> dict:
+        """Retry a FAILED run: the SAME run goes back to QUEUED.
+
+        Its ingestion_stages rows are kept, so the worker re-runs only the first
+        stage that did not complete. Raises ConflictError if the target already
+        has another QUEUED or RUNNING run.
+        """
+        try:
+            # A savepoint, as in create_run: a unique-index clash must not abort
+            # the caller's whole transaction.
+            with self._conn.transaction():
+                row = self._conn.execute(
+                    f"""
+                    update public.ingestion_runs
+                       set status = 'QUEUED',
+                           queued_at = now(),
+                           started_at = null,
+                           finished_at = null,
+                           error_code = null
+                     where id = %s and status = 'FAILED'
+                    returning {_RUN_COLUMNS}
+                    """,
+                    (run_id,),
+                ).fetchone()
+        except psycopg.errors.UniqueViolation:
+            raise ConflictError(_ALREADY_ACTIVE) from None
+        if row is None:
+            raise InvalidRunTransitionError(
+                "Only a failed ingestion run can be retried."
+            )
+        return row
 
     def latest_for_target(
         self, target_id: UUID | str, owner_id: UUID | str
@@ -230,23 +282,23 @@ class IngestionRunRepository:
             select {_RUN_COLUMNS}
               from public.ingestion_runs
              where target_id = %s
-             order by started_at desc
+             order by queued_at desc
              limit 1
             """,
             (target_id,),
         ).fetchone()
 
     def _fail_stale_runs(self, target_id: UUID | str) -> None:
-        """Fail any queued or running run that has been stuck too long."""
+        """Fail any QUEUED or RUNNING run that has made no progress for too long."""
         self._conn.execute(
             """
             update public.ingestion_runs
-               set status = 'failed',
+               set status = 'FAILED',
                    finished_at = now(),
                    error_code = %s
              where target_id = %s
-               and status in ('queued', 'running')
-               and started_at < now() - %s
+               and status in ('QUEUED', 'RUNNING')
+               and coalesce(started_at, queued_at) < now() - %s
             """,
             (ErrorCode.TIMEOUT.value, target_id, STALE_RUN_AFTER),
         )
@@ -259,6 +311,7 @@ class IngestionRunRepository:
         allowed_from: tuple[str, ...],
         reviews_ingested: int,
         reviews_rejected: int,
+        reviews_duplicate: int,
         error_code: str | None,
     ) -> dict:
         # Only a run in an allowed state can be finished, so a finished run's
@@ -270,6 +323,7 @@ class IngestionRunRepository:
                    finished_at = now(),
                    reviews_ingested = %s,
                    reviews_rejected = %s,
+                   reviews_duplicate = %s,
                    error_code = %s
              where id = %s and status::text = any(%s)
             returning {_RUN_COLUMNS}
@@ -278,6 +332,7 @@ class IngestionRunRepository:
                 status,
                 reviews_ingested,
                 reviews_rejected,
+                reviews_duplicate,
                 error_code,
                 run_id,
                 list(allowed_from),
@@ -290,6 +345,6 @@ class IngestionRunRepository:
         return row
 
 
-def _check_counts(reviews_ingested: int, reviews_rejected: int) -> None:
-    if reviews_ingested < 0 or reviews_rejected < 0:
+def _check_counts(*counts: int) -> None:
+    if min(counts) < 0:
         raise ValueError("Review counts cannot be negative.")

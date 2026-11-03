@@ -42,7 +42,8 @@ export default function NewTargetPage() {
         setErrors(next);
       } else {
         setErrors({
-          form: err instanceof ApiError ? err.message : "Could not reach the server. Please try again.",
+          form:
+            err instanceof ApiError ? err.message : "Could not reach the server. Please try again.",
         });
       }
     } finally {
@@ -83,7 +84,8 @@ export default function NewTargetPage() {
         </Link>
         <h1 className="mt-2 text-2xl font-semibold">New analysis target</h1>
         <p className="text-sm text-gray-500">
-          A target is the business or place whose {SUPPORTED_PLATFORM_LABEL} reviews you want to analyze.
+          A target is the business or place whose {SUPPORTED_PLATFORM_LABEL} reviews you want to
+          analyze.
         </p>
       </div>
 

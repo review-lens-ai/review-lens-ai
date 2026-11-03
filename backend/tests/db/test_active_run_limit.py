@@ -7,9 +7,11 @@ cannot both start a run, whatever the application code does.
 import psycopg
 import pytest
 
+from tests.db.conftest import insert_run
+
 URL = "https://www.google.com/maps/place/x"
-FINAL = ("succeeded", "partial", "failed")
-ACTIVE = ("queued", "running")
+FINAL = ("COMPLETED", "PARTIAL", "FAILED")
+ACTIVE = ("QUEUED", "RUNNING")
 
 
 def _target(conn, owner):
@@ -21,12 +23,7 @@ def _target(conn, owner):
 
 
 def _run(conn, target, status):
-    finished = "now()" if status in FINAL else "null"
-    return conn.execute(
-        "insert into public.ingestion_runs (target_id, status, finished_at) "
-        f"values (%s, %s, {finished}) returning id",
-        (target, status),
-    ).fetchone()["id"]
+    return insert_run(conn, target, status)
 
 
 @pytest.mark.parametrize("first", ACTIVE)
@@ -54,7 +51,7 @@ def test_finished_runs_never_block_a_new_run(conn, make_user, final):
     target = _target(conn, make_user())
     _run(conn, target, final)
     _run(conn, target, final)
-    assert _run(conn, target, "queued")
+    assert _run(conn, target, "QUEUED")
 
 
 @pytest.mark.parametrize("status", ACTIVE)
@@ -62,30 +59,33 @@ def test_finishing_the_active_run_frees_the_target(conn, make_user, status):
     target = _target(conn, make_user())
     run = _run(conn, target, status)
     conn.execute(
-        "update public.ingestion_runs "
-        "set status = 'succeeded', finished_at = now() where id = %s",
+        "update public.ingestion_runs set status = 'COMPLETED', "
+        "started_at = coalesce(started_at, now()), finished_at = now(), "
+        "reviews_ingested = 1 where id = %s",
         (run,),
     )
-    assert _run(conn, target, "queued")
+    assert _run(conn, target, "QUEUED")
 
 
 def test_moving_a_run_from_queued_to_running_is_allowed(conn, make_user):
     target = _target(conn, make_user())
-    run = _run(conn, target, "queued")
+    run = _run(conn, target, "QUEUED")
     conn.execute(
-        "update public.ingestion_runs set status = 'running' where id = %s", (run,)
+        "update public.ingestion_runs set status = 'RUNNING', started_at = now() "
+        "where id = %s",
+        (run,),
     )
     status = conn.execute(
         "select status::text as s from public.ingestion_runs where id = %s", (run,)
     ).fetchone()["s"]
-    assert status == "running"
+    assert status == "RUNNING"
 
 
 def test_different_targets_can_each_have_an_active_run(conn, make_user):
     owner = make_user()
     first, second = _target(conn, owner), _target(conn, owner)
-    _run(conn, first, "running")
-    assert _run(conn, second, "queued")
+    _run(conn, first, "RUNNING")
+    assert _run(conn, second, "QUEUED")
 
 
 def test_two_connections_cannot_both_start_a_run_for_one_target(
@@ -126,7 +126,7 @@ def test_two_connections_cannot_both_start_a_run_for_one_target(
         assert outcome["b"] == "refused"
         active = conn.execute(
             "select count(*) as n from public.ingestion_runs "
-            "where target_id = %s and status in ('queued', 'running')",
+            "where target_id = %s and status in ('QUEUED', 'RUNNING')",
             (target,),
         ).fetchone()["n"]
         assert active == 1
