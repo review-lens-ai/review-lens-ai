@@ -14,7 +14,7 @@ from app.auth import get_current_user_id
 from app.db import get_connection
 from app.platforms import SUPPORTED_PLATFORM
 from app.repositories.targets import TargetRepository
-from app.schemas.targets import TargetCreate, TargetResponse
+from app.schemas.targets import TargetCreate, TargetList, TargetResponse
 
 router = APIRouter(prefix="/targets", tags=["targets"])
 
@@ -27,6 +27,13 @@ def get_target_repository(
 
 Repo = Annotated[TargetRepository, Depends(get_target_repository)]
 OwnerId = Annotated[str, Depends(get_current_user_id)]
+
+
+@router.get("", response_model=TargetList)
+def list_targets(owner_id: OwnerId, repo: Repo) -> dict:
+    """S1-017: only the signed-in user's targets. The owner filter runs in SQL
+    (TargetRepository.list_for_owner), not in the browser."""
+    return {"items": repo.list_for_owner(owner_id)}
 
 
 @router.post("", status_code=201, response_model=TargetResponse)

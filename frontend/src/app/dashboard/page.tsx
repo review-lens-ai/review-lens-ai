@@ -47,7 +47,10 @@ export default function DashboardPage() {
         </p>
       )}
       <div className="flex gap-3">
-        <Link href="/targets/new" className="rounded bg-black px-4 py-2 text-white">
+        <Link href="/targets" className="rounded bg-black px-4 py-2 text-white">
+          My targets
+        </Link>
+        <Link href="/targets/new" className="rounded border px-4 py-2">
           New target
         </Link>
         <button onClick={logout} className="rounded border px-4 py-2">
