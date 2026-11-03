@@ -121,14 +121,25 @@ def test_the_scheme_and_host_may_be_written_in_any_case(link):
 @pytest.mark.parametrize(
     "link",
     [
+        "https://www.google.com/maps/place/x",
+        "https://www.google.com/maps?cid=12345",
+    ],
+)
+def test_place_links_under_exactly_the_maps_path_are_accepted(link):
+    assert validate_source_url(link) == link
+
+
+@pytest.mark.parametrize(
+    "link",
+    [
         "https://www.google.com/maps",
         "https://www.google.com/maps/",
-        "https://www.google.com/maps/place/x",
         "https://www.google.com/maps?q=cafe",
     ],
 )
-def test_links_under_exactly_the_maps_path_are_accepted(link):
-    assert validate_source_url(link) == link
+def test_maps_links_that_do_not_name_a_place_are_refused(link):
+    with pytest.raises(ValueError, match="one specific place"):
+        validate_source_url(link)
 
 
 @pytest.mark.parametrize(
@@ -179,7 +190,6 @@ def test_domains_that_only_resemble_google_are_refused(host):
 @pytest.mark.parametrize(
     "link",
     [
-        "https://maps.google.com/",
         "https://maps.google.com/?cid=12345",
         "https://maps.app.goo.gl/a",
         "https://maps.app.goo.gl/AbC123xyz",
