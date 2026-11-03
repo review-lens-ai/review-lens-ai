@@ -3,47 +3,83 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import {
+  CircleAlertIcon,
+  CircleCheckIcon,
+  ExternalLinkIcon,
+  InboxIcon,
+  RefreshCwIcon,
+  SearchXIcon,
+  XIcon,
+} from "lucide-react";
+import { EmptyState } from "@/app/_components/empty-state";
+import { PlatformBadge } from "@/app/_components/platform-badge";
+import { ReviewCard } from "@/app/_components/review-card";
+import { StatusBadge } from "@/app/_components/status-badge";
+import { Alert, AlertDescription, AlertTitle } from "@/app/_components/ui/alert";
+import { Badge } from "@/app/_components/ui/badge";
+import { Button } from "@/app/_components/ui/button";
+import { Skeleton } from "@/app/_components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { apiFetch, ApiError } from "@/lib/api";
-import { platformLabel, type Target } from "@/lib/targets";
 import {
   failureMessage,
   fetchLatestRun,
+  formatRunTime,
   isActive,
+  reviewCount,
   runDetail,
   type IngestionRun,
 } from "@/lib/ingestion-runs";
-import { StatusBadge } from "@/app/_components/status-badge";
+import { fetchReviews, REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
+import { platformLabel, shortSource, type Target } from "@/lib/targets";
 
 // S1-023: while a run is queued or running, check for updates this often,
 // and give up after this long (a stale run is failed by the backend anyway).
 const POLL_EVERY_MS = 3_000;
 const POLL_LIMIT_MS = 5 * 60_000;
 
+// Starting a run is S1-019: there is no endpoint yet, so these stay disabled until it lands.
+const INGEST_UNAVAILABLE = "Review ingestion arrives in a later step";
+
+function WorkspaceSkeleton() {
+  return (
+    <div role="status" aria-label="Loading target" className="flex flex-col gap-6">
+      <Skeleton className="h-52 w-full rounded-xl" />
+      <Skeleton className="h-40 w-full rounded-xl" />
+    </div>
+  );
+}
+
 // next.config.ts turns on cacheComponents, so anything that reads the URL at
 // runtime (useParams) must sit inside <Suspense>. The page shell renders at build
 // time; the workspace fills in once the id is known.
 export default function TargetWorkspacePage() {
   return (
-    <Suspense
-      fallback={
-        <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center p-6">
-          <p role="status">Loading target…</p>
-        </main>
-      }
-    >
-      <TargetWorkspace />
+    <Suspense fallback={<WorkspaceSkeleton />}>
+      <WorkspaceForUrl />
     </Suspense>
   );
 }
 
-function TargetWorkspace() {
-  const router = useRouter();
+// The sidebar moves between targets without remounting the page. The key starts each
+// target with empty state, so one target's reviews or status can never show on another.
+function WorkspaceForUrl() {
   const { id } = useParams<{ id: string }>();
+  return <TargetWorkspace key={id} id={id} />;
+}
+
+function TargetWorkspace({ id }: { id: string }) {
+  const router = useRouter();
   const [target, setTarget] = useState<Target | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // S1-023: newest ingestion attempt (null = never ingested).
   const [latestRun, setLatestRun] = useState<IngestionRun | null>(null);
+  // null while loading; reviewsFailed keeps a load failure from looking like "no reviews".
+  const [reviews, setReviews] = useState<Review[] | null>(null);
+  const [reviewsFailed, setReviewsFailed] = useState(false);
+  const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch<Target>(`/api/v1/targets/${id}`)
@@ -96,98 +132,279 @@ function TargetWorkspace() {
     };
   }, [id, activeRunId]);
 
-  const header = (
-    <Link href="/targets" className="text-sm underline">
-      Back to my targets
-    </Link>
-  );
+  // A never-ingested target has nothing to load. Otherwise load the reviews, and again
+  // whenever a run finishes. Keeps showing earlier reviews during a new run (§7.3).
+  const everIngested = Boolean(latestRun ?? target?.ingestion_status);
+  const finishedAt = latestRun?.finished_at ?? null;
+  useEffect(() => {
+    if (!everIngested) return;
+    let stopped = false;
+    fetchReviews(id)
+      .then((items) => {
+        if (stopped) return;
+        setReviews(items);
+        setReviewsFailed(false);
+      })
+      .catch(() => {
+        if (!stopped) setReviewsFailed(true);
+      });
+    return () => {
+      stopped = true;
+    };
+  }, [id, everIngested, finishedAt]);
 
   if (notFound) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-4 p-6">
-        {header}
-        <h1 className="text-2xl font-semibold">Target not found</h1>
-        <p>This target doesn&apos;t exist, or it isn&apos;t yours to open.</p>
-      </main>
+      <EmptyState
+        icon={<SearchXIcon />}
+        title="Target not found"
+        message="We couldn't find that target. It may have been deleted, or you may not have access."
+        action={
+          <Button asChild variant="outline">
+            <Link href="/targets">Back to my targets</Link>
+          </Button>
+        }
+      />
     );
   }
 
   if (error) {
     return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center gap-4 p-6">
-        {header}
-        <p role="alert" className="text-red-600">
-          {error}
-        </p>
-      </main>
+      <Alert variant="destructive">
+        <CircleAlertIcon aria-hidden="true" />
+        <AlertTitle>We couldn&apos;t load this target.</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
     );
   }
 
-  if (!target) {
-    return (
-      <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center p-6">
-        <p role="status">Loading target…</p>
-      </main>
-    );
-  }
+  if (!target) return <WorkspaceSkeleton />;
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col gap-6 p-6">
-      <div>
-        {header}
-        <h1 className="mt-2 text-2xl font-semibold">{target.name}</h1>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Analysis workspace</p>
-      </div>
-
-      <dl className="grid grid-cols-[8rem_1fr] gap-x-4 gap-y-3 rounded border p-4 text-sm">
-        <dt className="text-gray-600 dark:text-gray-400">Review platform</dt>
-        <dd>{platformLabel(target.platform)}</dd>
-        <dt className="text-gray-600 dark:text-gray-400">Source</dt>
-        <dd className="break-all">
-          <a
-            href={target.source_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            {target.source_url}
-          </a>
-        </dd>
-        <dt className="text-gray-600 dark:text-gray-400">Ingestion</dt>
-        {/* S1-023: status badge + detail line (ui-ux-standards.md §7.3).
-            aria-live lets screen readers announce when the status changes. */}
-        <dd aria-live="polite" className="flex flex-wrap items-center gap-2">
-          <StatusBadge status={latestRun?.status ?? target.ingestion_status} />
-          <span className="text-gray-600 dark:text-gray-400">{runDetail(latestRun)}</span>
-        </dd>
-      </dl>
+    <Tabs defaultValue="reviews" className="gap-6">
+      <TargetContextHeader target={target} run={latestRun} reviewsKept={reviews?.length ?? 0} />
 
       {latestRun?.status === "FAILED" && (
-        // S1-023: a failed run is always visible and never looks like a success (§7.3).
-        <div
-          role="alert"
-          className="rounded border border-red-200 bg-red-50 p-4 text-sm text-red-800"
-        >
-          <p className="font-medium">{failureMessage(latestRun.error_code).title}</p>
-          <p>{failureMessage(latestRun.error_code).next}</p>
-        </div>
+        <RunFailedBanner run={latestRun} reviewsKept={reviews?.length ?? 0} />
+      )}
+      {latestRun?.status === "COMPLETED" && dismissedRunId !== latestRun.id && (
+        <Alert className="border-success/30 bg-success/10">
+          <CircleCheckIcon aria-hidden="true" className="text-success" />
+          <AlertTitle className="flex items-center justify-between gap-2 font-normal">
+            {reviewCount(latestRun.reviews_ingested)} collected from{" "}
+            {platformLabel(target.platform)}.
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setDismissedRunId(latestRun.id)}
+              className="ml-auto"
+            >
+              <XIcon className="size-4" aria-hidden="true" />
+            </button>
+          </AlertTitle>
+        </Alert>
       )}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-medium">Collect reviews</h2>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
-          Reviews are collected from the source link above.
+      <TabsContent value="ingestion">
+        <IngestionPanel target={target} run={latestRun} />
+      </TabsContent>
+      <TabsContent value="reviews">
+        <ReviewsPanel everIngested={everIngested} reviews={reviews} failed={reviewsFailed} />
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+// TargetContextHeader (ui-ux-standards.md §3.1): always above workspace content, so the
+// user knows which target is active.
+function TargetContextHeader({
+  target,
+  run,
+  reviewsKept,
+}: {
+  target: Target;
+  run: IngestionRun | null;
+  reviewsKept: number;
+}) {
+  const status = run?.status ?? target.ingestion_status;
+
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="flex flex-wrap items-start justify-between gap-4 p-6">
+        <div className="flex min-w-0 flex-col gap-2">
+          <p className="text-sm text-muted-foreground">Active target</p>
+          <h1 className="text-3xl font-semibold tracking-tight">{target.name}</h1>
+          <div className="flex flex-wrap items-center gap-3">
+            <PlatformBadge platform={target.platform} />
+            <a
+              href={target.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={target.source_url}
+              className="inline-flex min-w-0 items-center gap-1 font-mono text-xs text-primary underline"
+            >
+              <span className="truncate">{shortSource(target.source_url)}</span>
+              <ExternalLinkIcon className="size-3 shrink-0" aria-hidden="true" />
+            </a>
+          </div>
+        </div>
+        <Button disabled title={INGEST_UNAVAILABLE}>
+          <RefreshCwIcon aria-hidden="true" />
+          Ingest reviews
+        </Button>
+      </div>
+
+      {/* S1-023: status badge + detail line. aria-live announces status changes. */}
+      <div
+        aria-live="polite"
+        className="flex flex-wrap items-center gap-3 border-y bg-background px-6 py-3 text-sm"
+      >
+        <StatusBadge status={status} />
+        <span>
+          {runDetail(run)}
+          {run?.status === "FAILED" &&
+            reviewsKept > 0 &&
+            ` · Showing ${reviewCount(reviewsKept)} from earlier runs`}
+        </span>
+      </div>
+
+      <TabsList variant="line" className="h-11 px-4">
+        <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
+        <TabsTrigger value="reviews">Reviews</TabsTrigger>
+        {/* Sprint 2 (§3.1): named so the flow is visible, but not built yet. */}
+        <TabsTrigger value="summary" disabled>
+          Summary <Badge variant="secondary">Sprint 2</Badge>
+        </TabsTrigger>
+        <TabsTrigger value="qa" disabled>
+          Q&amp;A <Badge variant="secondary">Sprint 2</Badge>
+        </TabsTrigger>
+      </TabsList>
+    </div>
+  );
+}
+
+// S1-023: a failed run is always visible and never looks like a success (§7.3).
+function RunFailedBanner({ run, reviewsKept }: { run: IngestionRun; reviewsKept: number }) {
+  const message = failureMessage(run.error_code);
+  return (
+    <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
+      <CircleAlertIcon aria-hidden="true" />
+      <AlertTitle>{message.title}</AlertTitle>
+      <AlertDescription>
+        {message.next}
+        {reviewsKept > 0 && ` Your existing ${reviewCount(reviewsKept)} are unchanged.`}
+        <Button variant="outline" size="sm" disabled title={INGEST_UNAVAILABLE} className="mt-2">
+          Try again
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | null }) {
+  if (!run) {
+    return (
+      <EmptyState
+        icon={<InboxIcon />}
+        message="No reviews yet. Ingest reviews from the source URL to get started."
+      />
+    );
+  }
+
+  const rows: [string, React.ReactNode][] = [
+    ["Source", platformLabel(target.platform)],
+    ["Queued", formatRunTime(run.queued_at)],
+    ["Finished", run.finished_at ? formatRunTime(run.finished_at) : "Not finished yet"],
+    ["Reviews saved", run.reviews_ingested],
+    ["Skipped as unusable", run.reviews_rejected],
+    ["Already saved earlier", run.reviews_duplicate],
+  ];
+
+  return (
+    <section className="flex flex-col gap-4">
+      <h2 className="text-xl font-semibold">Latest run</h2>
+      <dl className="grid max-w-xl grid-cols-[auto_1fr] gap-x-8 gap-y-3 rounded-xl border bg-card p-6 text-sm">
+        {rows.map(([label, value]) => (
+          <div key={label} className="contents">
+            <dt className="text-muted-foreground">{label}</dt>
+            <dd className="font-medium">{value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function ReviewsPanel({
+  everIngested,
+  reviews,
+  failed,
+}: {
+  everIngested: boolean;
+  reviews: Review[] | null;
+  failed: boolean;
+}) {
+  const [visible, setVisible] = useState(REVIEWS_PAGE_SIZE);
+
+  if (!everIngested || reviews?.length === 0) {
+    return (
+      <EmptyState
+        icon={<InboxIcon />}
+        message="No reviews yet. Ingest reviews from the source URL to get started."
+        action={
+          <Button disabled title={INGEST_UNAVAILABLE}>
+            <RefreshCwIcon aria-hidden="true" />
+            Ingest reviews
+          </Button>
+        }
+      />
+    );
+  }
+
+  if (failed && !reviews) {
+    return (
+      <Alert variant="destructive">
+        <CircleAlertIcon aria-hidden="true" />
+        <AlertTitle>We couldn&apos;t load the reviews.</AlertTitle>
+        <AlertDescription>Reload the page or try again in a few minutes.</AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!reviews) {
+    return (
+      <div role="status" aria-label="Loading reviews" className="grid gap-4 md:grid-cols-3">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-40 rounded-xl" />
+        ))}
+      </div>
+    );
+  }
+
+  const shown = reviews.slice(0, visible);
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="text-xl font-semibold">Reviews</h2>
+        <p className="text-sm text-muted-foreground">
+          Showing {shown.length} of {reviews.length}
         </p>
-        {/* Starting ingestion is S1-019; this button stays disabled until that story lands. */}
-        <button
-          type="button"
-          disabled
-          title="Review ingestion arrives in a later step"
-          className="w-fit rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+      </div>
+      <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {shown.map((review) => (
+          <ReviewCard key={review.id} review={review} />
+        ))}
+      </div>
+      {shown.length < reviews.length && (
+        <Button
+          variant="outline"
+          className="w-fit"
+          onClick={() => setVisible(visible + REVIEWS_PAGE_SIZE)}
         >
-          Start ingestion
-        </button>
-      </section>
-    </main>
+          Show more reviews
+        </Button>
+      )}
+    </section>
   );
 }

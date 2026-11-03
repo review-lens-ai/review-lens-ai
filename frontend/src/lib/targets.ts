@@ -19,24 +19,12 @@ export function platformLabel(platform: string): string {
 }
 
 // The platform is fixed by the backend (app/platforms.py); the form only displays it.
-export const SUPPORTED_PLATFORM_LABEL = platformLabel("google_maps");
+export const SUPPORTED_PLATFORM = "google_maps";
+export const SUPPORTED_PLATFORM_LABEL = platformLabel(SUPPORTED_PLATFORM);
 
-// What the user sees for the newest ingestion run's status (null = never ingested).
-export function ingestionLabel(status: Target["ingestion_status"]): string {
-  switch (status) {
-    case "QUEUED":
-      return "Ingestion queued";
-    case "RUNNING":
-      return "Ingestion in progress";
-    case "COMPLETED":
-      return "Ingestion succeeded";
-    case "PARTIAL":
-      return "Ingestion partly succeeded";
-    case "FAILED":
-      return "Ingestion failed";
-    default:
-      return "No ingestion yet";
-  }
+// The summary above a rejected form (ui-ux-standards.md §6.2).
+export function fixFieldsMessage(count: number): string {
+  return `Fix ${count} ${count === 1 ? "field" : "fields"} to continue.`;
 }
 
 // A short, readable form of the source link for lists, e.g. "www.google.com/maps/place/Joes+Pizza".
