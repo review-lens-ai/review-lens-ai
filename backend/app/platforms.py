@@ -9,7 +9,7 @@ NOT check that the page exists or can be ingested; that belongs to ingestion.
 """
 
 import re
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, unquote, urlsplit
 
 SUPPORTED_PLATFORM = "google_maps"
 PLATFORM_LABEL = "Google Maps"
@@ -20,6 +20,13 @@ MAX_URL_LENGTH = 2048
 _GOOGLE_HOST = re.compile(
     r"^(www\.)?google\.(com|co\.[a-z]{2}|com\.[a-z]{2}|[a-z]{2})$"
 )
+
+# The place id SerpApi needs, e.g. 0x89c2537da9b3163d:0x2be30fcff506fec8. Full place
+# links carry it after "!1s"; some links carry it in an ftid parameter. The ingestion
+# worker (app/adapters/serpapi/place.py) can only use a link that has one, or a short
+# share link it can follow, so the form requires the same.
+_PLACE_ID = r"0x[0-9a-fA-F]+:0x[0-9a-fA-F]+"
+_PLACE_ID_IN_PATH = re.compile(rf"!1s{_PLACE_ID}")
 
 
 def validate_source_url(raw: str) -> str:
@@ -49,15 +56,18 @@ def validate_source_url(raw: str) -> str:
         raise ValueError("That doesn't look like a Google Maps link.")
 
     path = parts.path or "/"
-    has_cid = any(v.isdigit() for v in parse_qs(parts.query).get("cid", []))
+    has_ftid = any(
+        re.fullmatch(_PLACE_ID, v) for v in parse_qs(parts.query).get("ftid", [])
+    )
 
     is_google_host = bool(_GOOGLE_HOST.match(host)) or host == "maps.google.com"
     is_short_link = host in ("maps.app.goo.gl", "goo.gl")
     if is_google_host:
         # A place link, not a map view, a search or directions.
-        is_place = _has_segment_after(path, "/maps/place/") or (
-            path.rstrip("/") in ("", "/maps") and has_cid
-        )
+        is_place = (
+            _has_segment_after(path, "/maps/place/")
+            and bool(_PLACE_ID_IN_PATH.search(unquote(url)))
+        ) or (path.rstrip("/") in ("", "/maps") and has_ftid)
         is_maps = (
             host == "maps.google.com" or path == "/maps" or path.startswith("/maps/")
         )
@@ -73,8 +83,9 @@ def validate_source_url(raw: str) -> str:
         )
     if not is_place:
         raise ValueError(
-            "That link doesn't point to one specific place. Search for the place on "
-            f"{PLATFORM_LABEL}, open it, and copy its link."
+            "That link doesn't identify one specific place. Open the place on "
+            f"{PLATFORM_LABEL} and copy the link from the address bar, or use Share "
+            "and copy the short link."
         )
     return url
 

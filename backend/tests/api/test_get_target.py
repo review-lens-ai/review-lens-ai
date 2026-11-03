@@ -2,7 +2,7 @@
 
 from tests.conftest import auth
 
-URL = "https://www.google.com/maps/place/Joes+Pizza"
+URL = "https://www.google.com/maps/place/Joes+Pizza/@40.73,-73.99,17z/data=!3m1!4b1!4m6!3m5!1s0x89c2537da9b3163d:0x2be30fcff506fec8!8m2!3d40.73!4d-73.99"
 UNKNOWN_ID = "00000000-0000-0000-0000-000000000000"
 
 
