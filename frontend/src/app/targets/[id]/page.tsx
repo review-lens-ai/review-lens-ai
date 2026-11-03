@@ -10,6 +10,7 @@ import {
   fetchLatestRun,
   isActive,
   runDetail,
+  startIngestionRun,
   type IngestionRun,
 } from "@/lib/ingestion-runs";
 import { StatusBadge } from "@/app/_components/status-badge";
@@ -44,6 +45,36 @@ function TargetWorkspace() {
   const [error, setError] = useState<string | null>(null);
   // S1-023: newest ingestion attempt (null = never ingested).
   const [latestRun, setLatestRun] = useState<IngestionRun | null>(null);
+  // S1-019: a start request is on its way, and why the last one was refused.
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+
+  async function startIngestion() {
+    setStarting(true);
+    setStartError(null);
+    try {
+      // The QUEUED run is active, so the polling below takes over from here.
+      setLatestRun(await startIngestionRun(id));
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        router.replace("/login");
+      } else if (e instanceof ApiError && e.status === 404) {
+        setNotFound(true);
+      } else if (e instanceof ApiError && e.status === 409) {
+        // A run is already queued or running: show it instead of a second one.
+        setStartError(e.message);
+        fetchLatestRun(id)
+          .then(setLatestRun)
+          .catch(() => {});
+      } else {
+        setStartError(
+          e instanceof ApiError ? e.message : "Could not reach the server. Please try again.",
+        );
+      }
+    } finally {
+      setStarting(false);
+    }
+  }
 
   useEffect(() => {
     apiFetch<Target>(`/api/v1/targets/${id}`)
@@ -178,15 +209,20 @@ function TargetWorkspace() {
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Reviews are collected from the source link above.
         </p>
-        {/* Starting ingestion is S1-019; this button stays disabled until that story lands. */}
+        {/* S1-019: one active run per target, so the button is off while one is queued or running. */}
         <button
           type="button"
-          disabled
-          title="Review ingestion arrives in a later step"
+          onClick={startIngestion}
+          disabled={starting || isActive(latestRun?.status ?? target.ingestion_status)}
           className="w-fit rounded bg-black px-4 py-2 text-white disabled:opacity-50"
         >
-          Start ingestion
+          {starting ? "Starting…" : "Start ingestion"}
         </button>
+        {startError && (
+          <p role="alert" className="text-sm text-red-600">
+            {startError}
+          </p>
+        )}
       </section>
     </main>
   );
