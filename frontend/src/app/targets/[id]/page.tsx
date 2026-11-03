@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
@@ -8,7 +8,24 @@ import { platformLabel, type Target } from "@/lib/targets";
 import { failureMessage, fetchLatestRun, runDetail, type IngestionRun } from "@/lib/ingestionRuns";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 
+// next.config.ts turns on cacheComponents, so anything that reads the URL at
+// runtime (useParams) must sit inside <Suspense>. The page shell renders at build
+// time; the workspace fills in once the id is known.
 export default function TargetWorkspacePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex min-h-screen max-w-xl flex-col justify-center p-6">
+          <p role="status">Loading target…</p>
+        </main>
+      }
+    >
+      <TargetWorkspace />
+    </Suspense>
+  );
+}
+
+function TargetWorkspace() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
   const [target, setTarget] = useState<Target | null>(null);
