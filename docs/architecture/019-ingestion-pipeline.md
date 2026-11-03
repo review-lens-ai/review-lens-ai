@@ -15,7 +15,7 @@ Rules: S1-BR-018 to S1-BR-025.
 | Ingestion API | Checks auth and ownership, queues the run, reports the latest run | `backend/app/api/ingestion_runs.py` |
 | Run repository | Run lifecycle: create, start, finish, fail, retry, stale timeout | `backend/app/repositories/ingestion_runs.py` |
 | Worker | Picks up queued runs and runs their stages | `backend/app/worker.py` |
-| SerpApi adapter | Turns the Maps link into a place id and fetches review pages | `backend/app/adapters/serpapi.py` |
+| SerpApi adapter | Turns the Maps link into a place id and fetches review pages | `backend/app/adapters/serpapi/` |
 | Normalizer | Raw records → reviews, rejections, duplicates | `backend/app/services/normalize_reviews.py` |
 | Review repository | Saves reviews and rejections, reads a target's reviews | `backend/app/repositories/reviews.py` |
 
@@ -82,7 +82,7 @@ COMPLETED and PARTIAL are final. A target has at most one QUEUED or RUNNING run.
 | Story | Builds | Lives in | Status |
 |---|---|---|---|
 | **S1-019** Submit source | Enable the button. Add `POST /api/v1/targets/{id}/ingestion-runs`, which checks auth, ownership and `source_url`, then `create_run`, and returns **202** with the QUEUED run. Another user's target fails here, before any work starts. | `api/ingestion_runs.py`, workspace page | ✅ Done (component tests for the button: #55) |
-| **S1-020** Extract data | The **worker loop** (`worker.py` is still a stub) and the **SerpApi adapter**: link → place id, fetch pages, scrub names, save raw pages, mark the INGESTION stage done. Tests use the saved fixtures, never live SerpApi. Document the chosen approach. | `worker.py`, `adapters/serpapi.py` | 🔨 To do |
+| **S1-020** Extract data | The **worker loop** (`worker.py` is still a stub) and the **SerpApi adapter**: link → place id, fetch pages, scrub names, save raw pages, mark the INGESTION stage done. Tests use the saved fixtures, never live SerpApi. Document the chosen approach. | `worker.py`, `adapters/serpapi/` | 🔨 To do |
 | **S1-021** Normalize | `normalize_pages`: raw records → reviews, rejections, duplicates. | `services/normalize_reviews.py` | ✅ Done |
 | **S1-022** Save reviews | **Save** the normalized reviews and rejections, mark the NORMALIZATION stage done, call `mark_succeeded`. Add `GET /api/v1/targets/{id}/reviews` so the tests can show "A's reviews don't show up under B's target". | `repositories/reviews.py`, `api/reviews.py` | 🔨 To do |
 | **S1-023** Result state | Run lifecycle, polling, status badge, failure banner. | `repositories/ingestion_runs.py`, workspace page | ✅ Done |

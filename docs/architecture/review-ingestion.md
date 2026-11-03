@@ -2,7 +2,7 @@
 
 **Story:** S1-020 — Extract or Import Review Data
 **Rules:** S1-BR-019 to S1-BR-021, S1-BR-024
-**Code:** `backend/app/worker.py` (the pipeline) and `backend/app/adapters/serpapi.py` (the SerpApi calls)
+**Code:** `backend/app/worker.py` (the pipeline) and `backend/app/adapters/serpapi/` (the SerpApi calls)
 
 ReviewLens collects reviews from **Google Maps** through **SerpApi's Google Maps Reviews API** (`engine=google_maps_reviews`). The app never shows sample or made-up reviews: if fetching fails, the run fails and says why.
 

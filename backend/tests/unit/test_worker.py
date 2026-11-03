@@ -13,14 +13,11 @@ from pathlib import Path
 import httpx
 import pytest
 
-from app.adapters.serpapi import (
-    ReviewProviderConfigError,
-    SerpApiReviewSource,
-    scrub_page,
-)
+from app.adapters.serpapi import ReviewProviderConfigError, SerpApiReviewSource
 from app.repositories.ingestion_runs import ErrorCode
 from app.repositories.ingestion_stages import Stage, StageStatus
 from app.repositories.targets import DuplicatePlaceError
+from app.services.normalize_reviews import scrub_page
 from app.worker import Pipeline, _MissingReviewStore, process_next_run
 
 FIXTURES = Path(__file__).resolve().parents[2] / "app" / "fixtures"

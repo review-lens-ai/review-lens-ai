@@ -10,7 +10,7 @@ once. This process does the slow part, one run at a time:
     claim the oldest QUEUED run              -> RUNNING        (ingestion_runs)
     INGESTION stage                                            (ingestion_stages)
         find the place, save its id          -> analysis_targets.source_place_id
-        fetch pages through SerpApi          (app/adapters/serpapi.py)
+        fetch pages through SerpApi          (app/adapters/serpapi/)
         save the pages                       -> ingestion_raw_pages
         save place details and run details   -> *.source_metadata
     NORMALIZATION stage

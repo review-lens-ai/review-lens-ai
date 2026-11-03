@@ -15,7 +15,7 @@ from pathlib import Path
 import httpx
 import pytest
 
-from app.adapters.serpapi import RawPage, SerpApiReviewSource, scrub_page
+from app.adapters.serpapi import RawPage, SerpApiReviewSource
 from app.core.errors import NotFoundError
 from app.repositories.ingestion_raw_pages import RawPageRepository
 from app.repositories.ingestion_runs import ErrorCode, IngestionRunRepository
@@ -25,6 +25,7 @@ from app.repositories.ingestion_stages import (
     StageStatus,
 )
 from app.repositories.targets import DuplicatePlaceError, TargetRepository
+from app.services.normalize_reviews import scrub_page
 from app.worker import Pipeline, process_next_run
 
 FIXTURES = Path(__file__).resolve().parents[2] / "app" / "fixtures"
