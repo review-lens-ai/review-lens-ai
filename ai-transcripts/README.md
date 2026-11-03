@@ -8,8 +8,9 @@ Transcripts of the AI-assisted development sessions for ReviewLens, kept here as
 |---|---|
 | `2026-10-23-session-1-understand-repo-and-plan.md` | First session: understanding the repo, the stories and the design |
 | `2026-10-25-session-2-sprint-1-build-and-review.md` | Sprint 1 work: auth, data model, targets, tests, reviews of teammates' PRs |
+| `2026-11-03-session-ingestion-review-and-demo-readiness.md` | S1-020/S1-021 owner: reviewing the merged ingestion worker, local setup on Windows, demo readiness against the Sprint 1 docs, reviewing #58, #59 and S1-013, matching #59 to the paginated reviews endpoint (#68), investigating why SerpApi returns about 5 reviews per run, and preparing the demo |
 
-Both sessions are by the developer who owns S1-009 and S1-014 to S1-018, working with Claude Code. Other team members add their own sessions here, the same way.
+The first two sessions are by the developer who owns S1-009 and S1-014 to S1-018, and the third by the developer who owns S1-003, S1-020 and S1-021, all working with Claude Code. Other team members add their own sessions here, the same way.
 
 ## What was changed before they were committed
 
