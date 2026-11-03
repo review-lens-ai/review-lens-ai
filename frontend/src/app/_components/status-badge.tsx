@@ -42,10 +42,31 @@ const BADGES: Record<IngestionStatus, Badge> = {
   },
 };
 
+const DOT_CLASSES: Record<IngestionStatus, string> = {
+  QUEUED: "bg-muted-foreground",
+  RUNNING: "bg-info",
+  COMPLETED: "bg-success",
+  PARTIAL: "bg-warning",
+  FAILED: "bg-destructive",
+};
+
+// Unknown or missing statuses fall back to "Not ingested", so the page can
+// never crash when the backend adds a new state.
+function badgeFor(status: string | null | undefined): Badge {
+  return (status && BADGES[status as IngestionStatus]) || NOT_INGESTED;
+}
+
+// The same wording as the badge, for places too small for a whole one (the sidebar).
+export function statusLabel(status: string | null | undefined): string {
+  return badgeFor(status).label;
+}
+
+export function statusDotClass(status: string | null | undefined): string {
+  return (status && DOT_CLASSES[status as IngestionStatus]) || "bg-gray-400";
+}
+
 export function StatusBadge({ status }: { status: string | null | undefined }) {
-  // Unknown or missing statuses fall back to "Not ingested", so the page can
-  // never crash when the backend adds a new state.
-  const badge = (status && BADGES[status as IngestionStatus]) || NOT_INGESTED;
+  const badge = badgeFor(status);
   return (
     // Color is never the only signal: every badge has an icon and a text label.
     <span

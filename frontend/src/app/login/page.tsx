@@ -1,7 +1,14 @@
 "use client";
 
+// Adapted from the shadcn login-03 block. The sign-in logic is unchanged.
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2Icon, SearchIcon, TriangleAlertIcon } from "lucide-react";
+import { Alert, AlertTitle } from "@/app/_components/ui/alert";
+import { Button } from "@/app/_components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/_components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/app/_components/ui/field";
+import { Input } from "@/app/_components/ui/input";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
@@ -35,52 +42,64 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-sm flex-col justify-center gap-6 p-6">
-      <h1 className="text-2xl font-semibold">
-        {mode === "signin" ? "Sign in to ReviewLens" : "Create your account"}
-      </h1>
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
-          Email
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="rounded border px-3 py-2"
-          />
-        </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Password
-          <input
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="rounded border px-3 py-2"
-          />
-        </label>
-        {message && (
-          <p role="alert" className="text-sm text-red-600">
-            {message}
-          </p>
-        )}
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-        >
-          {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Sign up"}
-        </button>
-      </form>
-      <button
-        type="button"
-        className="text-sm underline"
-        onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-      >
-        {mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in"}
-      </button>
+    <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
+      <div className="flex items-center gap-2 text-lg font-semibold">
+        <SearchIcon className="size-5 text-primary" aria-hidden="true" />
+        ReviewLens
+      </div>
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <CardTitle>
+            <h1 className="text-center text-xl">
+              {mode === "signin" ? "Sign in to ReviewLens" : "Create your account"}
+            </h1>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={onSubmit}>
+            <FieldGroup className="gap-4">
+              <Field>
+                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="password">Password</FieldLabel>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </Field>
+              {message && (
+                <Alert>
+                  <TriangleAlertIcon aria-hidden="true" />
+                  <AlertTitle className="line-clamp-none font-normal">{message}</AlertTitle>
+                </Alert>
+              )}
+              <Button type="submit" disabled={loading}>
+                {loading && <Loader2Icon className="animate-spin" aria-hidden="true" />}
+                {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Sign up"}
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
+              >
+                {mode === "signin" ? "Need an account? Sign up" : "Have an account? Sign in"}
+              </Button>
+            </FieldGroup>
+          </form>
+        </CardContent>
+      </Card>
     </main>
   );
 }
