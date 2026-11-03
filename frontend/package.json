@@ -10,7 +10,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "vitest run --project integration"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -35,6 +37,7 @@
     "eslint-config-next": "16.4.2",
     "eslint-plugin-check-file": "^3.3.2",
     "jsdom": "^29.1.1",
+    "msw": "^2.15.0",
     "prettier": "^3.9.10",
     "tailwindcss": "^4",
     "typescript": "^5",

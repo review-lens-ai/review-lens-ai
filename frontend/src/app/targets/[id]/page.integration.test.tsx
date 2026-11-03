@@ -1,0 +1,230 @@
+// Integration tests for the target workspace page: the Start ingestion and
+// Try again buttons (#55). The whole page is rendered, and MSW plays the backend.
+import { describe, expect, it, vi } from "vitest";
+import type { IngestionRun } from "@/lib/ingestion-runs";
+import {
+  act,
+  API,
+  apiErrorResponse,
+  fireEvent,
+  http,
+  HttpResponse,
+  ingestionRun,
+  jsonResponse,
+  render,
+  screen,
+  server,
+  target,
+  waitFor,
+} from "@/test";
+
+const TARGET_ID = "11111111-1111-1111-1111-111111111111";
+const TARGET_URL = `${API}/api/v1/targets/${TARGET_ID}`;
+const REVIEWS_URL = `${TARGET_URL}/reviews`;
+const RUNS_URL = `${TARGET_URL}/ingestion-runs`;
+const LATEST_RUN_URL = `${RUNS_URL}/latest`;
+
+// --- Replace the parts of the app this page uses but these tests don't cover ---
+
+// One router object for every render, as in the app, so the page's effects don't re-run.
+const router = { replace: vi.fn() };
+const refreshSidebar = vi.fn(async () => {});
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => router,
+  useParams: () => ({ id: TARGET_ID }),
+}));
+vi.mock("@/app/_components/app-shell", () => ({
+  useTargets: () => ({ refresh: refreshSidebar }),
+}));
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({ auth: { getSession: async () => ({ data: { session: null } }) } }),
+}));
+
+import TargetWorkspacePage from "./page";
+
+// --- Test data ---
+
+const queuedRun = ingestionRun({
+  target_id: TARGET_ID,
+  status: "QUEUED",
+  started_at: null,
+  finished_at: null,
+});
+const runningRun = ingestionRun({ target_id: TARGET_ID, status: "RUNNING", finished_at: null });
+const failedRun = ingestionRun({ target_id: TARGET_ID, status: "FAILED", error_code: "TIMEOUT" });
+
+// --- Helpers ---
+
+// Sets up the endpoints the page calls when it opens.
+// latestRun is the newest ingestion run, or null if the target was never ingested.
+function backendHas(latestRun: IngestionRun | null) {
+  let status: IngestionRun["status"] | null = null;
+  if (latestRun !== null) {
+    status = latestRun.status;
+  }
+
+  server.use(
+    http.get(TARGET_URL, () => jsonResponse(target({ id: TARGET_ID, ingestion_status: status }))),
+    http.get(REVIEWS_URL, () => jsonResponse({ items: [] })),
+    http.get(LATEST_RUN_URL, () => jsonResponse({ run: latestRun })),
+  );
+}
+
+// Sets what the backend answers when the page asks to start a run.
+// Returns a mock, so a test can check how many times a run was started.
+function startingARunReturns(respond: () => Response | Promise<Response>) {
+  const startRun = vi.fn(respond);
+  server.use(http.post(RUNS_URL, startRun));
+  return startRun;
+}
+
+// Renders the page and waits until it has finished loading.
+async function openWorkspace(expectedStatus: string) {
+  render(<TargetWorkspacePage />);
+  await screen.findByRole("heading", { name: "Joe's Pizza" });
+  await screen.findByText(expectedStatus);
+
+  // Let the page's other first requests finish, so a click doesn't race with them.
+  await act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+// The page shows "Ingest reviews" in more than one place (header and empty state).
+function ingestButtons() {
+  return screen.getAllByRole<HTMLButtonElement>("button", { name: "Ingest reviews" });
+}
+
+function expectAllDisabled(buttons: HTMLButtonElement[]) {
+  for (const button of buttons) {
+    expect(button.disabled).toBe(true);
+  }
+}
+
+// --- Tests ---
+
+describe("while a run is active", () => {
+  it("the ingest button is disabled when the run is queued", async () => {
+    backendHas(queuedRun);
+
+    await openWorkspace("Queued");
+
+    expectAllDisabled(ingestButtons());
+  });
+
+  it("the ingest button is disabled when the run is running", async () => {
+    backendHas(runningRun);
+
+    await openWorkspace("Ingesting…");
+
+    expectAllDisabled(ingestButtons());
+  });
+});
+
+describe("when no run is active", () => {
+  it("a target that was never ingested can start a run", async () => {
+    backendHas(null);
+    const startRun = startingARunReturns(() => jsonResponse(queuedRun, 202));
+    await openWorkspace("Not ingested");
+    expect(ingestButtons()[0].disabled).toBe(false);
+
+    fireEvent.click(ingestButtons()[0]);
+
+    await screen.findByText("Queued");
+    expect(startRun).toHaveBeenCalledTimes(1);
+    expectAllDisabled(ingestButtons());
+  });
+
+  it("the button shows it is working until the request finishes", async () => {
+    backendHas(null);
+    let finishRequest = () => {};
+    startingARunReturns(async () => {
+      await new Promise<void>((resolve) => {
+        finishRequest = resolve;
+      });
+      return jsonResponse(queuedRun, 202);
+    });
+    await openWorkspace("Not ingested");
+
+    fireEvent.click(ingestButtons()[0]);
+
+    const working = await screen.findAllByRole<HTMLButtonElement>("button", {
+      name: "Starting…",
+    });
+    expectAllDisabled(working);
+    finishRequest();
+    await screen.findByText("Queued");
+  });
+
+  it("try again on a failed run starts a new one", async () => {
+    backendHas(failedRun);
+    const startRun = startingARunReturns(() => jsonResponse(queuedRun, 202));
+    await openWorkspace("Failed");
+
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+
+    await screen.findByText("Queued");
+    expect(startRun).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("button", { name: "Try again" })).toBeNull();
+  });
+
+  it("starting a run reloads the sidebar's statuses", async () => {
+    backendHas(null);
+    startingARunReturns(() => jsonResponse(queuedRun, 202));
+    await openWorkspace("Not ingested");
+    refreshSidebar.mockClear();
+
+    fireEvent.click(ingestButtons()[0]);
+
+    await waitFor(() => expect(refreshSidebar).toHaveBeenCalled());
+  });
+});
+
+describe("when starting a run is refused", () => {
+  it("a 409 shows the message and the run that is already active", async () => {
+    const message = "Reviews are already being collected for this target.";
+    backendHas(null);
+    startingARunReturns(() => apiErrorResponse(409, "CONFLICT", message));
+    await openWorkspace("Not ingested");
+    // Meanwhile, someone else started a run.
+    server.use(http.get(LATEST_RUN_URL, () => jsonResponse({ run: runningRun })));
+
+    fireEvent.click(ingestButtons()[0]);
+
+    await screen.findByText(message);
+    await screen.findByText("Ingesting…");
+    expectAllDisabled(ingestButtons());
+  });
+
+  it("a 401 redirects to /login", async () => {
+    backendHas(null);
+    startingARunReturns(() => apiErrorResponse(401, "UNAUTHENTICATED", "Please sign in."));
+    await openWorkspace("Not ingested");
+
+    fireEvent.click(ingestButtons()[0]);
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/login"));
+  });
+
+  it("a 404 shows the not found page", async () => {
+    backendHas(null);
+    startingARunReturns(() => apiErrorResponse(404, "NOT_FOUND", "Target not found."));
+    await openWorkspace("Not ingested");
+
+    fireEvent.click(ingestButtons()[0]);
+
+    await screen.findByRole("heading", { name: "Target not found" });
+  });
+
+  it("a network failure shows a message and allows another try", async () => {
+    backendHas(null);
+    startingARunReturns(() => HttpResponse.error());
+    await openWorkspace("Not ingested");
+
+    fireEvent.click(ingestButtons()[0]);
+
+    await screen.findByText("Could not reach the server. Please try again.");
+    await waitFor(() => expect(ingestButtons()[0].disabled).toBe(false));
+  });
+});

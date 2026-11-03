@@ -1,17 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { jsonResponse } from "@/test/responses";
 import type { ApiError as ApiErrorType } from "./api";
 
 const getSession = vi.fn();
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({ auth: { getSession } }),
 }));
-
-function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
 
 async function loadApi() {
   vi.resetModules();
