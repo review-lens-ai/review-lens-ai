@@ -11,28 +11,29 @@ review-lens-ai/
 ├── frontend/src/
 │   ├── app/              # Pages, layouts, routes
 │   │   └── _components/  # Reusable UI components (shadcn primitives in ui/)
-│   └── lib/              # API clients, utilities
+│   ├── lib/              # API clients, utilities
+│   └── proxy.ts          # Redirects signed-out users to /login
 ├── backend/
 │   ├── app/
 │   │   ├── main.py       # FastAPI entry point
 │   │   ├── worker.py     # Background worker entry point
-│   │   ├── core/         # config.py (env vars, secrets), errors.py
 │   │   ├── auth.py       # Supabase token verification, ownership checks
+│   │   ├── platforms.py  # Checks and reads the Maps link
+│   │   ├── core/         # config.py (env vars, secrets), errors.py
 │   │   ├── api/          # HTTP endpoints, mounted on router.py
+│   │   ├── schemas/      # Request/response shapes
+│   │   ├── repositories/ # All SQL, filtered by owner
 │   │   ├── services/     # Processing logic
 │   │   ├── adapters/     # External providers (SerpApi)
-│   │   ├── schemas/      # Request/response shapes
+│   │   ├── db/           # Migration runner
 │   │   └── fixtures/     # Recorded provider responses for tests
-│   └── tests/
-├── supabase/
-│   ├── migrations/       # Version-controlled SQL
-│   ├── config.toml       # Local Supabase config
-│   └── seed.sql          # Optional dev data
+│   └── tests/            # api, auth, db, unit
+├── supabase/migrations/  # Version-controlled SQL
 ├── docs/
-│   ├── architecture/     # System design, diagrams
-│   ├── standards/        # Git workflow, coding, AI-assisted development
-│   └── decisions/        # Architecture Decision Records
-└── .github/workflows/    # CI/CD
+│   ├── architecture/     # System design, diagrams (start at architecture.md)
+│   └── standards/        # Coding, philosophy, AI-assisted development, guardrails, UI/UX
+├── scripts/              # setup, dev, check, migrate, branch protection
+└── .github/              # CI workflow, PR template
 ```
 
 ## 2. Naming
@@ -48,6 +49,7 @@ Use these terms everywhere. No synonyms.
 | Thing being analyzed | `AnalysisTarget` | `analysis_targets` |
 | One ingestion attempt | `IngestionRun` | `ingestion_runs` |
 | Normalized review | `Review` | `reviews` |
+| Skipped record | `IngestionRejection` | `ingestion_rejections` |
 
 ### Code
 
