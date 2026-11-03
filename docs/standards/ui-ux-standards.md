@@ -272,7 +272,7 @@ One shared `StatusBadge` component. Same colors, icons, and wording everywhere: 
 
 ## 8. Reusable components
 
-Build these once in a shared folder (`frontend/src/components/ui/`). Pages must use them instead of making their own versions.
+Build these once in the shared folder `frontend/src/app/_components/` (shadcn primitives in `_components/ui/`). File names are kebab-case and exports are PascalCase, e.g. `status-badge.tsx` exports `StatusBadge` (see [Coding Standards](coding-standards.md)). Pages must use them instead of making their own versions.
 
 | Component | Purpose | Notes |
 |---|---|---|
