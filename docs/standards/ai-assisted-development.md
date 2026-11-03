@@ -56,9 +56,11 @@ AI tools can invent packages, functions, endpoints and options that don't exist.
 
 ## 6. Session transcripts
 
-The project does not keep AI session transcripts. Each developer's tool keeps its own locally, and they may contain secrets or personal data, so they are not committed.
+Complete session transcripts are kept in the repository under [`ai-transcripts/`](../../ai-transcripts/README.md), as the project requires. Dead ends and failed approaches stay in.
 
-From Sprint 2, every PR that used AI carries a short "AI use" note: what the AI was used for, and what the author checked or tested. (This is a commitment, not yet current practice: Sprint 1 PRs do not have the note, and `.github/pull_request_template.md` does not have the field yet.)
+Raw session files are never committed, because they can contain secrets and personal data. Each transcript is exported from the tool and scrubbed first: keys, tokens, connection strings, `.env` values and personal email addresses are removed, long command output is cut, and internal reasoning blocks and images are left out. The folder's README lists exactly what is changed and how to add a transcript. Every developer adds their own sessions the same way.
+
+From Sprint 2, every PR that used AI also carries a short "AI use" note: what the AI was used for, and what the author checked or tested. (This is a commitment, not yet current practice: Sprint 1 PRs do not have the note, and `.github/pull_request_template.md` does not have the field yet.)
 
 ## 7. Extra security review
 
