@@ -8,10 +8,12 @@ import {
   CircleCheckIcon,
   ExternalLinkIcon,
   InboxIcon,
+  Loader2Icon,
   RefreshCwIcon,
   SearchXIcon,
   XIcon,
 } from "lucide-react";
+import { useTargets } from "@/app/_components/app-shell";
 import { EmptyState } from "@/app/_components/empty-state";
 import { PlatformBadge } from "@/app/_components/platform-badge";
 import { ReviewCard } from "@/app/_components/review-card";
@@ -29,6 +31,7 @@ import {
   isActive,
   reviewCount,
   runDetail,
+  startIngestionRun,
   type IngestionRun,
 } from "@/lib/ingestion-runs";
 import { fetchReviews, REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
@@ -39,8 +42,21 @@ import { platformLabel, shortSource, type Target } from "@/lib/targets";
 const POLL_EVERY_MS = 3_000;
 const POLL_LIMIT_MS = 5 * 60_000;
 
-// Starting a run is S1-019: there is no endpoint yet, so these stay disabled until it lands.
-const INGEST_UNAVAILABLE = "Review ingestion arrives in a later step";
+// S1-019: what the ingest buttons need to start a run.
+type IngestAction = { onStart: () => void; starting: boolean; disabled: boolean };
+
+function IngestButton({ ingest }: { ingest: IngestAction }) {
+  return (
+    <Button onClick={ingest.onStart} disabled={ingest.disabled}>
+      {ingest.starting ? (
+        <Loader2Icon className="animate-spin" aria-hidden="true" />
+      ) : (
+        <RefreshCwIcon aria-hidden="true" />
+      )}
+      {ingest.starting ? "Starting…" : "Ingest reviews"}
+    </Button>
+  );
+}
 
 function WorkspaceSkeleton() {
   return (
@@ -71,6 +87,7 @@ function WorkspaceForUrl() {
 
 function TargetWorkspace({ id }: { id: string }) {
   const router = useRouter();
+  const { refresh: refreshTargets } = useTargets();
   const [target, setTarget] = useState<Target | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +97,36 @@ function TargetWorkspace({ id }: { id: string }) {
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const [reviewsFailed, setReviewsFailed] = useState(false);
   const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
+  // S1-019: a start request is on its way, and why the last one was refused.
+  const [starting, setStarting] = useState(false);
+  const [startError, setStartError] = useState<string | null>(null);
+
+  async function startIngestion() {
+    setStarting(true);
+    setStartError(null);
+    try {
+      // The QUEUED run is active, so the polling below takes over from here.
+      setLatestRun(await startIngestionRun(id));
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        router.replace("/login");
+      } else if (e instanceof ApiError && e.status === 404) {
+        setNotFound(true);
+      } else if (e instanceof ApiError && e.status === 409) {
+        // A run is already queued or running: show it instead of a second one.
+        setStartError(e.message);
+        fetchLatestRun(id)
+          .then(setLatestRun)
+          .catch(() => {});
+      } else {
+        setStartError(
+          e instanceof ApiError ? e.message : "Could not reach the server. Please try again.",
+        );
+      }
+    } finally {
+      setStarting(false);
+    }
+  }
 
   useEffect(() => {
     apiFetch<Target>(`/api/v1/targets/${id}`)
@@ -104,6 +151,12 @@ function TargetWorkspace({ id }: { id: string }) {
         }
       });
   }, [id, router]);
+
+  // The sidebar shows each target's status too, so reload it whenever this run's changes.
+  const runStatus = latestRun?.status ?? null;
+  useEffect(() => {
+    if (runStatus) void refreshTargets();
+  }, [runStatus, refreshTargets]);
 
   // S1-023: keep the status fresh while a run is active, so it moves
   // queued -> running -> finished without a manual refresh. Keyed on the run's
@@ -180,12 +233,24 @@ function TargetWorkspace({ id }: { id: string }) {
 
   if (!target) return <WorkspaceSkeleton />;
 
+  // One active run per target, so the buttons are off while one is queued or running.
+  const ingest: IngestAction = {
+    onStart: startIngestion,
+    starting,
+    disabled: starting || isActive(latestRun?.status ?? target.ingestion_status),
+  };
+
   return (
     <Tabs defaultValue="reviews" className="gap-6">
-      <TargetContextHeader target={target} run={latestRun} reviewsKept={reviews?.length ?? 0} />
+      <TargetContextHeader
+        target={target}
+        run={latestRun}
+        reviewsKept={reviews?.length ?? 0}
+        ingest={ingest}
+      />
 
       {latestRun?.status === "FAILED" && (
-        <RunFailedBanner run={latestRun} reviewsKept={reviews?.length ?? 0} />
+        <RunFailedBanner run={latestRun} reviewsKept={reviews?.length ?? 0} ingest={ingest} />
       )}
       {latestRun?.status === "COMPLETED" && dismissedRunId !== latestRun.id && (
         <Alert className="border-success/30 bg-success/10">
@@ -205,11 +270,23 @@ function TargetWorkspace({ id }: { id: string }) {
         </Alert>
       )}
 
+      {startError && (
+        <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
+          <CircleAlertIcon aria-hidden="true" />
+          <AlertTitle className="line-clamp-none">{startError}</AlertTitle>
+        </Alert>
+      )}
+
       <TabsContent value="ingestion">
         <IngestionPanel target={target} run={latestRun} />
       </TabsContent>
       <TabsContent value="reviews">
-        <ReviewsPanel everIngested={everIngested} reviews={reviews} failed={reviewsFailed} />
+        <ReviewsPanel
+          everIngested={everIngested}
+          reviews={reviews}
+          failed={reviewsFailed}
+          ingest={ingest}
+        />
       </TabsContent>
     </Tabs>
   );
@@ -221,10 +298,12 @@ function TargetContextHeader({
   target,
   run,
   reviewsKept,
+  ingest,
 }: {
   target: Target;
   run: IngestionRun | null;
   reviewsKept: number;
+  ingest: IngestAction;
 }) {
   const status = run?.status ?? target.ingestion_status;
 
@@ -248,10 +327,7 @@ function TargetContextHeader({
             </a>
           </div>
         </div>
-        <Button disabled title={INGEST_UNAVAILABLE}>
-          <RefreshCwIcon aria-hidden="true" />
-          Ingest reviews
-        </Button>
+        <IngestButton ingest={ingest} />
       </div>
 
       {/* S1-023: status badge + detail line. aria-live announces status changes. */}
@@ -284,7 +360,15 @@ function TargetContextHeader({
 }
 
 // S1-023: a failed run is always visible and never looks like a success (§7.3).
-function RunFailedBanner({ run, reviewsKept }: { run: IngestionRun; reviewsKept: number }) {
+function RunFailedBanner({
+  run,
+  reviewsKept,
+  ingest,
+}: {
+  run: IngestionRun;
+  reviewsKept: number;
+  ingest: IngestAction;
+}) {
   const message = failureMessage(run.error_code);
   return (
     <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
@@ -293,8 +377,14 @@ function RunFailedBanner({ run, reviewsKept }: { run: IngestionRun; reviewsKept:
       <AlertDescription>
         {message.next}
         {reviewsKept > 0 && ` Your existing ${reviewCount(reviewsKept)} are unchanged.`}
-        <Button variant="outline" size="sm" disabled title={INGEST_UNAVAILABLE} className="mt-2">
-          Try again
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={ingest.onStart}
+          disabled={ingest.disabled}
+          className="mt-2"
+        >
+          {ingest.starting ? "Starting…" : "Try again"}
         </Button>
       </AlertDescription>
     </Alert>
@@ -339,10 +429,12 @@ function ReviewsPanel({
   everIngested,
   reviews,
   failed,
+  ingest,
 }: {
   everIngested: boolean;
   reviews: Review[] | null;
   failed: boolean;
+  ingest: IngestAction;
 }) {
   const [visible, setVisible] = useState(REVIEWS_PAGE_SIZE);
 
@@ -351,12 +443,7 @@ function ReviewsPanel({
       <EmptyState
         icon={<InboxIcon />}
         message="No reviews yet. Ingest reviews from the source URL to get started."
-        action={
-          <Button disabled title={INGEST_UNAVAILABLE}>
-            <RefreshCwIcon aria-hidden="true" />
-            Ingest reviews
-          </Button>
-        }
+        action={<IngestButton ingest={ingest} />}
       />
     );
   }
