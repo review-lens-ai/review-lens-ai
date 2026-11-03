@@ -28,6 +28,15 @@ class NotFoundError(AppError):
     message = "We couldn't find what you were looking for."
 
 
+class ConflictError(AppError):
+    """The request clashes with the current state, e.g. starting an ingestion
+    while one is already running for the same target."""
+
+    status_code = 409
+    code = "CONFLICT"
+    message = "That can't be done right now. Please try again in a moment."
+
+
 def error_body(code: str, message: str, details: list[dict] | None = None) -> dict:
     body: dict = {"error": {"code": code, "message": message}}
     if details:

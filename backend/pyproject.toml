@@ -12,8 +12,25 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "ruff>=0.8",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+# E/W pycodestyle, F pyflakes, I import order, N naming (see docs/standards/coding-standards.md §2), UP modern syntax, B bugbear
+select = ["E", "W", "F", "I", "N", "UP", "B"]
+# Line length is kept by `ruff format` (88) wherever it can wrap. E501 only flags what the
+# formatter cannot wrap (long strings, SQL, comments), so it is not enforced as a lint rule.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# The fake environment must be set BEFORE the app is imported, so these imports
+# cannot sit at the top of the file.
+"tests/conftest.py" = ["E402"]
