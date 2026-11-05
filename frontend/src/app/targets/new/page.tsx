@@ -177,10 +177,6 @@ export default function NewTargetPage() {
                 <FieldLabel htmlFor="source-url">
                   Source URL <Required />
                 </FieldLabel>
-                <FieldDescription id="source-url-help">
-                  Paste the {SUPPORTED_PLATFORM_LABEL} link for this place from your browser&apos;s
-                  address bar.
-                </FieldDescription>
                 <Input
                   ref={sourceUrlInput}
                   id="source-url"
@@ -190,9 +186,7 @@ export default function NewTargetPage() {
                   disabled={submitting}
                   onChange={(e) => setSourceUrl(e.target.value)}
                   aria-invalid={Boolean(errors.source_url)}
-                  aria-describedby={
-                    errors.source_url ? "source-url-help source-url-error" : "source-url-help"
-                  }
+                  aria-describedby={errors.source_url ? "source-url-error" : undefined}
                   placeholder="https://www.google.com/maps/place/..."
                   className="font-mono"
                 />
