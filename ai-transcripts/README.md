@@ -8,8 +8,10 @@ Transcripts of the AI-assisted development sessions for ReviewLens, kept here as
 |---|---|
 | `2026-10-23-session-1-understand-repo-and-plan.md` | First session: understanding the repo, the stories and the design |
 | `2026-10-25-session-2-sprint-1-build-and-review.md` | Sprint 1 work: auth, data model, targets, tests, reviews of teammates' PRs |
+| `2026-10-23-andy-session-1-git-branch-question.md` | A git branch error (short) |
+| `2026-10-23-andy-session-2-sprint-1-env-auth-ownership-reviews.md` | Sprint 1 work: env and secrets (S1-008), route protection (S1-010), ownership (S1-011 to S1-013), the S1-022 schema sync and fix, demo preparation |
 
-Both sessions are by the developer who owns S1-009 and S1-014 to S1-018, working with Claude Code. Other team members add their own sessions here, the same way.
+The first two sessions are by the developer who owns S1-009 and S1-014 to S1-018; the `andy` sessions are by the developer who owns S1-008 and S1-010 to S1-013. Both worked with Claude Code. Other team members add their own sessions here, the same way.
 
 ## What was changed before they were committed
 
@@ -17,8 +19,8 @@ Each file was exported from the tool's saved session and then scrubbed. The conv
 
 - **Removed secrets:** every value from the project's `.env` files, database connection strings, JWTs, Supabase keys, GitHub and API tokens, bearer tokens, key and password assignments, the Supabase project id, and personal email addresses. Each is replaced by a marker such as `[REDACTED]`.
 - **Shortened:** a command's output longer than 3,000 characters is cut, with a note saying how much was left out.
-- **Left out:** the assistant's internal reasoning blocks and any images (screenshots).
-- **Local paths:** the username in file paths is replaced by `<user>`.
+- **Left out:** the assistant's internal reasoning blocks, any images (screenshots), and the tool's automatic `<system-reminder>` notes.
+- **Local paths:** the username in file paths is replaced by `<user>` (and the machine name by `<host>`).
 
 Test values that appear in tests (for example `user:pass@...` in a link that must be rejected) are fake and were left as they are.
 
