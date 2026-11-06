@@ -20,13 +20,11 @@ const eslintConfig = defineConfig([
         { selector: "typeLike", format: ["PascalCase"] },
         { selector: ["property", "enumMember", "import"], format: null },
       ],
-      // Files: PascalCase components, kebab-case otherwise; Next.js route folders.
+      // Files: kebab-case everywhere (components too: shadcn generates kebab-case);
+      // Next.js route folders.
       "check-file/filename-naming-convention": [
         "error",
-        {
-          "src/components/**/*.tsx": "PASCAL_CASE",
-          "src/!(components)/**/*.{ts,tsx}": "KEBAB_CASE",
-        },
+        { "src/**/*.{ts,tsx}": "KEBAB_CASE" },
         { ignoreMiddleExtensions: true },
       ],
       "check-file/folder-naming-convention": ["error", { "src/**/": "NEXT_JS_APP_ROUTER_CASE" }],

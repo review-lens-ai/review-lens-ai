@@ -57,10 +57,10 @@ Use these terms everywhere. No synonyms.
 - Identifiers: camelCase; PascalCase for components and types; UPPER_CASE for constants.
   The exported component is PascalCase even though its file is kebab-case:
   `status-badge.tsx` exports `StatusBadge`.
-- TypeScript files: kebab-case (`status-badge.tsx`, `api-client.ts`), enforced by the
-  `check-file` lint rule. Shared components live in `src/app/_components/`
-  (shadcn primitives in `src/app/_components/ui/`). `src/components/` is not used:
-  the lint rule would require PascalCase file names there, and shadcn generates kebab-case.
+- TypeScript files: kebab-case everywhere (`status-badge.tsx`, `api-client.ts`),
+  enforced by the `check-file` lint rule with no exceptions. Shared components live in
+  `src/app/_components/` (shadcn primitives in `src/app/_components/ui/`). Use that
+  folder, not `src/components/`, so shadcn's generated kebab-case files fit.
 - Next.js routes: lowercase folders, private folders prefixed `_`, reserved file names only (`page.tsx`, `layout.tsx`).
 
 ### Database
@@ -87,7 +87,7 @@ Use these terms everywhere. No synonyms.
 
 ### Tests
 
-- Files: `test_<module>.py`, `<Component>.test.tsx`.
+- Files: `test_<module>.py`, `<kebab-case-name>.test.tsx` (e.g. `status-badge.test.tsx`).
 - Names: `test_<subject>_<expected_result>`, e.g. `test_user_b_cannot_read_user_a_target`.
 - Fixtures: `<provider>_<scenario>.json`.
 
