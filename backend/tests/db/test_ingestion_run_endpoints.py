@@ -6,7 +6,9 @@ import pytest
 from app.db import get_connection
 from app.main import app
 from app.repositories.ingestion_runs import ErrorCode, IngestionRunRepository
+from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
+from app.services.normalize_reviews import RejectedRecord, RejectionReason
 from tests.conftest import auth
 
 URL = "https://www.google.com/maps/place/Joes+Pizza/@40.73,-73.99,17z/data=!3m1!4b1!4m6!3m5!1s0x89c2537da9b3163d:0x2be30fcff506fec8!8m2!3d40.73!4d-73.99"
@@ -47,7 +49,7 @@ def _latest(api, target_id, token):
 def test_never_ingested_target_has_no_run(api, setup):
     r = _latest(api, setup["target_id"], setup["token_a"])
     assert r.status_code == 200
-    assert r.json() == {"run": None}
+    assert r.json() == {"run": None, "skipped_reasons": []}
 
 
 def test_queued_run_is_reported_as_queued(api, setup):
@@ -87,6 +89,71 @@ def test_run_with_skipped_reviews_is_reported_as_partial(api, setup):
     body = _latest(api, setup["target_id"], setup["token_a"]).json()["run"]
     assert body["status"] == "PARTIAL"
     assert body["reviews_rejected"] == 2
+
+
+def _skip(conn, setup, run, *reasons):
+    """Save skipped records for a RUNNING run. The record text holds a marker so
+    a test can prove it is never sent."""
+    records = [
+        RejectedRecord(reason, {"review_id": f"r{i}", "snippet": "SECRET-RECORD-TEXT"})
+        for i, reason in enumerate(reasons)
+    ]
+    ReviewRepository(conn).save_rejections(
+        run["id"], setup["target_id"], setup["user_a"], records
+    )
+
+
+def test_partial_run_explains_why_records_were_skipped(api, conn, setup):
+    run = _start(setup)
+    _skip(
+        conn,
+        setup,
+        run,
+        RejectionReason.MISSING_TEXT,
+        RejectionReason.MISSING_TEXT,
+        RejectionReason.MISSING_RATING,
+    )
+    setup["runs"].mark_succeeded(run["id"], reviews_ingested=40, reviews_rejected=3)
+
+    body = _latest(api, setup["target_id"], setup["token_a"]).json()
+
+    assert body["run"]["status"] == "PARTIAL"
+    assert body["skipped_reasons"] == [
+        {"reason": "MISSING_TEXT", "count": 2},
+        {"reason": "MISSING_RATING", "count": 1},
+    ]
+
+
+def test_the_skipped_records_themselves_are_never_sent(api, conn, setup):
+    run = _start(setup)
+    _skip(conn, setup, run, RejectionReason.MISSING_TEXT)
+    setup["runs"].mark_succeeded(run["id"], reviews_ingested=5, reviews_rejected=1)
+
+    r = _latest(api, setup["target_id"], setup["token_a"])
+
+    assert "SECRET-RECORD-TEXT" not in r.text
+    assert "raw_record" not in r.text
+
+
+def test_a_run_that_skipped_nothing_has_no_reasons(api, setup):
+    run = _start(setup)
+    setup["runs"].mark_succeeded(run["id"], reviews_ingested=42)
+
+    body = _latest(api, setup["target_id"], setup["token_a"]).json()
+
+    assert body["skipped_reasons"] == []
+
+
+def test_a_failed_run_that_skipped_everything_still_says_why(api, conn, setup):
+    run = _start(setup)
+    _skip(conn, setup, run, RejectionReason.MISSING_TEXT, RejectionReason.MISSING_TEXT)
+    setup["runs"].mark_succeeded(run["id"], reviews_ingested=0, reviews_rejected=2)
+
+    body = _latest(api, setup["target_id"], setup["token_a"]).json()
+
+    assert body["run"]["status"] == "FAILED"
+    assert body["run"]["error_code"] == "NO_REVIEWS_FOUND"
+    assert body["skipped_reasons"] == [{"reason": "MISSING_TEXT", "count": 2}]
 
 
 def test_failed_run_reports_only_the_safe_error_code(api, setup):

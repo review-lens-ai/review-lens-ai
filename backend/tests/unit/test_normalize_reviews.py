@@ -4,9 +4,11 @@ import json
 import math
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import get_args
 
 import pytest
 
+from app.schemas.ingestion_runs import SkipReasonCode
 from app.services.normalize_reviews import (
     RejectionReason,
     normalize_pages,
@@ -371,6 +373,12 @@ def test_every_rejection_reason_has_its_own_code(reason):
 def test_reason_codes_are_all_different():
     codes = {reason_code(str(reason)) for reason in RejectionReason}
     assert len(codes) == len(RejectionReason)
+
+
+def test_the_api_contract_lists_every_reason_code():
+    # If a reason is added to RejectionReason, the API must be able to send it.
+    sent = set(get_args(SkipReasonCode))
+    assert sent == {reason.name for reason in RejectionReason} | {"OTHER"}
 
 
 @pytest.mark.parametrize(

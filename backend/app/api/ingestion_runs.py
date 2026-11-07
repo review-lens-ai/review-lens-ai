@@ -46,5 +46,10 @@ def start_ingestion_run(target_id: UUID, owner_id: OwnerId, runs: Runs) -> dict:
 def get_latest_ingestion_run(target_id: UUID, owner_id: OwnerId, runs: Runs) -> dict:
     """S1-023: the newest ingestion attempt for one of the user's targets, so the
     workspace can show running / succeeded / failed. `run` is null when the
-    target was never ingested."""
-    return {"run": runs.latest_for_target(target_id, owner_id)}
+    target was never ingested. S2-007: `skipped_reasons` says why the run
+    skipped records (codes and counts only)."""
+    run = runs.latest_for_target(target_id, owner_id)
+    skipped = []
+    if run is not None and run["reviews_rejected"] > 0:
+        skipped = runs.skipped_reasons(target_id, owner_id, run["id"])
+    return {"run": run, "skipped_reasons": skipped}
