@@ -148,7 +148,7 @@ describe("runFailureMessage (S2-007)", () => {
     expect(message.title).toBe("Reviews were found, but none could be used.");
     expect(message.next).toBe(
       "All 2 records were skipped: no written review (star rating only) ×2. " +
-        "None of them are in your review dataset.",
+        "None of them were added to your reviews.",
     );
   });
 

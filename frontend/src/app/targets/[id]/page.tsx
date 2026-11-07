@@ -354,8 +354,8 @@ function TargetWorkspace({ id }: { id: string }) {
           {/* S2-007: why records were skipped, and that they are not in the dataset. */}
           {skippedReasons.length > 0 && (
             <AlertDescription>
-              Skipped: {skippedSummary(skippedReasons)}. Skipped records are not in your review
-              dataset.
+              Skipped: {skippedSummary(skippedReasons)}. These records were not added to your
+              reviews.
             </AlertDescription>
           )}
         </Alert>
@@ -571,20 +571,45 @@ function IngestionPanel({
       </dl>
       {/* S2-007: why this run skipped records. Skipped records are not reviews. */}
       {reasons.length > 0 && (
-        <div className="flex max-w-xl flex-col gap-2 rounded-xl border bg-card p-6 text-sm">
+        <div className="max-w-xl rounded-xl border bg-card p-6 text-sm">
           <h3 className="font-semibold">Why records were skipped</h3>
-          <ul className="flex flex-col gap-1">
-            {reasons.map(({ reason, count }) => {
-              const label = skipReasonLabel(reason);
-              return (
-                <li key={reason} className="flex justify-between gap-4">
-                  <span>{label.charAt(0).toUpperCase() + label.slice(1)}</span>
-                  <span className="font-medium">{count}</span>
-                </li>
-              );
-            })}
-          </ul>
-          <p className="text-muted-foreground">Skipped records are not in your review dataset.</p>
+          <p className="mt-1 text-muted-foreground">
+            These records were not added to your reviews.
+          </p>
+          <table className="mt-4 w-full">
+            <thead>
+              <tr className="text-xs text-muted-foreground">
+                <th scope="col" className="pb-2 text-left font-medium">
+                  Reason
+                </th>
+                <th scope="col" className="pb-2 text-right font-medium">
+                  Records
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {reasons.map(({ reason, count }) => {
+                const label = skipReasonLabel(reason);
+                return (
+                  <tr key={reason}>
+                    <td className="py-2 pr-4">{label.charAt(0).toUpperCase() + label.slice(1)}</td>
+                    <td className="py-2 text-right font-medium tabular-nums">{count}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            {/* With more than one reason, show the total so the numbers add up. */}
+            {reasons.length > 1 && (
+              <tfoot>
+                <tr className="border-t font-medium">
+                  <td className="pt-2 pr-4">Total skipped</td>
+                  <td className="pt-2 text-right tabular-nums">
+                    {reasons.reduce((sum, r) => sum + r.count, 0)}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
         </div>
       )}
     </section>

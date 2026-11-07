@@ -114,7 +114,7 @@ export function runFailureMessage(
   const why = reasons.length > 0 ? `: ${skippedSummary(reasons)}` : "";
   return {
     title: "Reviews were found, but none could be used.",
-    next: `All ${skipped}${why}. None of them are in your review dataset.`,
+    next: `All ${skipped}${why}. None of them were added to your reviews.`,
   };
 }
 

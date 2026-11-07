@@ -541,7 +541,7 @@ describe("reviews list", () => {
 
     await screen.findByText(
       "Skipped: no written review (star rating only) ×3, no star rating ×1. " +
-        "Skipped records are not in your review dataset.",
+        "These records were not added to your reviews.",
     );
   });
 
@@ -577,7 +577,24 @@ describe("reviews list", () => {
     await screen.findByText("Why records were skipped");
     expect(screen.getByText("No written review (star rating only)")).toBeTruthy();
     expect(screen.getByText("No star rating")).toBeTruthy();
-    expect(screen.getByText("Skipped records are not in your review dataset.")).toBeTruthy();
+    expect(screen.getByText("These records were not added to your reviews.")).toBeTruthy();
+    // A table with named columns, and a total that adds the reasons up (3 + 1).
+    expect(screen.getByRole("columnheader", { name: "Reason" })).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "Records" })).toBeTruthy();
+    const total = screen.getByText("Total skipped").closest("tr");
+    expect(total?.textContent).toBe("Total skipped4");
+  });
+
+  it("the Ingestion tab shows no total row when there is only one reason", async () => {
+    backendHas(partialRun(), [{ reason: "MISSING_TEXT", count: 4 }]);
+    backendHoldsReviews(14);
+    await openWorkspace("Partially ingested");
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Why records were skipped");
+    expect(screen.getByText("No written review (star rating only)")).toBeTruthy();
+    expect(screen.queryByText("Total skipped")).toBeNull();
   });
 
   it("the Ingestion tab has no skip list when nothing was skipped", async () => {
@@ -618,7 +635,7 @@ describe("reviews list", () => {
     expect(
       screen.getByText(
         "All 2 records were skipped: no written review (star rating only) ×2. " +
-          "None of them are in your review dataset.",
+          "None of them were added to your reviews.",
       ),
     ).toBeTruthy();
     expect(screen.queryByText("This page didn't return any reviews.")).toBeNull();
