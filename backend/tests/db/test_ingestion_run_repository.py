@@ -120,6 +120,36 @@ def test_zero_saved_reviews_is_a_failure_not_a_success(runs, running_run):
     assert done["error_code"] == "NO_REVIEWS_FOUND"
 
 
+def test_a_rerun_that_finds_only_saved_reviews_is_completed_not_failed(
+    runs, running_run
+):
+    done = runs.mark_succeeded(
+        running_run["id"], reviews_ingested=0, reviews_duplicate=25
+    )
+
+    assert done["status"] == "COMPLETED"
+    assert done["error_code"] is None
+    assert done["reviews_ingested"] == 0
+    assert done["reviews_duplicate"] == 25
+
+
+def test_a_rerun_with_only_saved_and_skipped_reviews_is_partial(runs, running_run):
+    done = runs.mark_succeeded(
+        running_run["id"], reviews_ingested=0, reviews_rejected=2, reviews_duplicate=23
+    )
+
+    assert done["status"] == "PARTIAL"
+
+
+def test_a_run_that_found_nothing_at_all_still_fails(runs, running_run):
+    done = runs.mark_succeeded(
+        running_run["id"], reviews_ingested=0, reviews_rejected=3
+    )
+
+    assert done["status"] == "FAILED"
+    assert done["error_code"] == "NO_REVIEWS_FOUND"
+
+
 def test_queued_run_cannot_succeed_without_running(runs, owned_target):
     target_id, owner = owned_target
     run = runs.create_run(target_id, owner)
