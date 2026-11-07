@@ -20,7 +20,9 @@ from app.repositories.ingestion_runs import (
     InvalidRunTransitionError,
     scrub_detail,
 )
+from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
+from app.services.normalize_reviews import RejectedRecord, RejectionReason
 
 URL = "https://www.google.com/maps/place/Joes+Pizza"
 
@@ -365,6 +367,96 @@ def test_user_b_cannot_read_user_a_runs(runs, owned_target, make_user):
     runs.create_run(target_id, owner)
     with pytest.raises(NotFoundError):
         runs.latest_for_target(target_id, make_user())
+
+
+# --- why records were skipped (S2-007) ---------------------------------------------
+
+
+def _skip(conn, run, owner, *reasons):
+    """Record skipped source records for a RUNNING run, one per reason given."""
+    records = [
+        RejectedRecord(reason, {"review_id": f"r{i}", "rating": 5})
+        for i, reason in enumerate(reasons)
+    ]
+    ReviewRepository(conn).save_rejections(run["id"], run["target_id"], owner, records)
+
+
+def test_skipped_records_are_counted_by_reason_most_common_first(
+    conn, runs, running_run, owned_target
+):
+    _target_id, owner = owned_target
+    _skip(
+        conn,
+        running_run,
+        owner,
+        RejectionReason.MISSING_RATING,
+        RejectionReason.MISSING_TEXT,
+        RejectionReason.MISSING_TEXT,
+        RejectionReason.MISSING_TEXT,
+    )
+
+    result = runs.skipped_reasons(running_run["target_id"], owner, running_run["id"])
+
+    assert result == [
+        {"reason": "MISSING_TEXT", "count": 3},
+        {"reason": "MISSING_RATING", "count": 1},
+    ]
+
+
+def test_a_run_that_skipped_nothing_has_no_reasons(runs, running_run, owned_target):
+    _target_id, owner = owned_target
+    assert (
+        runs.skipped_reasons(running_run["target_id"], owner, running_run["id"]) == []
+    )
+
+
+def test_unknown_stored_reasons_are_added_up_as_other(
+    conn, runs, running_run, owned_target
+):
+    _target_id, owner = owned_target
+    for i, text in enumerate(["odd thing", "another odd thing"]):
+        conn.execute(
+            "insert into public.ingestion_rejections (run_id, reason, raw_record) "
+            "values (%s, %s, %s)",
+            (running_run["id"], text, f'{{"review_id": "x{i}"}}'),
+        )
+
+    result = runs.skipped_reasons(running_run["target_id"], owner, running_run["id"])
+
+    assert result == [{"reason": "OTHER", "count": 2}]
+
+
+def test_reasons_never_include_the_stored_record(conn, runs, running_run, owned_target):
+    _target_id, owner = owned_target
+    _skip(conn, running_run, owner, RejectionReason.MISSING_TEXT)
+
+    result = runs.skipped_reasons(running_run["target_id"], owner, running_run["id"])
+
+    assert set(result[0]) == {"reason", "count"}
+
+
+def test_user_b_cannot_read_user_a_skipped_reasons(
+    conn, runs, running_run, owned_target, make_user
+):
+    _target_id, owner = owned_target
+    _skip(conn, running_run, owner, RejectionReason.MISSING_TEXT)
+
+    with pytest.raises(NotFoundError):
+        runs.skipped_reasons(running_run["target_id"], make_user(), running_run["id"])
+
+
+def test_a_run_from_another_target_gives_no_reasons(
+    conn, runs, running_run, owned_target
+):
+    target_id, owner = owned_target
+    _skip(conn, running_run, owner, RejectionReason.MISSING_TEXT)
+    other = TargetRepository(conn).create(
+        owner, "Other Place", "google_maps", URL + "-2"
+    )
+
+    # The run exists and has skipped records, but it is not this target's run.
+    assert runs.skipped_reasons(other["id"], owner, running_run["id"]) == []
+    assert target_id != other["id"]
 
 
 def _owner_of(runs, target_id):

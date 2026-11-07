@@ -54,6 +54,7 @@ from psycopg.types.json import Jsonb
 
 from app.core.errors import ConflictError
 from app.repositories.targets import TargetRepository
+from app.services.normalize_reviews import reason_code
 
 logger = logging.getLogger(__name__)
 
@@ -321,6 +322,35 @@ class IngestionRunRepository:
             """,
             (target_id,),
         ).fetchone()
+
+    def skipped_reasons(
+        self, target_id: UUID | str, owner_id: UUID | str, run_id: UUID | str
+    ) -> list[dict]:
+        """Why one run skipped records: [{"reason": code, "count": n}], most
+        common first (S2-007). Only counts and reason codes: never the stored
+        records. Another user's target raises NotFoundError; a run that is not
+        on this target gives an empty list."""
+        self._targets.get_owned(target_id, owner_id)
+        rows = self._conn.execute(
+            """
+            select x.reason, count(*) as count
+              from public.ingestion_rejections x
+              join public.ingestion_runs r on r.id = x.run_id
+             where x.run_id = %s and r.target_id = %s
+             group by x.reason
+            """,
+            (run_id, target_id),
+        ).fetchall()
+        # Different stored texts can map to the same code (every unknown one is
+        # OTHER), so add them up before sorting.
+        totals: dict[str, int] = {}
+        for row in rows:
+            code = reason_code(row["reason"])
+            totals[code] = totals.get(code, 0) + row["count"]
+        return [
+            {"reason": code, "count": count}
+            for code, count in sorted(totals.items(), key=lambda t: (-t[1], t[0]))
+        ]
 
     def _fail_stale_runs(self, target_id: UUID | str) -> None:
         """Fail any QUEUED or RUNNING run that has made no progress for too long."""
