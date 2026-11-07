@@ -6,9 +6,13 @@ vi.mock("@/lib/api", () => ({ apiFetch: vi.fn() }));
 import { apiFetch } from "@/lib/api";
 import {
   failureMessage,
+  fetchLatestRun,
   isActive,
   reviewCount,
   runDetail,
+  runFailureMessage,
+  skippedSummary,
+  skipReasonLabel,
   startIngestionRun,
   type IngestionRun,
 } from "./ingestion-runs";
@@ -97,5 +101,85 @@ describe("startIngestionRun (S1-019)", () => {
     vi.mocked(apiFetch).mockRejectedValueOnce(conflict);
 
     await expect(startIngestionRun("target-1")).rejects.toBe(conflict);
+  });
+});
+
+describe("skipReasonLabel (S2-007)", () => {
+  it("says a star-rating-only review has no written review", () => {
+    expect(skipReasonLabel("MISSING_TEXT")).toBe("no written review (star rating only)");
+  });
+
+  it("gives every reason its own specific wording", () => {
+    const codes = ["MISSING_TEXT", "MISSING_RATING", "INVALID_RATING", "NOT_A_RECORD", "OTHER"];
+    const labels = codes.map(skipReasonLabel);
+    expect(new Set(labels).size).toBe(codes.length);
+  });
+
+  it("shows an unknown code as 'other reason', never as raw text", () => {
+    expect(skipReasonLabel("SOMETHING_NEW")).toBe("other reason");
+    expect(skipReasonLabel("")).toBe("other reason");
+  });
+});
+
+describe("skippedSummary (S2-007)", () => {
+  it("lists each reason with its count", () => {
+    expect(
+      skippedSummary([
+        { reason: "MISSING_TEXT", count: 3 },
+        { reason: "MISSING_RATING", count: 1 },
+      ]),
+    ).toBe("no written review (star rating only) ×3, no star rating ×1");
+  });
+
+  it("is empty when nothing was skipped", () => {
+    expect(skippedSummary([])).toBe("");
+  });
+});
+
+describe("runFailureMessage (S2-007)", () => {
+  const skippedAll = ingestionRun({
+    status: "FAILED",
+    error_code: "NO_REVIEWS_FOUND",
+    reviews_rejected: 2,
+  });
+
+  it("says reviews were found but none could be used, when every record was skipped", () => {
+    const message = runFailureMessage(skippedAll, [{ reason: "MISSING_TEXT", count: 2 }]);
+    expect(message.title).toBe("Reviews were found, but none could be used.");
+    expect(message.next).toBe(
+      "All 2 records were skipped: no written review (star rating only) ×2. " +
+        "None of them are in your review dataset.",
+    );
+  });
+
+  it("uses the singular for one skipped record", () => {
+    const one = { ...skippedAll, reviews_rejected: 1 };
+    expect(runFailureMessage(one, []).next).toContain("All 1 record was skipped.");
+  });
+
+  it("still gives the old message when the page really returned nothing", () => {
+    const empty = { ...skippedAll, reviews_rejected: 0 };
+    expect(runFailureMessage(empty, [])).toEqual(failureMessage("NO_REVIEWS_FOUND"));
+  });
+
+  it("leaves every other failure message alone, even if records were skipped", () => {
+    const timeout = { ...skippedAll, error_code: "TIMEOUT" };
+    expect(runFailureMessage(timeout, [])).toEqual(failureMessage("TIMEOUT"));
+  });
+});
+
+describe("fetchLatestRun (S2-007)", () => {
+  it("returns the run together with why it skipped records", async () => {
+    const run = ingestionRun({ status: "PARTIAL", reviews_rejected: 3 });
+    const reasons = [{ reason: "MISSING_TEXT", count: 3 }];
+    vi.mocked(apiFetch).mockResolvedValueOnce({ run, skipped_reasons: reasons });
+
+    expect(await fetchLatestRun("t1")).toEqual({ run, skipped_reasons: reasons });
+  });
+
+  it("treats a response without reasons as none skipped", async () => {
+    vi.mocked(apiFetch).mockResolvedValueOnce({ run: null });
+
+    expect(await fetchLatestRun("t1")).toEqual({ run: null, skipped_reasons: [] });
   });
 });

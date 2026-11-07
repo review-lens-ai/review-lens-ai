@@ -1,7 +1,7 @@
 // Integration tests for the target workspace page: the Start ingestion and
 // Try again buttons (#55). The whole page is rendered, and MSW plays the backend.
 import { describe, expect, it, vi } from "vitest";
-import type { IngestionRun } from "@/lib/ingestion-runs";
+import type { IngestionRun, SkippedReason } from "@/lib/ingestion-runs";
 import {
   act,
   API,
@@ -60,7 +60,8 @@ const failedRun = ingestionRun({ target_id: TARGET_ID, status: "FAILED", error_c
 
 // Sets up the endpoints the page calls when it opens.
 // latestRun is the newest ingestion run, or null if the target was never ingested.
-function backendHas(latestRun: IngestionRun | null) {
+// skippedReasons says why that run skipped records (S2-007); none by default.
+function backendHas(latestRun: IngestionRun | null, skippedReasons: SkippedReason[] = []) {
   let status: IngestionRun["status"] | null = null;
   if (latestRun !== null) {
     status = latestRun.status;
@@ -69,7 +70,9 @@ function backendHas(latestRun: IngestionRun | null) {
   server.use(
     http.get(TARGET_URL, () => jsonResponse(target({ id: TARGET_ID, ingestion_status: status }))),
     http.get(REVIEWS_URL, () => jsonResponse(reviewPage([]))),
-    http.get(LATEST_RUN_URL, () => jsonResponse({ run: latestRun })),
+    http.get(LATEST_RUN_URL, () =>
+      jsonResponse({ run: latestRun, skipped_reasons: skippedReasons }),
+    ),
   );
 }
 
@@ -525,6 +528,46 @@ describe("reviews list", () => {
     await openWorkspace("Ingested");
 
     expect(screen.queryByText("Failed")).toBeNull();
+  });
+
+  it("says reviews were found but none could be used when every record was skipped", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "FAILED",
+        error_code: "NO_REVIEWS_FOUND",
+        reviews_rejected: 2,
+      }),
+      [{ reason: "MISSING_TEXT", count: 2 }],
+    );
+    backendHoldsReviews(0);
+
+    await openWorkspace("Failed");
+
+    await screen.findByText("Reviews were found, but none could be used.");
+    expect(
+      screen.getByText(
+        "All 2 records were skipped: no written review (star rating only) ×2. " +
+          "None of them are in your review dataset.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("This page didn't return any reviews.")).toBeNull();
+  });
+
+  it("still says the page returned nothing when no record was skipped", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "FAILED",
+        error_code: "NO_REVIEWS_FOUND",
+        reviews_rejected: 0,
+      }),
+    );
+    backendHoldsReviews(0);
+
+    await openWorkspace("Failed");
+
+    await screen.findByText("This page didn't return any reviews.");
   });
 
   it("shows Failed for a failed run even when the target has review rows", async () => {
