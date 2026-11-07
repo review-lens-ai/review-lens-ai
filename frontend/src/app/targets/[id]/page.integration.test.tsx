@@ -521,6 +521,76 @@ describe("reviews list", () => {
     expect(screen.queryByText(/3 skipped as unusable/)).toBeNull();
   });
 
+  // S2-007 / S2-BR-006: skipped records say why, and that they are not in the dataset.
+  const partialRun = () =>
+    ingestionRun({
+      target_id: TARGET_ID,
+      status: "PARTIAL",
+      reviews_ingested: 14,
+      reviews_rejected: 4,
+    });
+
+  it("the partial banner says why records were skipped and that they are not in the dataset", async () => {
+    backendHas(partialRun(), [
+      { reason: "MISSING_TEXT", count: 3 },
+      { reason: "MISSING_RATING", count: 1 },
+    ]);
+    backendHoldsReviews(14);
+
+    await openWorkspace("Partially ingested");
+
+    await screen.findByText(
+      "Skipped: no written review (star rating only) ×3, no star rating ×1. " +
+        "Skipped records are not in your review dataset.",
+    );
+  });
+
+  it("shows an unknown skip reason as 'other reason', never as raw text", async () => {
+    backendHas(partialRun(), [{ reason: "SOMETHING_NEW" as never, count: 4 }]);
+    backendHoldsReviews(14);
+
+    await openWorkspace("Partially ingested");
+
+    await screen.findByText(/Skipped: other reason ×4\./);
+    expect(screen.queryByText(/SOMETHING_NEW/)).toBeNull();
+  });
+
+  it("shows no 'Skipped:' line when the run skipped nothing", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    backendHoldsReviews(3);
+
+    await openWorkspace("Ingested");
+
+    expect(screen.queryByText(/Skipped:/)).toBeNull();
+  });
+
+  it("the Ingestion tab lists why records were skipped", async () => {
+    backendHas(partialRun(), [
+      { reason: "MISSING_TEXT", count: 3 },
+      { reason: "MISSING_RATING", count: 1 },
+    ]);
+    backendHoldsReviews(14);
+    await openWorkspace("Partially ingested");
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Why records were skipped");
+    expect(screen.getByText("No written review (star rating only)")).toBeTruthy();
+    expect(screen.getByText("No star rating")).toBeTruthy();
+    expect(screen.getByText("Skipped records are not in your review dataset.")).toBeTruthy();
+  });
+
+  it("the Ingestion tab has no skip list when nothing was skipped", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    backendHoldsReviews(3);
+    await openWorkspace("Ingested");
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Latest run");
+    expect(screen.queryByText("Why records were skipped")).toBeNull();
+  });
+
   it("shows Ingested for a completed run even when the target has no review rows", async () => {
     backendHas(ingestionRun({ target_id: TARGET_ID, status: "COMPLETED", reviews_ingested: 5 }));
     backendHoldsReviews(0);

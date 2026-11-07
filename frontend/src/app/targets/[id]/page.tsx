@@ -32,6 +32,8 @@ import {
   reviewCount,
   runDetail,
   runFailureMessage,
+  skippedSummary,
+  skipReasonLabel,
   startIngestionRun,
   type IngestionRun,
   type SkippedReason,
@@ -349,6 +351,13 @@ function TargetWorkspace({ id }: { id: string }) {
               <XIcon className="size-4" aria-hidden="true" />
             </button>
           </AlertTitle>
+          {/* S2-007: why records were skipped, and that they are not in the dataset. */}
+          {skippedReasons.length > 0 && (
+            <AlertDescription>
+              Skipped: {skippedSummary(skippedReasons)}. Skipped records are not in your review
+              dataset.
+            </AlertDescription>
+          )}
         </Alert>
       )}
 
@@ -360,7 +369,7 @@ function TargetWorkspace({ id }: { id: string }) {
       )}
 
       <TabsContent value="ingestion">
-        <IngestionPanel target={target} run={latestRun} />
+        <IngestionPanel target={target} run={latestRun} reasons={skippedReasons} />
       </TabsContent>
       <TabsContent value="reviews">
         <ReviewsPanel
@@ -518,7 +527,15 @@ function startedText(run: IngestionRun): string {
   return run.status === "FAILED" ? "Never started" : "Not started yet";
 }
 
-function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | null }) {
+function IngestionPanel({
+  target,
+  run,
+  reasons,
+}: {
+  target: Target;
+  run: IngestionRun | null;
+  reasons: SkippedReason[];
+}) {
   if (!run) {
     return (
       <EmptyState
@@ -552,6 +569,24 @@ function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | n
           </div>
         ))}
       </dl>
+      {/* S2-007: why this run skipped records. Skipped records are not reviews. */}
+      {reasons.length > 0 && (
+        <div className="flex max-w-xl flex-col gap-2 rounded-xl border bg-card p-6 text-sm">
+          <h3 className="font-semibold">Why records were skipped</h3>
+          <ul className="flex flex-col gap-1">
+            {reasons.map(({ reason, count }) => {
+              const label = skipReasonLabel(reason);
+              return (
+                <li key={reason} className="flex justify-between gap-4">
+                  <span>{label.charAt(0).toUpperCase() + label.slice(1)}</span>
+                  <span className="font-medium">{count}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="text-muted-foreground">Skipped records are not in your review dataset.</p>
+        </div>
+      )}
     </section>
   );
 }
