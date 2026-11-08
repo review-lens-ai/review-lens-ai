@@ -140,6 +140,28 @@ New dependencies must be approved by the team. In the PR, link the official sour
 
 ## 8. Testing
 
+### Changed-code coverage (S2-001)
+
+A pull request into `dev` fails CI if the lines it adds or changes are less than **80%**
+covered by tests. Old untested code does not block it; only the lines in the PR count.
+
+| | |
+|---|---|
+| Mechanism | `pytest-cov` (backend) and `@vitest/coverage-v8` (frontend) record which lines the tests run. `diff-cover` compares that with the PR's git diff. |
+| Policy | At least 80% of changed lines covered, checked **separately** for the backend and the frontend, so a large backend change cannot hide an untested frontend one. Line and branch coverage. |
+| Where it runs | The `Changed-code coverage` step of the required `check` job, on pull requests into `dev` only. A `dev` → `main` PR is a whole release, already checked on its way into `dev`. |
+| Run it locally | `TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres ./scripts/coverage.sh` (needs the test database; compares against `origin/dev`, or set `COVERAGE_BASE`) |
+
+Excluded, and why:
+
+- `frontend/src/app/_components/ui/`: shadcn components, generated and not written by us.
+- Test code (`backend/tests/`, `frontend/src/test/`, `*.test.*`): it is the tests, not the
+  behavior under test.
+
+Every other source file counts, including pages no test loads yet: they show as 0%, not as
+missing. Coverage shows that a line ran, not that a test checked it, so reviewers still judge
+whether the tests assert the right behavior.
+
 ### Frontend
 
 Two kinds of tests. `npm test` runs both, and CI runs `npm test`.

@@ -28,6 +28,9 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          # Full history, so the coverage gate can compare against the base branch.
+          fetch-depth: 0
 
       - uses: astral-sh/setup-uv@v10.3.3
         with:
@@ -51,6 +54,15 @@ jobs:
         env:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: ./scripts/check.sh
+
+      # S2-001: changed lines must be 80% covered. Only on PRs into dev: a dev -> main
+      # PR is a whole release, already checked on its way into dev.
+      - name: Changed-code coverage
+        if: github.event_name == 'pull_request' && github.base_ref == 'dev'
+        env:
+          TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
+          COVERAGE_BASE: origin/dev
+        run: ./scripts/coverage.sh
 
       - name: Build frontend
         working-directory: frontend

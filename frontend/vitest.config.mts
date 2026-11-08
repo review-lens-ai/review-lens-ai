@@ -8,6 +8,16 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
   test: {
+    // Changed-code coverage gate (coding-standards.md §8, scripts/coverage.sh).
+    // `include` counts every source file, so a page no test loads shows as uncovered
+    // instead of missing from the report.
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      // Generated shadcn components, and the test helpers themselves.
+      exclude: ["src/app/_components/ui/**", "src/test/**", "**/*.test.*"],
+      reporter: ["text-summary", "lcov"],
+    },
     projects: [
       {
         // Unit tests: one function at a time, in plain Node.
