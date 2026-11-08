@@ -13,7 +13,6 @@ import {
   SearchXIcon,
   XIcon,
 } from "lucide-react";
-import { useTargets } from "@/app/_components/app-shell";
 import { EmptyState } from "@/app/_components/empty-state";
 import { PlatformBadge } from "@/app/_components/platform-badge";
 import { ReviewCard } from "@/app/_components/review-card";
@@ -23,6 +22,7 @@ import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { apiFetch, ApiError } from "@/lib/api";
+import { useTargets } from "@/lib/hooks/use-targets";
 import {
   failureMessage,
   fetchLatestRun,

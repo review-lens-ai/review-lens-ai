@@ -20,6 +20,11 @@ export class ApiError extends Error {
   }
 }
 
+// The error type of every generated hook (src/lib/generated/api.ts): what apiFetch throws.
+// Orval looks for this export by name; Body is the documented error body, already in ApiError.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type ErrorType<Body> = ApiError;
+
 // Every backend call sends the Supabase access token; the backend verifies it.
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const { data } = await createClient().auth.getSession();

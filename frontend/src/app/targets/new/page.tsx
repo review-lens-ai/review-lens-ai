@@ -7,7 +7,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2Icon, TriangleAlertIcon } from "lucide-react";
 import { toast } from "sonner";
-import { useTargets } from "@/app/_components/app-shell";
 import { PageHeader } from "@/app/_components/page-header";
 import { PlatformBadge } from "@/app/_components/platform-badge";
 import { Alert, AlertTitle } from "@/app/_components/ui/alert";
@@ -30,6 +29,7 @@ import {
 } from "@/app/_components/ui/field";
 import { Input } from "@/app/_components/ui/input";
 import { apiFetch, ApiError } from "@/lib/api";
+import { useTargets } from "@/lib/hooks/use-targets";
 import { fixFieldsMessage, SUPPORTED_PLATFORM, SUPPORTED_PLATFORM_LABEL } from "@/lib/targets";
 import type { Target } from "@/lib/targets";
 

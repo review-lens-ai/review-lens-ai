@@ -36,7 +36,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => router,
   useParams: () => ({ id: TARGET_ID }),
 }));
-vi.mock("@/app/_components/app-shell", () => ({
+vi.mock("@/lib/hooks/use-targets", () => ({
   useTargets: () => ({ refresh: refreshSidebar }),
 }));
 vi.mock("@/lib/supabase/client", () => ({

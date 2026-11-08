@@ -77,6 +77,8 @@ Use these terms everywhere. No synonyms.
 - Query params and JSON fields: snake_case. Matches Python and the database, no conversion layer.
 - Mount every router on `api_router` (`app/api/router.py`). It adds the `/api/v1` prefix and requires a verified user (S1-BR-004).
 - Public endpoints (e.g. `/health`) live outside `api_router`.
+- Declare the errors a route returns with `error_responses(...)` (`app/core/errors.py`). The contract test (`tests/api/test_openapi_contract.py`) fails if one is missing.
+- The frontend's API types and hooks are generated from the backend's spec by Orval (`frontend/src/lib/generated/api.ts`). After changing a route or schema, run `npm run api:generate` in `frontend/` and commit `openapi.json` and `src/lib/generated/`. Never edit them by hand: `scripts/check.sh` (and CI) fails when they are out of date.
 
 ### Environment variables
 
