@@ -1,44 +1,15 @@
-// S1-023: the latest ingestion attempt for a target, as returned by
-// GET /api/v1/targets/{id}/ingestion-runs/latest (snake_case, as sent).
-import { apiFetch } from "@/lib/api";
+// S1-023: an ingestion attempt for a target, and the words the workspace shows for it.
+// The types are generated from the backend (npm run api:generate), so they can't drift.
+import type { IngestionRunResponse, IngestionRunResponseStatus } from "@/lib/generated/api";
 
 // QUEUED -> RUNNING -> COMPLETED / PARTIAL / FAILED (a queued run can also fail,
 // and a failed run can be retried back to QUEUED). Same values as the database enum.
-export type IngestionStatus = "QUEUED" | "RUNNING" | "COMPLETED" | "PARTIAL" | "FAILED";
-
-export type IngestionRun = {
-  id: string;
-  target_id: string;
-  job_type: "INGESTION" | "ENRICHMENT";
-  status: IngestionStatus;
-  queued_at: string;
-  // null while the run waits in the queue, or if it failed before starting.
-  started_at: string | null;
-  finished_at: string | null;
-  reviews_ingested: number;
-  reviews_rejected: number;
-  reviews_duplicate: number;
-  error_code: string | null;
-};
+export type IngestionStatus = IngestionRunResponseStatus;
+export type IngestionRun = IngestionRunResponse;
 
 // While a run is in one of these states, the workspace keeps checking for updates.
 export function isActive(status: IngestionStatus | null | undefined): boolean {
   return status === "QUEUED" || status === "RUNNING";
-}
-
-// S1-019: queue a new run. The backend answers at once with the QUEUED run;
-// the worker does the work and fetchLatestRun reports progress.
-export async function startIngestionRun(targetId: string): Promise<IngestionRun> {
-  return apiFetch<IngestionRun>(`/api/v1/targets/${targetId}/ingestion-runs`, {
-    method: "POST",
-  });
-}
-
-export async function fetchLatestRun(targetId: string): Promise<IngestionRun | null> {
-  const body = await apiFetch<{ run: IngestionRun | null }>(
-    `/api/v1/targets/${targetId}/ingestion-runs/latest`,
-  );
-  return body.run;
 }
 
 // User-facing failure messages: "what happened" + "what to do next".

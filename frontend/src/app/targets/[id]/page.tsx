@@ -1,8 +1,8 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   CircleAlertIcon,
   CircleCheckIcon,
@@ -21,25 +21,21 @@ import { Alert, AlertDescription, AlertTitle } from "@/app/_components/ui/alert"
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { apiFetch, ApiError } from "@/lib/api";
-import { useTargets } from "@/lib/hooks/use-targets";
+import { errorMessage, isNotFound } from "@/lib/api";
+import { useGetTarget } from "@/lib/generated/api";
+import { useLatestRun } from "@/lib/hooks/use-latest-run";
+import { useReviews } from "@/lib/hooks/use-reviews";
 import {
   failureMessage,
-  fetchLatestRun,
   formatRunTime,
   isActive,
   reviewCount,
   runDetail,
-  startIngestionRun,
   type IngestionRun,
 } from "@/lib/ingestion-runs";
-import { fetchReviews, REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
+import { isUnauthorized } from "@/lib/query-client";
+import { REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
-
-// S1-023: while a run is queued or running, check for updates this often,
-// and give up after this long (a stale run is failed by the backend anyway).
-const POLL_EVERY_MS = 3_000;
-const POLL_LIMIT_MS = 5 * 60_000;
 
 // S1-019: what the ingest buttons need to start a run.
 type IngestAction = { onStart: () => void; starting: boolean; disabled: boolean };
@@ -85,164 +81,22 @@ function WorkspaceForUrl() {
 }
 
 function TargetWorkspace({ id }: { id: string }) {
-  const router = useRouter();
-  const { refresh: refreshTargets } = useTargets();
-  const [target, setTarget] = useState<Target | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // S1-023: newest ingestion attempt (null = never ingested).
-  const [latestRun, setLatestRun] = useState<IngestionRun | null>(null);
-  // null while loading; reviewsFailed keeps a load failure from looking like "no reviews".
-  // reviews is the page on screen (reviewPage, 0 = first); reviewTotal is all of the
-  // target's reviews. pageFailed is a Next/Previous that failed while a page is shown.
-  const [reviews, setReviews] = useState<Review[] | null>(null);
-  const [reviewTotal, setReviewTotal] = useState(0);
-  const [reviewPage, setReviewPage] = useState(0);
-  const [reviewsFailed, setReviewsFailed] = useState(false);
-  const [pageLoading, setPageLoading] = useState(false);
-  const [pageFailed, setPageFailed] = useState(false);
-  // Counts review requests, so an older answer never replaces a newer page.
-  const reviewRequest = useRef(0);
+  // The data, each from its own hook. A 401 from any of them is handled once, by the
+  // QueryProvider (redirect to /login).
+  const targetQuery = useGetTarget(id);
+  const latest = useLatestRun(id);
+  const run = latest.run;
+  // A never-ingested target has no reviews to load.
+  const everIngested = Boolean(run ?? targetQuery.data?.ingestion_status);
+  const reviews = useReviews(id, {
+    enabled: everIngested,
+    // Reviews belong to the latest run: a new or finished run reloads them from page 1.
+    latestRun: latest.loaded ? run : undefined,
+  });
   const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
-  // S1-019: a start request is on its way, and why the last one was refused.
-  const [starting, setStarting] = useState(false);
-  const [startError, setStartError] = useState<string | null>(null);
 
-  async function startIngestion() {
-    setStarting(true);
-    setStartError(null);
-    try {
-      // The QUEUED run is active, so the polling below takes over from here.
-      setLatestRun(await startIngestionRun(id));
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 401) {
-        router.replace("/login");
-      } else if (e instanceof ApiError && e.status === 404) {
-        setNotFound(true);
-      } else if (e instanceof ApiError && e.status === 409) {
-        // A run is already queued or running: show it instead of a second one.
-        setStartError(e.message);
-        fetchLatestRun(id)
-          .then(setLatestRun)
-          .catch(() => {});
-      } else {
-        setStartError(
-          e instanceof ApiError ? e.message : "Could not reach the server. Please try again.",
-        );
-      }
-    } finally {
-      setStarting(false);
-    }
-  }
-
-  useEffect(() => {
-    apiFetch<Target>(`/api/v1/targets/${id}`)
-      .then((t) => {
-        setTarget(t);
-        // Details for the status line. If this one call fails, the badge still
-        // shows the status from the target itself, so the page stays usable.
-        fetchLatestRun(id)
-          .then(setLatestRun)
-          .catch(() => setLatestRun(null));
-      })
-      .catch((e) => {
-        if (e instanceof ApiError && e.status === 401) {
-          router.replace("/login");
-        } else if (e instanceof ApiError && (e.status === 404 || e.status === 422)) {
-          // Another user's target looks exactly like a missing one.
-          setNotFound(true);
-        } else {
-          setError(
-            e instanceof ApiError ? e.message : "Could not reach the server. Please try again.",
-          );
-        }
-      });
-  }, [id, router]);
-
-  // The sidebar shows each target's status too, so reload it whenever this run's changes.
-  const runStatus = latestRun?.status ?? null;
-  useEffect(() => {
-    if (runStatus) void refreshTargets();
-  }, [runStatus, refreshTargets]);
-
-  // S1-023: keep the status fresh while a run is active, so it moves
-  // queued -> running -> finished without a manual refresh. Keyed on the run's
-  // id, so a status change within the same run doesn't restart the 5-minute limit.
-  const activeRunId = latestRun && isActive(latestRun.status) ? latestRun.id : null;
-  useEffect(() => {
-    if (!activeRunId) return;
-    const pollingSince = Date.now();
-    let stopped = false;
-    const timer = setInterval(() => {
-      if (Date.now() - pollingSince > POLL_LIMIT_MS) {
-        clearInterval(timer);
-        return;
-      }
-      fetchLatestRun(id)
-        .then((run) => {
-          if (!stopped) setLatestRun(run);
-        })
-        // A failed check keeps the last known status; the next tick tries again.
-        .catch(() => {});
-    }, POLL_EVERY_MS);
-    return () => {
-      // Stop when the run finishes or the user leaves the page.
-      stopped = true;
-      clearInterval(timer);
-    };
-  }, [id, activeRunId]);
-
-  // A never-ingested target has nothing to load. Otherwise load the reviews, and again
-  // whenever a run finishes. Keeps showing earlier reviews during a new run (§7.3).
-  const everIngested = Boolean(latestRun ?? target?.ingestion_status);
-  const finishedAt = latestRun?.finished_at ?? null;
-  useEffect(() => {
-    if (!everIngested) return;
-    let stopped = false;
-    const request = ++reviewRequest.current;
-    // Still the newest review request, and the target hasn't changed since.
-    const current = () => !stopped && request === reviewRequest.current;
-    // Back to page 1 whenever a run finishes: new reviews push older ones down (#68).
-    fetchReviews(id, 0)
-      .then((page) => {
-        if (!current()) return;
-        setReviews(page.items);
-        setReviewTotal(page.total);
-        setReviewPage(0);
-        setReviewsFailed(false);
-        setPageFailed(false);
-        // A Next/Previous still loading was overtaken by this reload.
-        setPageLoading(false);
-      })
-      .catch(() => {
-        if (!current()) return;
-        setReviewsFailed(true);
-        setPageLoading(false);
-      });
-    return () => {
-      stopped = true;
-    };
-  }, [id, everIngested, finishedAt]);
-
-  // Next/Previous. A failed request keeps the page on screen and says so.
-  async function showReviewPage(page: number) {
-    const request = ++reviewRequest.current;
-    setPageLoading(true);
-    setPageFailed(false);
-    try {
-      const result = await fetchReviews(id, page);
-      if (request !== reviewRequest.current) return;
-      setReviews(result.items);
-      setReviewTotal(result.total);
-      setReviewPage(page);
-    } catch {
-      if (request === reviewRequest.current) setPageFailed(true);
-    } finally {
-      if (request === reviewRequest.current) setPageLoading(false);
-    }
-  }
-
-  if (notFound) {
+  // Another user's target looks exactly like a missing one.
+  if (isNotFound(targetQuery.error) || isNotFound(latest.startError)) {
     return (
       <EmptyState
         icon={<SearchXIcon />}
@@ -257,23 +111,30 @@ function TargetWorkspace({ id }: { id: string }) {
     );
   }
 
-  if (error) {
+  if (targetQuery.error && !isUnauthorized(targetQuery.error)) {
     return (
       <Alert variant="destructive">
         <CircleAlertIcon aria-hidden="true" />
         <AlertTitle>We couldn&apos;t load this target.</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
+        <AlertDescription>{errorMessage(targetQuery.error)}</AlertDescription>
       </Alert>
     );
   }
 
+  const target = targetQuery.data;
   if (!target) return <WorkspaceSkeleton />;
+
+  // Why the last start was refused. A 401 redirects and a 404 shows "not found" above.
+  const startError =
+    latest.startError && !isUnauthorized(latest.startError)
+      ? errorMessage(latest.startError)
+      : null;
 
   // One active run per target, so the buttons are off while one is queued or running.
   const ingest: IngestAction = {
-    onStart: startIngestion,
-    starting,
-    disabled: starting || isActive(latestRun?.status ?? target.ingestion_status),
+    onStart: latest.start,
+    starting: latest.starting,
+    disabled: latest.starting || isActive(run?.status ?? target.ingestion_status),
   };
 
   // A never-ingested target opens on Ingestion, the first step of the flow (§1);
@@ -282,29 +143,24 @@ function TargetWorkspace({ id }: { id: string }) {
 
   return (
     <Tabs defaultValue={firstTab} className="gap-6">
-      <TargetContextHeader
-        target={target}
-        run={latestRun}
-        reviewsKept={reviewTotal}
-        ingest={ingest}
-      />
+      <TargetContextHeader target={target} run={run} reviewsKept={reviews.total} ingest={ingest} />
 
-      {latestRun?.status === "FAILED" && (
-        <RunFailedBanner run={latestRun} reviewsKept={reviewTotal} ingest={ingest} />
+      {run?.status === "FAILED" && (
+        <RunFailedBanner run={run} reviewsKept={reviews.total} ingest={ingest} />
       )}
-      {latestRun?.status === "COMPLETED" && dismissedRunId !== latestRun.id && (
+      {run?.status === "COMPLETED" && dismissedRunId !== run.id && (
         <Alert className="border-success/30 bg-success/10">
           <CircleCheckIcon aria-hidden="true" className="text-success" />
           <AlertTitle className="flex items-center justify-between gap-2 font-normal">
             {completedMessage(
-              latestRun,
+              run,
               platformLabel(target.platform),
-              reviews === null ? null : reviewTotal,
+              reviews.reviews === null ? null : reviews.total,
             )}
             <button
               type="button"
               aria-label="Dismiss"
-              onClick={() => setDismissedRunId(latestRun.id)}
+              onClick={() => setDismissedRunId(run.id)}
               className="ml-auto"
             >
               <XIcon className="size-4" aria-hidden="true" />
@@ -321,18 +177,18 @@ function TargetWorkspace({ id }: { id: string }) {
       )}
 
       <TabsContent value="ingestion">
-        <IngestionPanel target={target} run={latestRun} />
+        <IngestionPanel target={target} run={run} />
       </TabsContent>
       <TabsContent value="reviews">
         <ReviewsPanel
           everIngested={everIngested}
-          reviews={reviews}
-          total={reviewTotal}
-          page={reviewPage}
-          failed={reviewsFailed}
-          pageLoading={pageLoading}
-          pageFailed={pageFailed}
-          onPage={showReviewPage}
+          reviews={reviews.reviews}
+          total={reviews.total}
+          page={reviews.page}
+          failed={reviews.failed}
+          pageLoading={reviews.pageLoading}
+          pageFailed={reviews.pageFailed}
+          onPage={reviews.showPage}
         />
       </TabsContent>
     </Tabs>

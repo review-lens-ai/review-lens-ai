@@ -2,7 +2,7 @@
 // keeps one cached copy, so a new target appears everywhere after refresh().
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { ApiError } from "@/lib/api";
+import { errorMessage } from "@/lib/api";
 import { getListTargetsQueryKey, useListTargets } from "@/lib/generated/api";
 import { isUnauthorized } from "@/lib/query-client";
 import type { Target } from "@/lib/targets";
@@ -27,12 +27,7 @@ export function useTargets(): TargetsState {
   return {
     targets: data?.items ?? null,
     // A 401 is handled by the QueryProvider (redirect to /login); no message needed.
-    error:
-      error && !isUnauthorized(error)
-        ? error instanceof ApiError
-          ? error.message
-          : "Could not reach the server. Please try again."
-        : null,
+    error: error && !isUnauthorized(error) ? errorMessage(error) : null,
     refresh,
   };
 }

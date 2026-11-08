@@ -11,6 +11,7 @@ import {
   HttpResponse,
   ingestionRun,
   jsonResponse,
+  queryWrapper,
   render,
   review,
   reviewPage,
@@ -83,7 +84,8 @@ function startingARunReturns(respond: () => Response | Promise<Response>) {
 
 // Renders the page and waits until it has finished loading.
 async function openWorkspace(expectedStatus: string) {
-  render(<TargetWorkspacePage />);
+  // As in the app: a 401 from any request goes to /login (QueryProvider does this there).
+  render(<TargetWorkspacePage />, { wrapper: queryWrapper(() => router.replace("/login")) });
   await screen.findByRole("heading", { name: "Joe's Pizza" });
   await screen.findByText(expectedStatus);
 
@@ -121,6 +123,110 @@ describe("while a run is active", () => {
     await openWorkspace("Ingesting…");
 
     expectAllDisabled(ingestButtons());
+  });
+});
+
+// S1-023: the status moves queued -> running -> finished without a manual reload.
+// Only the interval timer is faked, so the checks happen at once instead of every 3 s.
+describe("checking an active run", () => {
+  function runStartedAgo(minutes: number, status: IngestionRun["status"] = "RUNNING") {
+    const startedAt = new Date(Date.now() - minutes * 60_000).toISOString();
+    return ingestionRun({
+      target_id: TARGET_ID,
+      status,
+      queued_at: startedAt,
+      started_at: startedAt,
+      finished_at: null,
+    });
+  }
+
+  // Answers the latest-run checks with `respond`, and counts them.
+  function latestRunAnswers(respond: () => Response) {
+    const checks = vi.fn(respond);
+    server.use(http.get(LATEST_RUN_URL, checks));
+    return checks;
+  }
+
+  it("checks a running run until it finishes, then stops", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    try {
+      backendHas(runStartedAgo(1));
+      await openWorkspace("Ingesting…");
+      const checks = latestRunAnswers(() =>
+        jsonResponse({ run: ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }) }),
+      );
+
+      await act(() => vi.advanceTimersByTimeAsync(3_000));
+      await screen.findByText("Ingested");
+      const checksUntilFinished = checks.mock.calls.length;
+
+      await act(() => vi.advanceTimersByTimeAsync(30_000));
+      expect(checksUntilFinished).toBeGreaterThan(0);
+      expect(checks.mock.calls.length).toBe(checksUntilFinished);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops checking a run that has been going for over 5 minutes", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    try {
+      const stuck = runStartedAgo(6);
+      backendHas(stuck);
+      const checks = latestRunAnswers(() => jsonResponse({ run: stuck }));
+      await openWorkspace("Ingesting…");
+      const checksOnOpen = checks.mock.calls.length;
+
+      await act(() => vi.advanceTimersByTimeAsync(30_000));
+
+      expect(checks.mock.calls.length).toBe(checksOnOpen);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("while a new run is going, the list still has what the previous run saved", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    try {
+      // Run A is going; the target has 5 reviews so far.
+      let saved = 5;
+      backendHas({ ...runStartedAgo(1), id: "run-a" });
+      server.use(
+        http.get(REVIEWS_URL, () =>
+          jsonResponse(
+            reviewPage(
+              Array.from({ length: saved }, () => review()),
+              { total: saved },
+            ),
+          ),
+        ),
+      );
+      await openWorkspace("Ingesting…");
+      await screen.findByText("Showing 1–5 of 5");
+
+      // Run A finishes and saves 3 more.
+      saved = 8;
+      latestRunAnswers(() =>
+        jsonResponse({
+          run: ingestionRun({ id: "run-a", target_id: TARGET_ID, reviews_ingested: 3 }),
+        }),
+      );
+      await act(() => vi.advanceTimersByTimeAsync(3_000));
+      await screen.findByText("Showing 1–8 of 8");
+
+      // Run B starts. Its reviews list must not fall back to the one from before run A finished.
+      startingARunReturns(() => jsonResponse({ ...queuedRun, id: "run-b" }, 202));
+      fireEvent.click(ingestButtons()[0]);
+      await screen.findByText("Queued");
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(screen.getByText("Showing 1–8 of 8")).toBeTruthy();
+      expect(screen.queryByText("Showing 1–5 of 5")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -350,7 +456,7 @@ describe("reviews list", () => {
     expect(button("Next").disabled).toBe(false);
   });
 
-  it("next and previous fetch the neighbouring pages from the server", async () => {
+  it("next fetches the next page from the server; previous reuses the page already loaded", async () => {
     backendHas(completedRun);
     const offsetsAsked = backendHoldsReviews(30);
     await openWorkspace("Ingested");
@@ -364,7 +470,9 @@ describe("reviews list", () => {
     fireEvent.click(button("Previous"));
     await screen.findByText("Showing 1–12 of 30");
 
-    expect(offsetsAsked).toEqual([0, 12, 0]);
+    // Page 1 is cached for this run (saved reviews only change when a run saves them),
+    // so going back to it asks the server for nothing.
+    expect(offsetsAsked).toEqual([0, 12]);
   });
 
   it("next is disabled on the last page", async () => {

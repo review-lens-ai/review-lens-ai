@@ -21,9 +21,24 @@ export class ApiError extends Error {
 }
 
 // The error type of every generated hook (src/lib/generated/api.ts): what apiFetch throws.
+// An ApiError when the backend answers with an error; a plain Error (TypeError) when the
+// request never reaches it. Check with `instanceof ApiError` before reading status or code.
 // Orval looks for this export by name; Body is the documented error body, already in ApiError.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export type ErrorType<Body> = ApiError;
+export type ErrorType<Body> = Error;
+
+// What to tell the user about a failed request.
+export function errorMessage(error: unknown): string {
+  return error instanceof ApiError
+    ? error.message
+    : "Could not reach the server. Please try again.";
+}
+
+// 404, or 422 for a malformed id: both mean "no such target" to the user. Another user's
+// target is also a 404, so it looks exactly like a missing one.
+export function isNotFound(error: unknown): boolean {
+  return error instanceof ApiError && (error.status === 404 || error.status === 422);
+}
 
 // Every backend call sends the Supabase access token; the backend verifies it.
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
