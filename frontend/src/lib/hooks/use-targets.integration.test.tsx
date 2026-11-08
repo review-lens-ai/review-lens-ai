@@ -50,6 +50,18 @@ describe("useTargets", () => {
     await waitFor(() => expect(result.current.targets?.map((t) => t.id)).toEqual(["b", "a"]));
   });
 
+  it("refresh is the same function on every render", async () => {
+    // Pages list refresh in a useEffect's dependencies. A new function each render
+    // would re-run that effect, which reloads the list, which renders again: a loop.
+    backendReturns(() => jsonResponse({ items: [] }));
+    const { result, rerender } = renderHook(() => useTargets(), { wrapper: queryWrapper() });
+    const first = result.current.refresh;
+
+    rerender();
+
+    expect(result.current.refresh).toBe(first);
+  });
+
   it("shows the backend's message when the list can't load", async () => {
     backendReturns(() =>
       apiErrorResponse(500, "INTERNAL_ERROR", "Something went wrong. Please try again."),

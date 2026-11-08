@@ -1,5 +1,6 @@
 // The signed-in user's targets, shared by the sidebar and the pages: TanStack Query
 // keeps one cached copy, so a new target appears everywhere after refresh().
+import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ApiError } from "@/lib/api";
 import { getListTargetsQueryKey, useListTargets } from "@/lib/generated/api";
@@ -17,6 +18,11 @@ type TargetsState = {
 export function useTargets(): TargetsState {
   const queryClient = useQueryClient();
   const { data, error } = useListTargets();
+  // The same function every render: pages put it in useEffect dependencies.
+  const refresh = useCallback(
+    () => queryClient.invalidateQueries({ queryKey: getListTargetsQueryKey() }),
+    [queryClient],
+  );
 
   return {
     targets: data?.items ?? null,
@@ -27,6 +33,6 @@ export function useTargets(): TargetsState {
           ? error.message
           : "Could not reach the server. Please try again."
         : null,
-    refresh: () => queryClient.invalidateQueries({ queryKey: getListTargetsQueryKey() }),
+    refresh,
   };
 }
