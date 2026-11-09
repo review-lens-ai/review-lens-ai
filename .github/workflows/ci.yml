@@ -54,7 +54,7 @@ jobs:
         env:
           TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/postgres
         run: ./scripts/check.sh
-
+      # Changed lines must be 80% covered. Only on PRs into dev: a dev -> main
       # S2-001: changed lines must be 80% covered. Only on PRs into dev: a dev -> main
       # PR is a whole release, already checked on its way into dev.
       - name: Changed-code coverage

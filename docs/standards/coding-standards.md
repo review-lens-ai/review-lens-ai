@@ -140,7 +140,7 @@ New dependencies must be approved by the team. In the PR, link the official sour
 
 ## 8. Testing
 
-### Changed-code coverage (S2-001)
+### Changed-code coverage
 
 A pull request into `dev` fails CI if the lines it adds or changes are less than **80%**
 covered by tests. Old untested code does not block it; only the lines in the PR count.

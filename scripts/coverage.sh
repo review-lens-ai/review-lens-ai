@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
-# Changed-code coverage gate (S2-001): the lines a branch changes must be at least
+# Changed-code coverage gate: the lines a branch changes must be at least
 # 80% covered by tests, checked separately for the backend and the frontend.
 # CI runs it on pull requests into dev. Policy: docs/standards/coding-standards.md §8.
-#
-# Usage: TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres ./scripts/coverage.sh
-# Compares against origin/dev; set COVERAGE_BASE to use another branch.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
