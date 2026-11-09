@@ -62,3 +62,11 @@ Runs every check CI runs except the production build (`cd frontend && npm run bu
 Fix formatting automatically with `ruff format .` (backend) and `npm run format` (frontend). Rules live in `backend/pyproject.toml` (`[tool.ruff]`) and `frontend/.prettierrc.json`, so results do not depend on anyone's editor. Tests never open a browser or call a live service.
 
 Backend coverage (lines and branches) for any file: `cd backend && uv run pytest --cov=app.auth --cov-branch --cov-report=term-missing`.
+
+Changed-code coverage gate (CI runs it on PRs into `dev`; at least 80% of changed lines covered, backend and frontend separately). Needs the test database:
+
+```bash
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres ./scripts/coverage.sh
+```
+
+Policy and exclusions: [Coding Standards §8](docs/standards/coding-standards.md#8-testing).
