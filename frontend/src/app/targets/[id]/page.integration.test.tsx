@@ -415,7 +415,7 @@ describe("reviews list", () => {
 
     await openWorkspace("Ingested");
 
-    await screen.findByText("3 reviews added from Google Maps · 8 in total.");
+    await screen.findByText("3 reviews added from Google Maps · 8 in total saved.");
   });
 
   it("the success banner says when every review was already saved", async () => {
@@ -424,7 +424,116 @@ describe("reviews list", () => {
 
     await openWorkspace("Ingested");
 
-    await screen.findByText("No reviews added: all 5 reviews from Google Maps were already saved.");
+    await screen.findByText(
+      "Already up to date: all 5 reviews from Google Maps were already saved.",
+    );
+  });
+
+  it("the ingest button is off when the last run found only reviews already saved", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 0, reviews_duplicate: 5 }));
+    backendHoldsReviews(5);
+
+    await openWorkspace("Ingested");
+
+    expectAllDisabled(ingestButtons());
+  });
+
+  it("the ingest button stays on after a run that added reviews", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3, reviews_duplicate: 2 }));
+    backendHoldsReviews(8);
+
+    await openWorkspace("Ingested");
+
+    for (const button of ingestButtons()) {
+      expect(button.disabled).toBe(false);
+    }
+  });
+
+  // S2-BR-001: the page says which target the status belongs to.
+  it("names the active target next to the ingestion status", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    backendHoldsReviews(3);
+
+    await openWorkspace("Ingested");
+
+    expect(screen.getByText("Active target")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Joe's Pizza" })).toBeTruthy();
+  });
+
+  // S2-BR-007: the "in total" figure is the size of the stored dataset (what Q&A will read),
+  // not the count of the latest run.
+  it("reports the stored review total, not just what the latest run added", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 14 }));
+    backendHoldsReviews(30);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText("14 reviews added from Google Maps · 30 in total saved.");
+    await screen.findByText("Showing 1–12 of 30");
+  });
+
+  it("the partial banner says how many reviews were added and how many were skipped", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "PARTIAL",
+        reviews_ingested: 14,
+        reviews_rejected: 3,
+      }),
+    );
+    backendHoldsReviews(14);
+
+    await openWorkspace("Partially ingested");
+
+    await screen.findByText(
+      "14 reviews added from Google Maps, 3 skipped as unusable · 14 in total saved.",
+    );
+  });
+
+  it("a complete run shows no partial banner", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3, reviews_duplicate: 2 }));
+    backendHoldsReviews(8);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText("3 reviews added from Google Maps · 8 in total saved.");
+    expect(screen.queryByText(/skipped as unusable/)).toBeNull();
+  });
+
+  it("the partial banner can be dismissed", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "PARTIAL",
+        reviews_ingested: 14,
+        reviews_rejected: 3,
+      }),
+    );
+    backendHoldsReviews(14);
+    await openWorkspace("Partially ingested");
+    await screen.findByText(/3 skipped as unusable/);
+
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+
+    expect(screen.queryByText(/3 skipped as unusable/)).toBeNull();
+  });
+
+  it("shows Ingested for a completed run even when the target has no review rows", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, status: "COMPLETED", reviews_ingested: 5 }));
+    backendHoldsReviews(0);
+
+    await openWorkspace("Ingested");
+
+    expect(screen.queryByText("Failed")).toBeNull();
+  });
+
+  it("shows Failed for a failed run even when the target has review rows", async () => {
+    backendHas(failedRun);
+    backendHoldsReviews(5);
+
+    await openWorkspace("Failed");
+
+    expect(screen.queryByText("Ingested")).toBeNull();
   });
 
   it("a failed page change keeps the page on screen and says so", async () => {

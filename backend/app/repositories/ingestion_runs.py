@@ -22,9 +22,11 @@ How the pipeline (S1-019 to S1-022) uses this module:
 Result rule used by mark_succeeded (S1-BR-023, S1-BR-024):
 - saved > 0 and skipped == 0  -> COMPLETED
 - saved > 0 and skipped > 0   -> PARTIAL
-- saved == 0                  -> FAILED with NO_REVIEWS_FOUND
-  (a run that saved nothing is never reported as a success; the database
-  enforces this too, see the ingestion_runs pipeline migration)
+- saved == 0 and duplicates > 0 -> COMPLETED ("already up to date": a re-run that
+  found only reviews we already hold), or PARTIAL if some were also skipped
+- saved == 0 and duplicates == 0 -> FAILED with NO_REVIEWS_FOUND
+  (a run that found nothing at all is never reported as a success; the database
+  enforces this too, see the ingestion_runs migrations)
 Duplicates (the same review returned twice) are counted, never treated as skipped.
 
 Other rules this module enforces:
@@ -210,7 +212,7 @@ class IngestionRunRepository:
         """Finish a RUNNING run using the result rule in the module docstring:
         COMPLETED, PARTIAL (some skipped) or FAILED (nothing saved)."""
         _check_counts(reviews_ingested, reviews_rejected, reviews_duplicate)
-        if reviews_ingested == 0:
+        if reviews_ingested == 0 and reviews_duplicate == 0:
             return self._finish(
                 run_id,
                 status="FAILED",

@@ -11,6 +11,7 @@ import {
   Loader2Icon,
   RefreshCwIcon,
   SearchXIcon,
+  TriangleAlertIcon,
   XIcon,
 } from "lucide-react";
 import { useTargets } from "@/app/_components/app-shell";
@@ -270,10 +271,12 @@ function TargetWorkspace({ id }: { id: string }) {
   if (!target) return <WorkspaceSkeleton />;
 
   // One active run per target, so the buttons are off while one is queued or running.
+  // They are also off once a run found nothing new (see isUpToDate).
   const ingest: IngestAction = {
     onStart: startIngestion,
     starting,
-    disabled: starting || isActive(latestRun?.status ?? target.ingestion_status),
+    disabled:
+      starting || isActive(latestRun?.status ?? target.ingestion_status) || isUpToDate(latestRun),
   };
 
   // A never-ingested target opens on Ingestion, the first step of the flow (§1);
@@ -297,6 +300,27 @@ function TargetWorkspace({ id }: { id: string }) {
           <CircleCheckIcon aria-hidden="true" className="text-success" />
           <AlertTitle className="flex items-center justify-between gap-2 font-normal">
             {completedMessage(
+              latestRun,
+              platformLabel(target.platform),
+              reviews === null ? null : reviewTotal,
+            )}
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setDismissedRunId(latestRun.id)}
+              className="ml-auto"
+            >
+              <XIcon className="size-4" aria-hidden="true" />
+            </button>
+          </AlertTitle>
+        </Alert>
+      )}
+
+      {latestRun?.status === "PARTIAL" && dismissedRunId !== latestRun.id && (
+        <Alert className="border-warning/30 bg-warning/10">
+          <TriangleAlertIcon aria-hidden="true" className="text-warning" />
+          <AlertTitle className="flex items-center justify-between gap-2 font-normal">
+            {partialMessage(
               latestRun,
               platformLabel(target.platform),
               reviews === null ? null : reviewTotal,
@@ -406,11 +430,27 @@ function TargetContextHeader({
 function completedMessage(run: IngestionRun, platform: string, total: number | null): string {
   if (run.reviews_ingested === 0) {
     return run.reviews_duplicate > 0
-      ? `No reviews added: all ${reviewCount(run.reviews_duplicate)} from ${platform} were already saved.`
+      ? `Already up to date: all ${reviewCount(run.reviews_duplicate)} from ${platform} were already saved.`
       : "No reviews added.";
   }
   const added = `${reviewCount(run.reviews_ingested)} added from ${platform}`;
-  return total === null ? `${added}.` : `${added} · ${total} in total.`;
+  return total === null ? `${added}.` : `${added} · ${total} in total saved.`;
+}
+
+// S2-005: a run that found only reviews we already hold. Running it again would only spend
+// provider searches to learn the same thing, so the ingest buttons stay off.
+function isUpToDate(run: IngestionRun | null): boolean {
+  return run?.status === "COMPLETED" && run.reviews_ingested === 0 && run.reviews_duplicate > 0;
+}
+
+// S2-005: a partial run saved reviews but skipped some records. Say how many of each,
+// so the skipped ones are never mistaken for ingested reviews (S2-BR-006).
+function partialMessage(run: IngestionRun, platform: string, total: number | null): string {
+  const added = `${reviewCount(run.reviews_ingested)} added from ${platform}`;
+  const skipped = `${run.reviews_rejected} skipped as unusable`;
+  return total === null
+    ? `${added}, ${skipped}.`
+    : `${added}, ${skipped} · ${total} in total saved.`;
 }
 
 // S1-023: a failed run is always visible and never looks like a success (§7.3).

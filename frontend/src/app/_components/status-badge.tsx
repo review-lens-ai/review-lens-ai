@@ -1,9 +1,6 @@
 // S1-023: the one shared ingestion status badge (ui-ux-standards.md §7.3 and §8).
 // Use this everywhere a status is shown (sidebar, target list, workspace header)
 // so the colors, icons and wording never drift apart.
-//
-// Lives in app/_components because the current eslint file-naming rule rejects
-// every file under src/components/ (it asks for PascalCase and kebab-case at once).
 import type { IngestionStatus } from "@/lib/ingestion-runs";
 
 type Badge = { icon: string; label: string; className: string };
