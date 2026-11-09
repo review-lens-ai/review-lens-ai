@@ -11,7 +11,8 @@ from uuid import UUID
 import psycopg
 from fastapi import APIRouter, Depends
 
-from app.auth import get_current_user_id
+from app.auth import OwnerId
+from app.core.errors import error_responses
 from app.db import get_connection
 from app.repositories.ingestion_runs import IngestionRunRepository
 from app.schemas.ingestion_runs import IngestionRunResponse, LatestIngestionRun
@@ -26,13 +27,13 @@ def get_ingestion_run_repository(
 
 
 Runs = Annotated[IngestionRunRepository, Depends(get_ingestion_run_repository)]
-OwnerId = Annotated[str, Depends(get_current_user_id)]
 
 
 @router.post(
     "/{target_id}/ingestion-runs",
     status_code=202,
     response_model=IngestionRunResponse,
+    responses=error_responses(404, 409),
 )
 def start_ingestion_run(target_id: UUID, owner_id: OwnerId, runs: Runs) -> dict:
     """S1-019: queue an ingestion run for one of the user's targets. Returns at
@@ -42,7 +43,11 @@ def start_ingestion_run(target_id: UUID, owner_id: OwnerId, runs: Runs) -> dict:
     return runs.create_run(target_id, owner_id)
 
 
-@router.get("/{target_id}/ingestion-runs/latest", response_model=LatestIngestionRun)
+@router.get(
+    "/{target_id}/ingestion-runs/latest",
+    response_model=LatestIngestionRun,
+    responses=error_responses(404),
+)
 def get_latest_ingestion_run(target_id: UUID, owner_id: OwnerId, runs: Runs) -> dict:
     """S1-023: the newest ingestion attempt for one of the user's targets, so the
     workspace can show running / succeeded / failed. `run` is null when the

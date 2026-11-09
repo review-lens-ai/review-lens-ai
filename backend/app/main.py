@@ -11,7 +11,12 @@ settings = get_settings()  # fail fast if required settings are missing
 
 logging.basicConfig(level=settings.log_level)
 
-app = FastAPI(title="ReviewLens API")
+# Operation ids are the route function names (e.g. get_latest_ingestion_run),
+# which is what Orval names the generated frontend client after.
+app = FastAPI(
+    title="ReviewLens API",
+    generate_unique_id_function=lambda route: route.name,
+)
 register_error_handlers(app)
 app.add_middleware(
     CORSMiddleware,
