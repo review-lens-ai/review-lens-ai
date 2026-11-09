@@ -21,7 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/app/_components/ui/alert"
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { errorMessage, isNotFound } from "@/lib/api";
+import { errorMessage, isNotFound, isUnauthorized } from "@/lib/api";
 import { useGetTarget } from "@/lib/generated/api";
 import { useLatestRun } from "@/lib/hooks/use-latest-run";
 import { useReviews } from "@/lib/hooks/use-reviews";
@@ -33,7 +33,6 @@ import {
   runDetail,
   type IngestionRun,
 } from "@/lib/ingestion-runs";
-import { isUnauthorized } from "@/lib/query-client";
 import { REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
 

@@ -79,6 +79,7 @@ Use these terms everywhere. No synonyms.
 - Public endpoints (e.g. `/health`) live outside `api_router`.
 - Declare the errors a route returns with `error_responses(...)` (`app/core/errors.py`). The contract test (`tests/api/test_openapi_contract.py`) fails if one is missing.
 - The frontend's API types and hooks are generated from the backend's spec by Orval (`frontend/src/lib/generated/api.ts`). After changing a route or schema, run `npm run api:generate` in `frontend/` and commit `openapi.json` and `src/lib/generated/`. Never edit them by hand: `scripts/check.sh` (and CI) fails when they are out of date.
+- Components get server data from hooks, never by calling `apiFetch` or `fetch` themselves: a generated hook directly, or a hook in `frontend/src/lib/hooks/` when the page needs more (polling, paging, a shared list). A 401 is handled once, by `QueryProvider`; don't handle it per component.
 
 ### Environment variables
 

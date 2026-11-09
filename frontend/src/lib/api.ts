@@ -34,6 +34,11 @@ export function errorMessage(error: unknown): string {
     : "Could not reach the server. Please try again.";
 }
 
+// The session ended. Handled once for every request, by the QueryProvider (redirect to /login).
+export function isUnauthorized(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 401;
+}
+
 // 404, or 422 for a malformed id: both mean "no such target" to the user. Another user's
 // target is also a 404, so it looks exactly like a missing one.
 export function isNotFound(error: unknown): boolean {

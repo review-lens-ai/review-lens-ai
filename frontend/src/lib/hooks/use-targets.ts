@@ -2,9 +2,8 @@
 // keeps one cached copy, so a new target appears everywhere after refresh().
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { errorMessage } from "@/lib/api";
+import { errorMessage, isUnauthorized } from "@/lib/api";
 import { getListTargetsQueryKey, useListTargets } from "@/lib/generated/api";
-import { isUnauthorized } from "@/lib/query-client";
 import type { Target } from "@/lib/targets";
 
 type TargetsState = {
