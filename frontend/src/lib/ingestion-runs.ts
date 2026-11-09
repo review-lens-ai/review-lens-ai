@@ -34,11 +34,39 @@ export async function startIngestionRun(targetId: string): Promise<IngestionRun>
   });
 }
 
-export async function fetchLatestRun(targetId: string): Promise<IngestionRun | null> {
-  const body = await apiFetch<{ run: IngestionRun | null }>(
+// S2-007: why a run skipped records. Codes come from the backend, never raw text.
+export type SkipReason =
+  "NOT_A_RECORD" | "MISSING_TEXT" | "MISSING_RATING" | "INVALID_RATING" | "OTHER";
+export type SkippedReason = { reason: SkipReason; count: number };
+
+// The latest run plus why it skipped records (empty when it skipped none).
+export type LatestRun = { run: IngestionRun | null; skipped_reasons: SkippedReason[] };
+
+export async function fetchLatestRun(targetId: string): Promise<LatestRun> {
+  const body = await apiFetch<{ run: IngestionRun | null; skipped_reasons?: SkippedReason[] }>(
     `/api/v1/targets/${targetId}/ingestion-runs/latest`,
   );
-  return body.run;
+  return { run: body.run, skipped_reasons: body.skipped_reasons ?? [] };
+}
+
+// S2-007: what each skip reason means to a person. A review with stars but no words is
+// skipped because ReviewLens answers questions from what reviewers wrote.
+const SKIP_REASON_LABELS: Record<SkipReason, string> = {
+  MISSING_TEXT: "no written review (star rating only)",
+  MISSING_RATING: "no star rating",
+  INVALID_RATING: "rating isn't a whole number from 1 to 5",
+  NOT_A_RECORD: "not a review record (malformed source data)",
+  OTHER: "other reason",
+};
+
+// An unknown code (a newer backend) reads as "other reason", never as raw text.
+export function skipReasonLabel(reason: string): string {
+  return SKIP_REASON_LABELS[reason as SkipReason] ?? SKIP_REASON_LABELS.OTHER;
+}
+
+// e.g. "no written review (star rating only) ×3, no star rating ×1"
+export function skippedSummary(reasons: SkippedReason[]): string {
+  return reasons.map((r) => `${skipReasonLabel(r.reason)} ×${r.count}`).join(", ");
 }
 
 // User-facing failure messages: "what happened" + "what to do next".
@@ -70,6 +98,24 @@ const UNEXPECTED_FAILURE = {
 
 export function failureMessage(errorCode: string | null): { title: string; next: string } {
   return (errorCode && FAILURE_MESSAGES[errorCode]) || UNEXPECTED_FAILURE;
+}
+
+// S2-007: a run can fetch reviews and still skip every one (no written text, say), so
+// "this page didn't return any reviews" would be wrong. Say what happened instead.
+export function runFailureMessage(
+  run: IngestionRun,
+  reasons: SkippedReason[],
+): { title: string; next: string } {
+  if (run.error_code !== "NO_REVIEWS_FOUND" || run.reviews_rejected === 0) {
+    return failureMessage(run.error_code);
+  }
+  const n = run.reviews_rejected;
+  const skipped = `${n} ${n === 1 ? "record was" : "records were"} skipped`;
+  const why = reasons.length > 0 ? `: ${skippedSummary(reasons)}` : "";
+  return {
+    title: "Reviews were found, but none could be used.",
+    next: `All ${skipped}${why}. None of them were added to your reviews.`,
+  };
 }
 
 // e.g. "Oct 24, 3:12 PM"

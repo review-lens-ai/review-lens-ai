@@ -28,7 +28,26 @@ class IngestionRunResponse(BaseModel):
     error_code: str | None
 
 
+# Why a record was skipped: one code per app.services.normalize_reviews.RejectionReason,
+# plus OTHER for any stored text we do not recognise. Codes, never raw text.
+SkipReasonCode = Literal[
+    "NOT_A_RECORD", "MISSING_TEXT", "MISSING_RATING", "INVALID_RATING", "OTHER"
+]
+
+
+class SkippedReason(BaseModel):
+    """How many of a run's records were skipped for one reason (S2-007)."""
+
+    reason: SkipReasonCode
+    count: int
+
+
 class LatestIngestionRun(BaseModel):
-    """`run` is None when the target has never been ingested."""
+    """`run` is None when the target has never been ingested.
+
+    `skipped_reasons` explains the run's skipped records, most common reason
+    first. It is empty when nothing was skipped. Counts only: the skipped
+    records themselves are never sent."""
 
     run: IngestionRunResponse | None
+    skipped_reasons: list[SkippedReason] = []

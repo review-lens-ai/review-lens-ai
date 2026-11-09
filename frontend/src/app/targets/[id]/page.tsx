@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
@@ -25,14 +25,18 @@ import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { apiFetch, ApiError } from "@/lib/api";
 import {
-  failureMessage,
   fetchLatestRun,
+  type LatestRun,
   formatRunTime,
   isActive,
   reviewCount,
   runDetail,
+  runFailureMessage,
+  skippedSummary,
+  skipReasonLabel,
   startIngestionRun,
   type IngestionRun,
+  type SkippedReason,
 } from "@/lib/ingestion-runs";
 import { fetchReviews, REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
@@ -93,6 +97,14 @@ function TargetWorkspace({ id }: { id: string }) {
   const [error, setError] = useState<string | null>(null);
   // S1-023: newest ingestion attempt (null = never ingested).
   const [latestRun, setLatestRun] = useState<IngestionRun | null>(null);
+  // S2-007: why that run skipped records (empty when it skipped none).
+  const [skippedReasons, setSkippedReasons] = useState<SkippedReason[]>([]);
+  // The run and its skip reasons always change together, so one run never shows
+  // another run's reasons. The setters never change, so this function is stable.
+  const showLatest = useCallback((latest: LatestRun) => {
+    setLatestRun(latest.run);
+    setSkippedReasons(latest.skipped_reasons);
+  }, []);
   // null while loading; reviewsFailed keeps a load failure from looking like "no reviews".
   // reviews is the page on screen (reviewPage, 0 = first); reviewTotal is all of the
   // target's reviews. pageFailed is a Next/Previous that failed while a page is shown.
@@ -114,7 +126,7 @@ function TargetWorkspace({ id }: { id: string }) {
     setStartError(null);
     try {
       // The QUEUED run is active, so the polling below takes over from here.
-      setLatestRun(await startIngestionRun(id));
+      showLatest({ run: await startIngestionRun(id), skipped_reasons: [] });
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
         router.replace("/login");
@@ -124,7 +136,7 @@ function TargetWorkspace({ id }: { id: string }) {
         // A run is already queued or running: show it instead of a second one.
         setStartError(e.message);
         fetchLatestRun(id)
-          .then(setLatestRun)
+          .then(showLatest)
           .catch(() => {});
       } else {
         setStartError(
@@ -143,8 +155,8 @@ function TargetWorkspace({ id }: { id: string }) {
         // Details for the status line. If this one call fails, the badge still
         // shows the status from the target itself, so the page stays usable.
         fetchLatestRun(id)
-          .then(setLatestRun)
-          .catch(() => setLatestRun(null));
+          .then(showLatest)
+          .catch(() => showLatest({ run: null, skipped_reasons: [] }));
       })
       .catch((e) => {
         if (e instanceof ApiError && e.status === 401) {
@@ -158,7 +170,7 @@ function TargetWorkspace({ id }: { id: string }) {
           );
         }
       });
-  }, [id, router]);
+  }, [id, router, showLatest]);
 
   // The sidebar shows each target's status too, so reload it whenever this run's changes.
   const runStatus = latestRun?.status ?? null;
@@ -180,8 +192,8 @@ function TargetWorkspace({ id }: { id: string }) {
         return;
       }
       fetchLatestRun(id)
-        .then((run) => {
-          if (!stopped) setLatestRun(run);
+        .then((latest) => {
+          if (!stopped) showLatest(latest);
         })
         // A failed check keeps the last known status; the next tick tries again.
         .catch(() => {});
@@ -191,7 +203,7 @@ function TargetWorkspace({ id }: { id: string }) {
       stopped = true;
       clearInterval(timer);
     };
-  }, [id, activeRunId]);
+  }, [id, activeRunId, showLatest]);
 
   // A never-ingested target has nothing to load. Otherwise load the reviews, and again
   // whenever a run finishes. Keeps showing earlier reviews during a new run (§7.3).
@@ -293,7 +305,12 @@ function TargetWorkspace({ id }: { id: string }) {
       />
 
       {latestRun?.status === "FAILED" && (
-        <RunFailedBanner run={latestRun} reviewsKept={reviewTotal} ingest={ingest} />
+        <RunFailedBanner
+          run={latestRun}
+          reasons={skippedReasons}
+          reviewsKept={reviewTotal}
+          ingest={ingest}
+        />
       )}
       {latestRun?.status === "COMPLETED" && dismissedRunId !== latestRun.id && (
         <Alert className="border-success/30 bg-success/10">
@@ -334,6 +351,13 @@ function TargetWorkspace({ id }: { id: string }) {
               <XIcon className="size-4" aria-hidden="true" />
             </button>
           </AlertTitle>
+          {/* S2-007: why records were skipped, and that they are not in the dataset. */}
+          {skippedReasons.length > 0 && (
+            <AlertDescription>
+              Skipped: {skippedSummary(skippedReasons)}. These records were not added to your
+              reviews.
+            </AlertDescription>
+          )}
         </Alert>
       )}
 
@@ -345,7 +369,7 @@ function TargetWorkspace({ id }: { id: string }) {
       )}
 
       <TabsContent value="ingestion">
-        <IngestionPanel target={target} run={latestRun} />
+        <IngestionPanel target={target} run={latestRun} reasons={skippedReasons} />
       </TabsContent>
       <TabsContent value="reviews">
         <ReviewsPanel
@@ -456,14 +480,17 @@ function partialMessage(run: IngestionRun, platform: string, total: number | nul
 // S1-023: a failed run is always visible and never looks like a success (§7.3).
 function RunFailedBanner({
   run,
+  reasons,
   reviewsKept,
   ingest,
 }: {
   run: IngestionRun;
+  reasons: SkippedReason[];
   reviewsKept: number;
   ingest: IngestAction;
 }) {
-  const message = failureMessage(run.error_code);
+  // S2-007: when every record was skipped, say so (and why) instead of "no reviews".
+  const message = runFailureMessage(run, reasons);
   return (
     <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
       <CircleAlertIcon aria-hidden="true" />
@@ -500,7 +527,15 @@ function startedText(run: IngestionRun): string {
   return run.status === "FAILED" ? "Never started" : "Not started yet";
 }
 
-function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | null }) {
+function IngestionPanel({
+  target,
+  run,
+  reasons,
+}: {
+  target: Target;
+  run: IngestionRun | null;
+  reasons: SkippedReason[];
+}) {
   if (!run) {
     return (
       <EmptyState
@@ -534,6 +569,49 @@ function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | n
           </div>
         ))}
       </dl>
+      {/* S2-007: why this run skipped records. Skipped records are not reviews. */}
+      {reasons.length > 0 && (
+        <div className="max-w-xl rounded-xl border bg-card p-6 text-sm">
+          <h3 className="font-semibold">Why records were skipped</h3>
+          <p className="mt-1 text-muted-foreground">
+            These records were not added to your reviews.
+          </p>
+          <table className="mt-4 w-full">
+            <thead>
+              <tr className="text-xs text-muted-foreground">
+                <th scope="col" className="pb-2 text-left font-medium">
+                  Reason
+                </th>
+                <th scope="col" className="pb-2 text-right font-medium">
+                  Records
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {reasons.map(({ reason, count }) => {
+                const label = skipReasonLabel(reason);
+                return (
+                  <tr key={reason}>
+                    <td className="py-2 pr-4">{label.charAt(0).toUpperCase() + label.slice(1)}</td>
+                    <td className="py-2 text-right font-medium tabular-nums">{count}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            {/* With more than one reason, show the total so the numbers add up. */}
+            {reasons.length > 1 && (
+              <tfoot>
+                <tr className="border-t font-medium">
+                  <td className="pt-2 pr-4">Total skipped</td>
+                  <td className="pt-2 text-right tabular-nums">
+                    {reasons.reduce((sum, r) => sum + r.count, 0)}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
+      )}
     </section>
   );
 }
