@@ -2,12 +2,11 @@
 
 // Create target (ui-ux-standards.md §12.1): the backend validates every field, and its
 // field-level errors are shown inline. Nothing is validated only in the browser.
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2Icon, TriangleAlertIcon } from "lucide-react";
 import { toast } from "sonner";
-import { useTargets } from "@/app/_components/app-shell";
 import { PageHeader } from "@/app/_components/page-header";
 import { PlatformBadge } from "@/app/_components/platform-badge";
 import { Alert, AlertTitle } from "@/app/_components/ui/alert";
@@ -29,11 +28,28 @@ import {
   FieldLabel,
 } from "@/app/_components/ui/field";
 import { Input } from "@/app/_components/ui/input";
-import { apiFetch, ApiError } from "@/lib/api";
+import { ApiError, errorMessage, isUnauthorized } from "@/lib/api";
+import { useCreateTarget } from "@/lib/generated/api";
+import { useTargets } from "@/lib/hooks/use-targets";
 import { fixFieldsMessage, SUPPORTED_PLATFORM, SUPPORTED_PLATFORM_LABEL } from "@/lib/targets";
-import type { Target } from "@/lib/targets";
 
 type FieldErrors = { name?: string; source_url?: string; form?: string };
+
+// Why the last create failed, per field (§6.2). A 422 lists each invalid field; any
+// other failure is one message for the whole form. A 401 redirects, so it shows nothing.
+function fieldErrorsFrom(error: Error | null): FieldErrors {
+  if (!error || isUnauthorized(error)) return {};
+  if (!(error instanceof ApiError) || error.code !== "VALIDATION_ERROR") {
+    return { form: errorMessage(error) };
+  }
+  const errors: FieldErrors = {};
+  for (const issue of error.details) {
+    if (issue.field === "name") errors.name = issue.message;
+    else if (issue.field === "source_url") errors.source_url = issue.message;
+    else errors.form = issue.message;
+  }
+  return errors;
+}
 
 function Required() {
   return <span className="font-normal text-muted-foreground">(required)</span>;
@@ -42,12 +58,26 @@ function Required() {
 export default function NewTargetPage() {
   const router = useRouter();
   const { refresh } = useTargets();
+  // What the user is typing: UI state, not server data.
   const [name, setName] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [submitting, setSubmitting] = useState(false);
   const nameInput = useRef<HTMLInputElement>(null);
   const sourceUrlInput = useRef<HTMLInputElement>(null);
+
+  const create = useCreateTarget({
+    mutation: {
+      // Stays "Creating…" until the sidebar has the new target, then opens it.
+      onSuccess: async (target) => {
+        await refresh();
+        toast.success("Target created.");
+        router.push(`/targets/${target.id}`);
+      },
+    },
+  });
+  const submitting = create.isPending;
+  // The same object until the next failure, so the focus effect below runs once per failure
+  // (a new object every render would steal focus on every keystroke).
+  const errors = useMemo(() => fieldErrorsFrom(create.error), [create.error]);
 
   // §6.2: move keyboard focus to the first invalid field.
   useEffect(() => {
@@ -55,41 +85,10 @@ export default function NewTargetPage() {
     else if (errors.source_url) sourceUrlInput.current?.focus();
   }, [errors]);
 
-  async function onSubmit(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitting(true);
-    setErrors({});
-    try {
-      const target = await apiFetch<Target>("/api/v1/targets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, source_url: sourceUrl }),
-      });
-      await refresh();
-      toast.success("Target created.");
-      router.push(`/targets/${target.id}`);
-    } catch (err) {
-      if (err instanceof ApiError && err.status === 401) {
-        router.replace("/login");
-        return;
-      }
-      if (err instanceof ApiError && err.code === "VALIDATION_ERROR") {
-        const next: FieldErrors = {};
-        for (const issue of err.details) {
-          if (issue.field === "name") next.name = issue.message;
-          else if (issue.field === "source_url") next.source_url = issue.message;
-          else next.form = issue.message;
-        }
-        setErrors(next);
-      } else {
-        setErrors({
-          form:
-            err instanceof ApiError ? err.message : "Could not reach the server. Please try again.",
-        });
-      }
-    } finally {
-      setSubmitting(false);
-    }
+    // A new attempt clears the last one's errors.
+    create.mutate({ data: { name, source_url: sourceUrl } });
   }
 
   const invalidFields = [errors.name, errors.source_url].filter(Boolean).length;

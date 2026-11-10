@@ -1,14 +1,8 @@
-// Shapes returned by the backend /api/v1/targets endpoints (snake_case, as sent).
-export type Target = {
-  id: string;
-  name: string;
-  platform: string;
-  source_url: string;
-  // Status of the newest ingestion run; null means no ingestion yet.
-  ingestion_status: "QUEUED" | "RUNNING" | "COMPLETED" | "PARTIAL" | "FAILED" | null;
-  created_at: string;
-  updated_at: string;
-};
+import type { TargetResponse } from "@/lib/generated/api";
+
+// A target as the backend sends it. Generated from the backend's TargetResponse
+// (npm run api:generate), so it can't drift from the API.
+export type Target = TargetResponse;
 
 const PLATFORM_LABELS: Record<string, string> = {
   google_maps: "Google Maps",
