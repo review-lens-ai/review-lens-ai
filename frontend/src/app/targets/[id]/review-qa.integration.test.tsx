@@ -77,7 +77,7 @@ function questionsAnswer(
   return asked;
 }
 
-async function openQaTab(name = "Mia's Tacos") {
+async function openQaTab(name = "Joe's Pizza") {
   url.id = TARGET_ID;
   const page = render(<TargetWorkspacePage />);
   await screen.findByRole("heading", { name });
