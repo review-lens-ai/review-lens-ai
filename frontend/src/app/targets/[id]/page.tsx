@@ -9,6 +9,7 @@ import {
   ExternalLinkIcon,
   InboxIcon,
   Loader2Icon,
+  MessageSquareTextIcon,
   RefreshCwIcon,
   SearchXIcon,
   TriangleAlertIcon,
@@ -24,6 +25,7 @@ import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { apiFetch, ApiError } from "@/lib/api";
+import { ReviewQaPanel } from "./_components/review-qa-panel";
 import {
   fetchLatestRun,
   type LatestRun,
@@ -383,6 +385,14 @@ function TargetWorkspace({ id }: { id: string }) {
           onPage={showReviewPage}
         />
       </TabsContent>
+      {/* S2-009: kept mounted when another tab is open, so the question and answer stay. */}
+      <TabsContent value="qa" forceMount className="data-[state=inactive]:hidden">
+        <ReviewQaPanel
+          target={target}
+          reviewTotal={everIngested && reviews === null ? null : reviewTotal}
+          onNotFound={() => setNotFound(true)}
+        />
+      </TabsContent>
     </Tabs>
   );
 }
@@ -442,7 +452,10 @@ function TargetContextHeader({
       <TabsList variant="line" className="h-11 px-4">
         <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
         <TabsTrigger value="reviews">Reviews</TabsTrigger>
-        {/* Summary and Q&A are Sprint 2; §3.1 says not to build them in Sprint 1. */}
+        <TabsTrigger value="qa">
+          <MessageSquareTextIcon aria-hidden="true" />
+          Review Q&amp;A
+        </TabsTrigger>
       </TabsList>
     </div>
   );

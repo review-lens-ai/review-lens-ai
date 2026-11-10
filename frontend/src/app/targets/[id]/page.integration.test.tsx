@@ -263,13 +263,13 @@ describe("workspace layout", () => {
     expect(ingestButtons()).toHaveLength(1);
   });
 
-  it("does not show the Sprint 2 tabs", async () => {
+  it("shows the Ingestion, Reviews and Review Q&A tabs", async () => {
     backendHas(null);
 
     await openWorkspace("Not ingested");
 
     const tabs = screen.getAllByRole("tab").map((tab) => tab.textContent);
-    expect(tabs).toEqual(["Ingestion", "Reviews"]);
+    expect(tabs).toEqual(["Ingestion", "Reviews", "Review Q&A"]);
   });
 
   it("the Ingestion tab shows the latest run's counts", async () => {
