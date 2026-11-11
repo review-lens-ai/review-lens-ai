@@ -7,11 +7,10 @@ lopsided set would weaken every check built on it.
 
 import json
 from collections import Counter
-from pathlib import Path
 
 import pytest
 
-CASES_FILE = Path(__file__).with_name("scope_guard_cases.json")
+from tests.evals.scope_guard import CASES_FILE, load_cases
 
 # The five categories S2-004 requires, and the behavior each one expects.
 EXPECTED_BY_CATEGORY = {
@@ -75,3 +74,9 @@ def test_case_ids_and_questions_are_unique(cases: list[dict]) -> None:
 
     assert len(ids) == len(set(ids))
     assert len(questions) == len(set(questions))
+
+
+def test_runner_loads_every_case(cases: list[dict]) -> None:
+    loaded = load_cases()
+
+    assert [case.id for case in loaded] == [case["id"] for case in cases]
