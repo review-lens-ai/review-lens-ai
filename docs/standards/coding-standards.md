@@ -77,6 +77,9 @@ Use these terms everywhere. No synonyms.
 - Query params and JSON fields: snake_case. Matches Python and the database, no conversion layer.
 - Mount every router on `api_router` (`app/api/router.py`). It adds the `/api/v1` prefix and requires a verified user (S1-BR-004).
 - Public endpoints (e.g. `/health`) live outside `api_router`.
+- Declare the errors a route returns with `error_responses(...)` (`app/core/errors.py`). The contract test (`tests/api/test_openapi_contract.py`) fails if one is missing.
+- The frontend's API types and hooks are generated from the backend's spec by Orval (`frontend/src/lib/generated/api.ts`). After changing a route or schema, run `npm run api:generate` in `frontend/` and commit `openapi.json` and `src/lib/generated/`. Never edit them by hand: `scripts/check.sh` (and CI) fails when they are out of date.
+- Components get server data from hooks, never by calling `apiFetch` or `fetch` themselves: a generated hook directly, or a hook in `frontend/src/lib/hooks/` when the page needs more (polling, paging, a shared list). A 401 is handled once, by `QueryProvider`; don't handle it per component.
 
 ### Environment variables
 
@@ -155,6 +158,8 @@ covered by tests. Old untested code does not block it; only the lines in the PR 
 Excluded, and why:
 
 - `frontend/src/app/_components/ui/`: shadcn components, generated and not written by us.
+- `frontend/src/lib/generated/`: the API client Orval generates from the backend's spec
+  (`npm run api:generate`). Not written by us, and checked by CI for being up to date instead.
 - Test code (`backend/tests/`, `frontend/src/test/`, `*.test.*`): it is the tests, not the
   behavior under test.
 

@@ -85,3 +85,6 @@ def get_current_user_id(
     user-owned data take their owner from here, never from the request body.
     """
     return user.id
+
+
+OwnerId = Annotated[str, Depends(get_current_user_id)]
