@@ -106,50 +106,184 @@ def sent_ids(request) -> set[str]:
     }
 
 
-def show_request(title, request):
-    """Print a captured ModelRequest; visible only when pytest runs with -s."""
-    print(f"\n===== {title} =====")
-    print(f"--- question ---\n{request.question}")
-    print(f"--- system prompt ---\n{request.system_prompt}")
-    print(f"--- reviews sent to the model ---\n{request.reviews_block}")
+# --- Demo output ------------------------------------------------------------------
+# The two demo tests print their whole argument, visible with pytest -s: what is
+# in the database, what was asked, the exact request the model received (captured
+# by FakeModel at the model boundary), who owns each review that was sent, and
+# each check. The asserts below the printout are what make the test pass or fail.
+
+
+def owner_label(data, owner_id) -> str:
+    return "User A" if owner_id == data["user_a"] else "User B"
+
+
+def review_owners(conn) -> dict[str, tuple]:
+    """Every stored review id -> (review text, target name, owner id)."""
+    rows = conn.execute(
+        """
+        select r.id, r.review_text, t.name, t.owner_id
+          from public.reviews r
+          join public.analysis_targets t on t.id = r.target_id
+        """
+    ).fetchall()
+    return {str(r["id"]): (r["review_text"], r["name"], r["owner_id"]) for r in rows}
+
+
+def print_dataset(data, target_key, marker=None, label=""):
+    conn = data["conn"]
+    target = conn.execute(
+        "select name, owner_id from public.analysis_targets where id = %s",
+        (data[target_key],),
+    ).fetchone()
+    texts = sorted(
+        r["review_text"]
+        for r in conn.execute(
+            "select review_text from public.reviews where target_id = %s",
+            (data[target_key],),
+        ).fetchall()
+    )
+    print(
+        f'  {owner_label(data, target["owner_id"])} owns "{target["name"]}" '
+        f"({len(texts)} review{'' if len(texts) == 1 else 's'})"
+        + (f"   <-- {label}" if label else "")
+    )
+    for text in texts:
+        note = (
+            f"   <-- distinctive phrase {marker}" if marker and marker in text else ""
+        )
+        print(f"    - {text}{note}")
+
+
+def print_request(data, request):
+    """The captured ModelRequest, then the owner of each review in it."""
+    prompt_lines = request.system_prompt.splitlines()
+    print("  Question sent:")
+    print(f"    {request.question}")
+    print("  System prompt (dataset lines; rules omitted here):")
+    for line in prompt_lines:
+        if line.startswith(("- Target:", "- Review platform:", "- Reviews supplied:")):
+            print(f"    {line}")
+    print("  Review block, exactly as sent:")
+    for line in request.reviews_block.splitlines():
+        print(f"    {line}")
+    owners = review_owners(data["conn"])
+    print("  Who owns each review that was sent (looked up in the database):")
+    for review_id in sorted(sent_ids(request)):
+        text, target_name, owner_id = owners[review_id]
+        print(f'    - "{text}"  ->  {owner_label(data, owner_id)}, "{target_name}"')
+
+
+def print_checks(checks):
+    for label, ok in checks:
+        print(f"  [{'PASS' if ok else 'FAIL'}] {label}")
+
+
+def heading(text):
+    print(f"\n{'=' * 72}\n {text}\n{'=' * 72}")
+
+
+def step(text):
+    print(f"\n{text}")
 
 
 def test_demo_user_b_phrase_never_reaches_user_a_context(data):
-    """Demo: user A asks about user B's distinctive phrase. The captured request
-    holds only user A's active target reviews; the phrase is nowhere in it."""
+    """Demo (step 7): user A asks about user B's distinctive phrase. The model
+    receives only user A's active target reviews; the phrase is nowhere in them."""
     conn = data["conn"]
+    question = f"What do reviewers say about the {B_PHRASE} brunch?"
     model = FakeModel()
-    ask(
-        data,
-        model,
-        "user_a",
-        "target_a",
-        question=f"What do reviewers say about the {B_PHRASE} brunch?",
-    )
-
+    ask(data, model, "user_a", "target_a", question=question)
     request = model.last
-    show_request("User A's request (active target: A's place)", request)
-    assert sent_ids(request) == stored_ids(conn, data["target_a"])
-    assert sent_ids(request).isdisjoint(stored_ids(conn, data["target_b"]))
+
+    a_ids = stored_ids(conn, data["target_a"])
+    a_other_ids = stored_ids(conn, data["target_a2"])
+    b_ids = stored_ids(conn, data["target_b"])
+    checks = [
+        (
+            f"The model received exactly User A's {len(a_ids)} reviews for "
+            '"A\'s place" (the active target)',
+            sent_ids(request) == a_ids,
+        ),
+        (
+            "The model received none of User A's other target (\"A's cafe\")",
+            sent_ids(request).isdisjoint(a_other_ids),
+        ),
+        (
+            "The model received none of User B's reviews",
+            sent_ids(request).isdisjoint(b_ids),
+        ),
+        (
+            f'"{B_PHRASE}" is not in the reviews or the system prompt',
+            B_PHRASE not in request.reviews_block
+            and B_PHRASE not in request.system_prompt,
+        ),
+    ]
+
+    heading("DEMO: User B's review data never enters User A's AI context")
+    step("1. What is in the database (two real users)")
+    print_dataset(data, "target_a", label="active target")
+    print_dataset(data, "target_a2", label="User A's other target")
+    print_dataset(data, "target_b", marker=B_PHRASE)
+    step("2. User A, on their active target \"A's place\", asks for User B's phrase")
+    print(f"    {question}")
+    step("3. What ReviewLens sent to the model")
+    print("  (captured by FakeModel, which sits exactly where the LLM would be)")
+    print_request(data, request)
+    step("4. Checks")
+    print_checks(checks)
+
+    assert sent_ids(request) == a_ids
+    assert sent_ids(request).isdisjoint(a_other_ids)
+    assert sent_ids(request).isdisjoint(b_ids)
     # The phrase reaches the model only inside A's own question.
     assert B_PHRASE not in request.reviews_block
     assert B_PHRASE not in request.system_prompt
 
 
 def test_demo_active_target_determines_the_context(data):
-    """Demo: user A switches from A's place to A's cafe. The second request holds
-    only the cafe's reviews; nothing from the first target is carried over."""
+    """Demo (step 6 evidence): user A switches from A's place to A's cafe. The
+    second request holds only the cafe's reviews; nothing carries over."""
     conn = data["conn"]
     model = FakeModel()
     ask(data, model, "user_a", "target_a")
     ask(data, model, "user_a", "target_a2")
-
     first, second = model.requests
-    show_request("Before the switch (active target: A's place)", first)
-    show_request("After the switch (active target: A's cafe)", second)
-    assert sent_ids(first) == stored_ids(conn, data["target_a"])
-    assert sent_ids(second) == stored_ids(conn, data["target_a2"])
-    assert sent_ids(second).isdisjoint(stored_ids(conn, data["target_a"]))
+
+    place_ids = stored_ids(conn, data["target_a"])
+    cafe_ids = stored_ids(conn, data["target_a2"])
+    checks = [
+        (
+            'Before the switch: exactly "A\'s place" reviews were sent',
+            sent_ids(first) == place_ids,
+        ),
+        (
+            'After the switch: exactly "A\'s cafe" reviews were sent',
+            sent_ids(second) == cafe_ids,
+        ),
+        (
+            'After the switch: none of "A\'s place" reviews were sent',
+            sent_ids(second).isdisjoint(place_ids),
+        ),
+        (
+            'After the switch: the system prompt no longer names "A\'s place"',
+            "A's place" not in second.system_prompt,
+        ),
+    ]
+
+    heading("DEMO: the active target decides the AI context (no stale reviews)")
+    step("1. What is in the database (User A's two targets)")
+    print_dataset(data, "target_a", marker=LEAK_PHRASE)
+    print_dataset(data, "target_a2")
+    step('2. User A asks on "A\'s place". What ReviewLens sent to the model:')
+    print_request(data, first)
+    step('3. User A switches to "A\'s cafe" and asks again. What was sent:')
+    print_request(data, second)
+    step("4. Checks")
+    print_checks(checks)
+
+    assert sent_ids(first) == place_ids
+    assert sent_ids(second) == cafe_ids
+    assert sent_ids(second).isdisjoint(place_ids)
     assert LEAK_PHRASE not in second.reviews_block
     assert "A's place" not in second.system_prompt
 
