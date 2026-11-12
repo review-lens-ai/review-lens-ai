@@ -115,6 +115,14 @@ export interface LatestIngestionRun {
   skipped_reasons?: SkippedReason[];
 }
 
+/**
+ * How many of the target's reviews have one star rating (S2-008).
+ */
+export interface RatingCount {
+  rating: number;
+  count: number;
+}
+
 export type ReviewResponseSourceMetadata = { [key: string]: unknown };
 
 export interface ReviewResponse {
@@ -136,6 +144,16 @@ export interface ReviewPage {
   total: number;
   limit: number;
   offset: number;
+}
+
+/**
+ * S2-008: the summary of a target's active dataset, the same saved reviews
+ * Q&A reads. Calculated from the reviews table, never from a run's counters.
+ */
+export interface ReviewSummary {
+  review_count: number;
+  average_rating: number | null;
+  rating_counts: RatingCount[];
 }
 
 /**
@@ -874,6 +892,130 @@ export function useListTargetReviews<TData = Awaited<ReturnType<typeof listTarge
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
   const queryOptions = getListTargetReviewsQueryOptions(targetId,params,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getGetTargetSummaryUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/v1/targets/${targetId}/summary`
+}
+
+/**
+ * S2-008: review count, average rating and rating counts for one of the
+ * user's targets, calculated from its saved reviews (the same dataset Q&A uses).
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary Get Target Summary
+ */
+export const getTargetSummary = async (targetId: string, options?: Parameters<typeof apiFetch>[1]): Promise<ReviewSummary> => {
+
+  return apiFetch<ReviewSummary>(getGetTargetSummaryUrl(targetId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTargetSummaryQueryKey = (targetId: string,) => {
+    return [
+    `/api/v1/targets/${targetId}/summary`
+    ] as const;
+    }
+
+
+export const getGetTargetSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getTargetSummary>>, TError = ErrorType<ErrorResponse>>(targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTargetSummaryQueryKey(targetId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTargetSummary>>> = ({ signal }) => getTargetSummary(targetId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: targetId !== null && targetId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTargetSummary>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetTargetSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getTargetSummary>>>
+export type GetTargetSummaryQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * S2-008: review count, average rating and rating counts for one of the
+ * user's targets, calculated from its saved reviews (the same dataset Q&A uses).
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary Get Target Summary
+ */
+export function useGetTargetSummary<TData = Awaited<ReturnType<typeof getTargetSummary>>, TError = ErrorType<ErrorResponse>>(
+ targetId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetSummary>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTargetSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getTargetSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * S2-008: review count, average rating and rating counts for one of the
+ * user's targets, calculated from its saved reviews (the same dataset Q&A uses).
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary Get Target Summary
+ */
+export function useGetTargetSummary<TData = Awaited<ReturnType<typeof getTargetSummary>>, TError = ErrorType<ErrorResponse>>(
+ targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetSummary>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTargetSummary>>,
+          TError,
+          Awaited<ReturnType<typeof getTargetSummary>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * S2-008: review count, average rating and rating counts for one of the
+ * user's targets, calculated from its saved reviews (the same dataset Q&A uses).
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary Get Target Summary
+ */
+export function useGetTargetSummary<TData = Awaited<ReturnType<typeof getTargetSummary>>, TError = ErrorType<ErrorResponse>>(
+ targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * S2-008: review count, average rating and rating counts for one of the
+ * user's targets, calculated from its saved reviews (the same dataset Q&A uses).
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary Get Target Summary
+ */
+export function useGetTargetSummary<TData = Awaited<ReturnType<typeof getTargetSummary>>, TError = ErrorType<ErrorResponse>>(
+ targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getTargetSummary>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getGetTargetSummaryQueryOptions(targetId,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

@@ -375,6 +375,75 @@
         }
       }
     },
+    "/api/v1/targets/{target_id}/summary": {
+      "get": {
+        "tags": [
+          "targets"
+        ],
+        "summary": "Get Target Summary",
+        "description": "S2-008: review count, average rating and rating counts for one of the\nuser's targets, calculated from its saved reviews (the same dataset Q&A uses).\nAnother user's target is a 404, indistinguishable from one that does not exist.",
+        "operationId": "get_target_summary",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/targets/{target_id}/ingestion-runs": {
       "post": {
         "tags": [
@@ -759,6 +828,25 @@
         "title": "LatestIngestionRun",
         "description": "`run` is None when the target has never been ingested.\n\n`skipped_reasons` explains the run's skipped records, most common reason\nfirst. It is empty when nothing was skipped. Counts only: the skipped\nrecords themselves are never sent."
       },
+      "RatingCount": {
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "title": "Rating"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "rating",
+          "count"
+        ],
+        "title": "RatingCount",
+        "description": "How many of the target's reviews have one star rating (S2-008)."
+      },
       "ReviewPage": {
         "properties": {
           "items": {
@@ -879,6 +967,40 @@
           "created_at"
         ],
         "title": "ReviewResponse"
+      },
+      "ReviewSummary": {
+        "properties": {
+          "review_count": {
+            "type": "integer",
+            "title": "Review Count"
+          },
+          "average_rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Rating"
+          },
+          "rating_counts": {
+            "items": {
+              "$ref": "#/components/schemas/RatingCount"
+            },
+            "type": "array",
+            "title": "Rating Counts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "review_count",
+          "average_rating",
+          "rating_counts"
+        ],
+        "title": "ReviewSummary",
+        "description": "S2-008: the summary of a target's active dataset, the same saved reviews\nQ&A reads. Calculated from the reviews table, never from a run's counters."
       },
       "SkippedReason": {
         "properties": {
