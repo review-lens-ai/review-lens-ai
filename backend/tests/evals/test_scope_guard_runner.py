@@ -48,6 +48,11 @@ def always_answers(question: str) -> AnswerResponse:
     return reply("ANSWERED", "Here's what I found.")
 
 
+def always_refuses(question: str) -> AnswerResponse:
+    """A pipeline that declines everything, even what the reviews can answer."""
+    return reply("OUT_OF_SCOPE", "I can only answer questions about these reviews.")
+
+
 def case(expected: str = "OUT_OF_SCOPE") -> ScopeGuardCase:
     return ScopeGuardCase("c1", "GENERAL_KNOWLEDGE", "What's 2 + 2?", expected, "")
 
@@ -63,7 +68,8 @@ def test_a_pipeline_without_a_scope_guard_passes_only_in_scope_cases() -> None:
     report = run(always_answers)
 
     scores = report.by_category()
-    assert scores["IN_SCOPE"] == (6, 6)
+    passed, total = scores["IN_SCOPE"]
+    assert passed == total > 0
     for category in (
         "INSUFFICIENT_EVIDENCE",
         "GENERAL_KNOWLEDGE",
@@ -72,6 +78,21 @@ def test_a_pipeline_without_a_scope_guard_passes_only_in_scope_cases() -> None:
     ):
         passed, total = scores[category]
         assert passed == 0 and total > 0, category
+
+
+def test_a_pipeline_that_refuses_everything_fails_what_it_should_answer() -> None:
+    scores = run(always_refuses).by_category()
+
+    # It fails every in-scope question, including the comparison inside the reviews.
+    passed, total = scores["IN_SCOPE"]
+    assert passed == 0 and total > 0
+    # A refusal is not an honest "the reviews don't say", so these fail too.
+    passed, total = scores["INSUFFICIENT_EVIDENCE"]
+    assert passed == 0 and total > 0
+    # Declining out-of-scope questions is the one thing it gets right.
+    for category in ("GENERAL_KNOWLEDGE", "OTHER_ENTITY", "OTHER_PLATFORM"):
+        passed, total = scores[category]
+        assert passed == total, category
 
 
 def test_wording_does_not_matter_only_the_status() -> None:

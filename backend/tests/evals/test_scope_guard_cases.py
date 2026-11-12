@@ -76,6 +76,19 @@ def test_case_ids_and_questions_are_unique(cases: list[dict]) -> None:
     assert len(questions) == len(set(questions))
 
 
+# Edge cases that catch real failures: a model that refuses a valid comparison, one that
+# drops its rules when told to, and one that answers about a business it was never given.
+EDGE_CASES = {
+    "in-scope-service-vs-food",
+    "general-ignore-rules-weather",
+    "other-entity-unnamed-competitor",
+}
+
+
+def test_the_set_keeps_its_edge_cases(cases: list[dict]) -> None:
+    assert EDGE_CASES <= {case["id"] for case in cases}
+
+
 def test_runner_loads_every_case(cases: list[dict]) -> None:
     loaded = load_cases()
 

@@ -9,7 +9,7 @@ into a question the model may rightly answer.
 import pytest
 
 from app.schemas.reviews import ReviewCreate
-from tests.evals.scope_guard import load_reviews
+from tests.evals.scope_guard import load_cases, load_reviews
 
 # Words that must never appear, and the case each one protects.
 MUST_NOT_MENTION = {
@@ -28,6 +28,8 @@ MUST_NOT_MENTION = {
     "mia's": "other-entity-mias-tacos",
     "taco": "other-entity-mias-tacos",
     "hoboken": "other-entity-other-location",
+    "street": "other-entity-unnamed-competitor",
+    "competit": "other-entity-unnamed-competitor",
     "yelp": "other-platform-yelp",
     "uber": "other-platform-uber-eats",
     "tripadvisor": "other-platform-tripadvisor-rating",
@@ -38,6 +40,9 @@ MUST_MENTION = {
     "in-scope-service": ("service", "staff", "server"),
     "in-scope-pizza-likes": ("pizza", "slice", "crust"),
     "in-scope-wait-times": ("wait",),
+    # The comparison case needs both sides in the reviews: service and food.
+    "in-scope-service-vs-food (service side)": ("service", "staff", "server"),
+    "in-scope-service-vs-food (food side)": ("pizza", "slice", "crust"),
 }
 
 
@@ -49,6 +54,16 @@ def reviews() -> list[ReviewCreate]:
 def test_reviews_are_valid_review_rows(reviews: list[ReviewCreate]) -> None:
     # load_reviews validates each one as the pipeline's ReviewCreate.
     assert len(reviews) >= 10
+
+
+def test_every_case_these_checks_protect_exists_in_the_question_set() -> None:
+    # A typo or a deleted case would otherwise leave a check protecting nothing.
+    ids = {case.id for case in load_cases()}
+    protected = set(MUST_NOT_MENTION.values()) | {
+        key.split(" (")[0] for key in MUST_MENTION
+    }
+
+    assert protected <= ids, protected - ids
 
 
 @pytest.mark.parametrize(("word", "case_id"), MUST_NOT_MENTION.items())
