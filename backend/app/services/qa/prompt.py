@@ -70,6 +70,20 @@ Reply with:
 """
 
 
+# Line breaks that json.dumps leaves alone once it stops escaping non-ASCII text.
+_UNICODE_LINE_BREAKS = ("\u0085", "\u2028", "\u2029")
+
+
+def _quote(text: str) -> str:
+    """The text as a JSON string. Quotes, backslashes and line breaks are escaped, so
+    the text cannot pass as a rule, but accented letters stay readable ("Café José",
+    not "Caf\\u00e9 Jos\\u00e9")."""
+    quoted = json.dumps(text, ensure_ascii=False)
+    for char in _UNICODE_LINE_BREAKS:
+        quoted = quoted.replace(char, f"\\u{ord(char):04x}")
+    return quoted
+
+
 def platform_label(platform: str) -> str:
     return PLATFORM_LABELS.get(platform, platform)
 
@@ -81,8 +95,8 @@ def build_system_prompt(bundle: ContextBundle) -> str:
         else ""
     )
     return SYSTEM_PROMPT.format(
-        # json.dumps quotes the name, so it cannot blend into the rules around it.
-        target_name=json.dumps(bundle.target_name),
+        # Quoted, so the name cannot blend into the rules around it.
+        target_name=_quote(bundle.target_name),
         platform=platform_label(bundle.platform),
         count=len(bundle.reviews),
         subset_note=subset_note,
