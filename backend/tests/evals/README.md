@@ -31,8 +31,8 @@ what each one is testing.
 ## How responses are judged
 
 Model wording changes from run to run, so text is never compared (S2-BR-029). The
-Q&A pipeline returns an `AnswerResponse` (`app/schemas/questions.py`) with a `status`
-next to the answer text. A case passes when:
+Q&A pipeline returns an `AnswerResponse` (`app/schemas/qa.py`, the same model the API
+returns) with a `status` next to the answer text. A case passes when:
 
 1. the `status` equals the case's `expected` value, and
 2. the answer text is not blank.

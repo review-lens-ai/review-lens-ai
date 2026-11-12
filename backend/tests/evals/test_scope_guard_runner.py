@@ -3,9 +3,11 @@
 The `ask` functions here are fakes that stand in for the Q&A pipeline.
 """
 
+from uuid import UUID
+
 import pytest
 
-from app.schemas.questions import AnswerResponse
+from app.schemas.qa import AnswerContext, AnswerResponse
 from tests.evals.scope_guard import (
     CaseResult,
     EvalReport,
@@ -19,14 +21,31 @@ CASES = load_cases()
 EXPECTED_BY_QUESTION = {case.question: case.expected for case in CASES}
 
 
+def reply(status: str, answer: str) -> AnswerResponse:
+    """A reply in the API's real shape (app/schemas/qa.py), with plausible context."""
+    return AnswerResponse(
+        status=status,
+        answer=answer,
+        evidence=[],
+        context=AnswerContext(
+            target_id=UUID(int=1),
+            target_name="Joe's Pizza",
+            platform="google_maps",
+            reviews_considered=16,
+            reviews_total=16,
+            is_subset=False,
+        ),
+    )
+
+
 def well_behaved(question: str) -> AnswerResponse:
     """A pipeline that always responds the way the set expects."""
-    return AnswerResponse(status=EXPECTED_BY_QUESTION[question], answer="Some text.")
+    return reply(EXPECTED_BY_QUESTION[question], "Some text.")
 
 
 def always_answers(question: str) -> AnswerResponse:
     """A pipeline with no scope guard: it answers everything."""
-    return AnswerResponse(status="ANSWERED", answer="Here's what I found.")
+    return reply("ANSWERED", "Here's what I found.")
 
 
 def case(expected: str = "OUT_OF_SCOPE") -> ScopeGuardCase:
@@ -56,15 +75,15 @@ def test_a_pipeline_without_a_scope_guard_passes_only_in_scope_cases() -> None:
 
 
 def test_wording_does_not_matter_only_the_status() -> None:
-    wordy = AnswerResponse(status="OUT_OF_SCOPE", answer="I only know these reviews.")
-    terse = AnswerResponse(status="OUT_OF_SCOPE", answer="No.")
+    wordy = reply("OUT_OF_SCOPE", "I only know these reviews.")
+    terse = reply("OUT_OF_SCOPE", "No.")
 
     assert judge(case(), wordy).passed
     assert judge(case(), terse).passed
 
 
 def test_a_blank_answer_fails_even_with_the_right_status() -> None:
-    result = judge(case(), AnswerResponse(status="OUT_OF_SCOPE", answer="  "))
+    result = judge(case(), reply("OUT_OF_SCOPE", "  "))
 
     assert not result.passed
     assert result.error == "empty answer"

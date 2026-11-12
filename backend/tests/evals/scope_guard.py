@@ -18,7 +18,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter
 
-from app.schemas.questions import AnswerResponse, AnswerStatus
+from app.schemas.qa import AnswerResponse, AnswerStatus
 from app.schemas.reviews import ReviewCreate
 
 EVALS_DIR = Path(__file__).parent
