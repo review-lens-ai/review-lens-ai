@@ -140,6 +140,22 @@ def test_target_with_no_reviews_has_a_zero_count_and_no_average(
     }
 
 
+def test_the_rating_counts_always_add_up_to_the_review_count(
+    api, make_user, make_token, make_target, save_run
+):
+    owner = make_user()
+    target_id = make_target(owner)
+    # Two runs and every star rating, so a bucket missing from the query would show.
+    save_run(target_id, owner, [1, 2, 3, 4, 5, 5])
+    save_run(target_id, owner, [1, 3, 3, 5], text="Another run")
+
+    body = get_summary(api, make_token, owner, target_id).json()
+
+    assert body["review_count"] == 10
+    assert [c["rating"] for c in body["rating_counts"]] == [1, 2, 3, 4, 5]
+    assert sum(c["count"] for c in body["rating_counts"]) == body["review_count"]
+
+
 # --- 1. Adding or removing a saved review changes the summary ---
 
 
