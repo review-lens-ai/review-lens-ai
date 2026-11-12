@@ -10,6 +10,7 @@ import {
   HttpResponse,
   ingestionRun,
   jsonResponse,
+  queryWrapper,
   render,
   review,
   reviewPage,
@@ -31,7 +32,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => router,
   useParams: () => ({ id: url.id }),
 }));
-vi.mock("@/app/_components/app-shell", () => ({
+vi.mock("@/lib/hooks/use-targets", () => ({
   useTargets: () => ({ refresh: vi.fn(async () => {}) }),
 }));
 vi.mock("@/lib/supabase/client", () => ({
@@ -79,7 +80,10 @@ function questionsAnswer(
 
 async function openQaTab(name = "Joe's Pizza") {
   url.id = TARGET_ID;
-  const page = render(<TargetWorkspacePage />);
+  // As in the app: a 401 from any request goes to /login (QueryProvider does this there).
+  const page = render(<TargetWorkspacePage />, {
+    wrapper: queryWrapper(() => router.replace("/login")),
+  });
   await screen.findByRole("heading", { name });
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -278,11 +282,11 @@ describe("Review Q&A when the user switches targets", () => {
   const OTHER_NAME = "Mia's Tacos";
   const OTHER_QUESTIONS_URL = `${API}/api/v1/targets/${OTHER_ID}/questions`;
 
-  // Moves to the other target, as clicking it in the sidebar does, and opens its Q&A tab.
-  async function switchToOtherTarget(page: ReturnType<typeof render>) {
-    url.id = OTHER_ID;
+  // Moves to a target, as clicking it in the sidebar does, and opens its Q&A tab.
+  async function switchTo(page: ReturnType<typeof render>, id: string, name: string) {
+    url.id = id;
     page.rerender(<TargetWorkspacePage />);
-    await screen.findByRole("heading", { name: OTHER_NAME });
+    await screen.findByRole("heading", { name });
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
@@ -302,7 +306,7 @@ describe("Review Q&A when the user switches targets", () => {
     fireEvent.click(askButton());
     await screen.findByRole("article", { name: "ReviewLens response" });
 
-    await switchToOtherTarget(page);
+    await switchTo(page, OTHER_ID, OTHER_NAME);
 
     expect(questionBox().value).toBe("");
     expect(screen.queryByRole("article", { name: "ReviewLens response" })).toBeNull();
@@ -321,7 +325,7 @@ describe("Review Q&A when the user switches targets", () => {
       OTHER_QUESTIONS_URL,
     );
     const page = await openQaTab();
-    await switchToOtherTarget(page);
+    await switchTo(page, OTHER_ID, OTHER_NAME);
     typeQuestion(QUESTION);
 
     fireEvent.click(askButton());
@@ -331,6 +335,26 @@ describe("Review Q&A when the user switches targets", () => {
     expect(response.textContent).toContain(`Based on ${OTHER_NAME}'s reviews`);
     expect(askedOther).toEqual([{ question: QUESTION }]);
     expect(askedFirst).toEqual([]);
+  });
+
+  // Going back to a target already loaded shows it at once, with no loading state in
+  // between, so nothing but the per-target reset keeps the last target's answer off it.
+  it("going back to an already loaded target does not carry the answer over", async () => {
+    backendHas(5);
+    backendHas(7, OTHER_ID, OTHER_NAME);
+    questionsAnswer(() => jsonResponse({ answer: "Tacos answer." }), OTHER_QUESTIONS_URL);
+    const page = await openQaTab();
+    await switchTo(page, OTHER_ID, OTHER_NAME);
+    typeQuestion(QUESTION);
+    fireEvent.click(askButton());
+    await screen.findByRole("article", { name: "ReviewLens response" });
+
+    await switchTo(page, TARGET_ID, "Joe's Pizza");
+
+    expect(questionBox().value).toBe("");
+    expect(screen.queryByText("Tacos answer.")).toBeNull();
+    await waitFor(() => expect(contextCard().textContent).toContain("5 reviews"));
+    expect(contextCard().textContent).not.toContain(OTHER_NAME);
   });
 
   it("a late answer for the previous target never shows on the new one", async () => {
@@ -348,7 +372,7 @@ describe("Review Q&A when the user switches targets", () => {
     fireEvent.click(askButton());
     await screen.findByRole("status", { name: "ReviewLens is reading the reviews" });
 
-    await switchToOtherTarget(page);
+    await switchTo(page, OTHER_ID, OTHER_NAME);
     await act(async () => {
       finish();
       await new Promise((resolve) => setTimeout(resolve, 0));

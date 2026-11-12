@@ -3,8 +3,8 @@
 // S2-009: the Review Q&A tab. One question, one answer, for the active target only.
 // No chat history: a new question replaces the last answer.
 
-import { useEffect, useId, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useId, useRef, useState } from "react";
+import { useMutation, type UseMutationResult } from "@tanstack/react-query";
 import {
   ArrowRightIcon,
   ArrowUpIcon,
@@ -19,12 +19,13 @@ import {
 import { EmptyState } from "@/app/_components/empty-state";
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
-import { ApiError } from "@/lib/api";
+import { ApiError, isUnauthorized } from "@/lib/api";
 import { reviewCount } from "@/lib/ingestion-runs";
 import {
   askFailureMessage,
   askQuestion,
   QUESTION_MAX_LENGTH,
+  type QuestionAnswer,
   questionProblem,
   SUGGESTED_QUESTIONS,
 } from "@/lib/questions";
@@ -38,6 +39,27 @@ type Exchange =
   | { status: "answered"; question: string; answer: string }
   | { status: "failed"; question: string; message: string };
 
+// What the user sees for the latest question. useMutation only reports the latest
+// request, and stops when the panel unmounts, so a late answer for an earlier
+// question, or for the previous target, never shows.
+function exchangeOf(ask: UseMutationResult<QuestionAnswer, Error, string>): Exchange {
+  const question = ask.variables ?? "";
+  if (ask.isPending) return { status: "asking", question };
+  if (ask.isSuccess) return { status: "answered", question, answer: ask.data.answer };
+  // A 401 is redirecting to /login (QueryProvider) and NOT_FOUND shows the not-found
+  // page, so neither needs a failure card.
+  if (ask.isError && !isUnauthorized(ask.error) && !isTargetMissing(ask.error)) {
+    return { status: "failed", question, message: askFailureMessage(ask.error) };
+  }
+  return { status: "idle" };
+}
+
+// The target is gone or not this user's. A 404 without this code (e.g. an endpoint
+// not deployed yet) is a failed question, not a missing target.
+function isTargetMissing(error: Error): boolean {
+  return error instanceof ApiError && error.code === "NOT_FOUND";
+}
+
 export function ReviewQaPanel({
   target,
   reviewTotal,
@@ -48,18 +70,16 @@ export function ReviewQaPanel({
   reviewTotal: number | null;
   onNotFound: () => void;
 }) {
-  const router = useRouter();
   const [question, setQuestion] = useState("");
   const [problem, setProblem] = useState<string | null>(null);
-  const [exchange, setExchange] = useState<Exchange>({ status: "idle" });
-  // Counts requests, so a late answer never replaces a newer one or lands after unmount.
-  const request = useRef(0);
-  useEffect(() => {
-    const current = request;
-    return () => {
-      current.current += 1;
-    };
-  }, []);
+  // A 401 is handled for every request by the QueryProvider, which also clears cached data.
+  const askMutation = useMutation({
+    mutationFn: (text: string) => askQuestion(target.id, text),
+    onError: (error) => {
+      if (isTargetMissing(error)) onNotFound();
+    },
+  });
+  const exchange = exchangeOf(askMutation);
 
   const inputId = useId();
   const helpId = useId();
@@ -76,36 +96,20 @@ export function ReviewQaPanel({
     );
   }
 
-  async function ask(text: string) {
+  function ask(text: string) {
     const found = questionProblem(text);
     setProblem(found);
     if (found) {
       inputRef.current?.focus();
       return;
     }
-    const mine = ++request.current;
-    setExchange({ status: "asking", question: text });
-    try {
-      const { answer } = await askQuestion(target.id, text);
-      if (mine === request.current) setExchange({ status: "answered", question: text, answer });
-    } catch (e) {
-      if (mine !== request.current) return;
-      if (e instanceof ApiError && e.status === 401) {
-        router.replace("/login");
-      } else if (e instanceof ApiError && e.code === "NOT_FOUND") {
-        // The target is gone or not this user's. A 404 without this code (e.g. an
-        // endpoint not deployed yet) is a failed question, not a missing target.
-        onNotFound();
-      } else {
-        // The question stays in the box, so the user can try again or edit it (§6.3).
-        setExchange({ status: "failed", question: text, message: askFailureMessage(e) });
-      }
-    }
+    // On failure the question stays in the box, so the user can try again or edit it (§6.3).
+    askMutation.mutate(text);
   }
 
   function askSuggestion(text: string) {
     setQuestion(text);
-    void ask(text);
+    ask(text);
   }
 
   let help = "Ask in your own words. Be as specific as you like.";
@@ -130,7 +134,7 @@ export function ReviewQaPanel({
             noValidate
             onSubmit={(e) => {
               e.preventDefault();
-              if (!asking) void ask(question);
+              if (!asking) ask(question);
             }}
           >
             <div className="flex items-baseline justify-between gap-2">
@@ -195,7 +199,7 @@ export function ReviewQaPanel({
               onSuggestion={askSuggestion}
               onRetry={(text) => {
                 setQuestion(text);
-                void ask(text);
+                ask(text);
               }}
               onEdit={() => inputRef.current?.focus()}
             />
