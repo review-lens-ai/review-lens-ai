@@ -51,3 +51,21 @@ class ReviewPage(BaseModel):
     total: int  # all of the target's reviews, not just this page
     limit: int
     offset: int
+
+
+class RatingCount(BaseModel):
+    """How many of the target's reviews have one star rating (S2-008)."""
+
+    rating: int
+    count: int
+
+
+class ReviewSummary(BaseModel):
+    """S2-008: the summary of a target's active dataset, the same saved reviews
+    Q&A reads. Calculated from the reviews table, never from a run's counters."""
+
+    review_count: int
+    # None when the target has no reviews; otherwise rounded to 2 decimal places.
+    average_rating: float | None
+    # Ratings 1 to 5 in order, each listed even when its count is 0.
+    rating_counts: list[RatingCount]

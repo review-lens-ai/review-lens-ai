@@ -14,9 +14,10 @@ import { REVIEWS_PAGE_SIZE, reviewPageParams } from "@/lib/reviews";
 // finished at a given time). null when the target has no run; undefined until the latest
 // run has loaded. The run's id is part of it: two runs that are both still going must not
 // share cached pages, or a new run would show the list from before the previous one.
-type RunKey = string | null | undefined;
+export type RunKey = string | null | undefined;
 
-function runKeyOf(run: IngestionRun | null | undefined): RunKey {
+// Shared with useTargetSummary: both change only when a run saves reviews.
+export function runKeyOf(run: IngestionRun | null | undefined): RunKey {
   if (run === undefined || run === null) return run;
   return `${run.id}:${run.finished_at ?? "going"}`;
 }
