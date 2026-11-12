@@ -7,6 +7,7 @@ test_prompt.py and reply handling in test_answer.py.
 """
 
 import logging
+from datetime import UTC, datetime
 from uuid import UUID
 
 import pytest
@@ -15,7 +16,7 @@ from app.core.errors import NotFoundError
 from app.llm import ModelReplyError, ModelUnavailableError
 from app.schemas.qa import AnswerStatus
 from app.services.qa import InvalidQuestionError, QAUnavailableError
-from app.services.qa.context import ContextIsolationError
+from app.services.qa.context import MAX_CONTEXT_CHARACTERS, ContextIsolationError
 from app.services.qa.prompt import MAX_QUESTION_LENGTH
 from tests.unit.qa.conftest import (
     LEAK_PHRASE,
@@ -114,6 +115,65 @@ def test_selector_that_finds_nothing_answers_insufficient_without_the_model(ask)
     assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
     assert result.context.is_subset is True
     assert model.requests == []
+
+
+# --- Size limit of the temporary selector ---------------------------------------
+
+
+def test_a_target_that_fits_gets_every_review_and_no_subset_note(ask):
+    model = FakeModel()
+    result = ask(model)
+
+    assert result.context.is_subset is False
+    assert "subset" not in model.last.system_prompt
+
+
+def test_a_target_too_big_for_one_request_gets_its_newest_reviews_and_says_so(
+    ask, monkeypatch
+):
+    # Room for two of the target's three reviews (about 150 characters each).
+    monkeypatch.setattr("app.services.qa.context.MAX_CONTEXT_CHARACTERS", 320)
+    model = FakeModel()
+    result = ask(model)
+
+    assert sent_ids(model.last) == review_ids(TARGET_A)[:2]
+    assert result.context.reviews_considered == 2
+    assert result.context.reviews_total == 3
+    assert result.context.is_subset is True
+    assert "a subset of the 3 reviews" in model.last.system_prompt
+
+
+def test_the_newest_review_is_sent_even_when_it_alone_exceeds_the_limit(
+    ask, monkeypatch
+):
+    monkeypatch.setattr("app.services.qa.context.MAX_CONTEXT_CHARACTERS", 10)
+    model = FakeModel()
+    result = ask(model)
+
+    assert sent_ids(model.last) == review_ids(TARGET_A)[:1]
+    assert result.context.is_subset is True
+
+
+def test_a_very_large_target_never_sends_more_than_the_limit(ask, store):
+    # 500 older reviews of 1,000 characters each: about 550,000 characters in all.
+    store.reviews.rows.extend(
+        {
+            "id": f"c0000000-0000-0000-0000-{number:012d}",
+            "target_id": TARGET_A,
+            "rating": 3,
+            "review_text": "x" * 1000,
+            "reviewed_at": datetime(2026, 9, 1, tzinfo=UTC),
+        }
+        for number in range(500)
+    )
+    model = FakeModel()
+    result = ask(model)
+
+    assert len(model.last.reviews_block) <= MAX_CONTEXT_CHARACTERS
+    # The newest reviews come first, then as many older ones as fit.
+    assert sent_ids(model.last)[:3] == review_ids(TARGET_A)
+    assert result.context.reviews_total == 503
+    assert result.context.is_subset is True
 
 
 # --- Cross-user reviews (S2-BR-022, S2-BR-026) --------------------------------

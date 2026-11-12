@@ -89,7 +89,7 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:55432/postgres \
 
 ## Temporary parts
 
-- **Selector.** `select_all_reviews` sends every review of the target. S2-010 replaces it with the chosen strategy and documents the token limits. Any function with the `ReviewSelector` signature plugs in, and the isolation check and its tests apply unchanged.
+- **Selector.** `select_newest_reviews` sends the target's newest reviews that fit a size limit (`MAX_CONTEXT_CHARACTERS`, about 30,000 tokens), so every review for most targets and a subset for a very large one. The answer's `context.is_subset` and the prompt say when some were left out. S2-010 replaces it with the chosen strategy and documents the real token limits. Any function with the `ReviewSelector` signature plugs in, and the isolation check and its tests apply unchanged.
 - **Prompt wording.** A first draft; S2-013 owns the final text. Tests check rules are present, not exact sentences.
 
 ## Planned: persistent chat history

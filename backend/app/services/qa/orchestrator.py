@@ -29,7 +29,7 @@ from app.services.qa.context import (
     ReviewSelector,
     ReviewSource,
     build_bundle,
-    select_all_reviews,
+    select_newest_reviews,
 )
 from app.services.qa.prompt import build_system_prompt, clean_question, format_reviews
 
@@ -57,7 +57,7 @@ def answer_question(
     targets: TargetSource,
     reviews: ReviewSource,
     model: ModelClient,
-    select_reviews: ReviewSelector = select_all_reviews,
+    select_reviews: ReviewSelector = select_newest_reviews,
 ) -> AnswerResponse:
     question = clean_question(question)
 

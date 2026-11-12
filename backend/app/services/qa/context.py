@@ -11,8 +11,10 @@ Rules:
   target, before anything is sent to the model. Reviews have no owner column, so
   the target is what ties them to the owner. This catches a selector that forgets
   its target filter (S2-BR-009, S2-BR-023, S2-BR-024).
-- TEMPORARY SELECTOR: select_all_reviews sends every review. S2-010 decides the
-  real strategy; any selector with the ReviewSelector signature can replace it.
+- TEMPORARY SELECTOR: select_newest_reviews sends the newest reviews that fit a
+  size limit (all of them for most targets). When some are left out, is_subset says
+  so and the prompt tells the model. S2-010 decides the real strategy; any selector
+  with the ReviewSelector signature can replace it.
 - FRESH EVERY QUESTION: nothing is cached, so a new question always reads the
   active target's reviews again.
 """
@@ -56,11 +58,29 @@ class ReviewSource(Protocol):
 ReviewSelector = Callable[[ReviewSource, dict, UUID | str, str], list[dict]]
 
 
-def select_all_reviews(
+# Room for reviews in one request: about 30,000 tokens at 4 characters per token. Every
+# review also costs a few tokens of markup in the review block, counted below. Rough
+# numbers, to be replaced when S2-010 sets the real limits.
+MAX_CONTEXT_CHARACTERS = 120_000
+REVIEW_MARKUP_CHARACTERS = 100
+
+
+def select_newest_reviews(
     reviews: ReviewSource, target: dict, owner_id: UUID | str, question: str
 ) -> list[dict]:
-    """TEMPORARY (until S2-010): every review of the target, newest first."""
-    return reviews.list_for_target(target["id"], owner_id)
+    """TEMPORARY (until S2-010): the target's newest reviews that fit
+    MAX_CONTEXT_CHARACTERS, newest first. A target that is too big for one request
+    gets a subset, never a failed request; the answer says so (is_subset). The
+    newest review is always included, however long it is."""
+    chosen: list[dict] = []
+    used = 0
+    for row in reviews.list_for_target(target["id"], owner_id):
+        size = len(row["review_text"]) + REVIEW_MARKUP_CHARACTERS
+        if chosen and used + size > MAX_CONTEXT_CHARACTERS:
+            break
+        chosen.append(row)
+        used += size
+    return chosen
 
 
 @dataclass(frozen=True)
