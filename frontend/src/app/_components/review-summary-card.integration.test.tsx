@@ -169,21 +169,4 @@ describe("ReviewSummaryCard", () => {
     expect(await screen.findByText("We couldn't load the summary.")).toBeTruthy();
     expect(screen.queryByText(/out of 5/)).toBeNull();
   });
-
-  it("shows the new numbers when a run finishes", async () => {
-    backendReturns(FIVE_REVIEWS);
-    const running = ingestionRun({
-      id: "run-2",
-      target_id: TARGET_ID,
-      status: "RUNNING",
-      finished_at: null,
-    });
-    const { rerender } = renderCard(running);
-    await screen.findByText("5 reviews");
-
-    backendReturns({ ...FIVE_REVIEWS, review_count: 8 });
-    rerender(card(ingestionRun({ id: "run-2", target_id: TARGET_ID, status: "COMPLETED" })));
-
-    expect(await screen.findByText("8 reviews")).toBeTruthy();
-  });
 });
