@@ -1,5 +1,7 @@
 """Fetching and caching Supabase's public signing keys."""
 
+import ssl
+
 import pytest
 
 from app import auth as auth_module
@@ -49,6 +51,19 @@ def test_the_key_fetcher_caches_keys_and_gives_up_after_five_seconds(
     (client,) = recording_jwk_client.instances
     assert client.options["cache_keys"] is True
     assert client.options["timeout"] == 5
+
+
+def test_the_key_fetcher_trusts_certifi_not_the_interpreter(recording_jwk_client):
+    # A python.org Python ships without CA certificates, so relying on the
+    # interpreter made every key fetch fail and every sign-in bounce with a 401.
+    SigningKeyResolver("https://example.test/jwks.json")
+
+    (client,) = recording_jwk_client.instances
+    context = client.options["ssl_context"]
+    assert isinstance(context, ssl.SSLContext)
+    assert context.verify_mode == ssl.CERT_REQUIRED
+    assert context.check_hostname is True
+    assert context.cert_store_stats()["x509_ca"] > 0
 
 
 def test_the_resolver_returns_the_key_the_token_names(recording_jwk_client):

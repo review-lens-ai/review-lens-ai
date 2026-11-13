@@ -15,6 +15,8 @@ Folder layout and conventions: [Coding Standards](docs/standards/coding-standard
 
 The backend runs on Python 3.12, the same version as CI (`backend/.python-version`). uv picks it up automatically and downloads it if it is missing, so no separate Python install is needed. A different version can change generated files (for example, Python 3.13 renames HTTP 422 in `frontend/openapi.json`) and make `./scripts/check.sh` fail.
 
+Any Python 3.12 works, including the python.org installer. The backend trusts the [certifi](https://pypi.org/project/certifi/) certificate bundle for its HTTPS calls, so the installer's "Install Certificates.command" step is not needed. If sign-in succeeds but the app goes straight back to `/login`, the backend is answering 401: look for `token rejected` in the backend's output.
+
 ## Setup
 
 ```bash
