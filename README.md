@@ -13,6 +13,8 @@ Folder layout and conventions: [Coding Standards](docs/standards/coding-standard
 - Node.js + npm
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
+The backend runs on Python 3.12, the same version as CI (`backend/.python-version`). uv picks it up automatically and downloads it if it is missing, so no separate Python install is needed. A different version can change generated files (for example, Python 3.13 renames HTTP 422 in `frontend/openapi.json`) and make `./scripts/check.sh` fail.
+
 ## Setup
 
 ```bash
