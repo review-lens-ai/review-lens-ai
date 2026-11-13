@@ -2,6 +2,7 @@
 
 import ssl
 
+import certifi
 import pytest
 
 from app import auth as auth_module
@@ -63,7 +64,13 @@ def test_the_key_fetcher_trusts_certifi_not_the_interpreter(recording_jwk_client
     assert isinstance(context, ssl.SSLContext)
     assert context.verify_mode == ssl.CERT_REQUIRED
     assert context.check_hostname is True
-    assert context.cert_store_stats()["x509_ca"] > 0
+    # Exactly certifi's certificates. A context built from the interpreter's own
+    # certificates has a different count (none at all on a bare python.org Python),
+    # so switching back to the default fails here on every machine.
+    certifi_only = ssl.create_default_context(cafile=certifi.where())
+    expected = certifi_only.cert_store_stats()["x509_ca"]
+    assert expected > 0
+    assert context.cert_store_stats()["x509_ca"] == expected
 
 
 def test_the_resolver_returns_the_key_the_token_names(recording_jwk_client):
