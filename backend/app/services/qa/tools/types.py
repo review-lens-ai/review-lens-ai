@@ -7,8 +7,9 @@
 - The model cites labels ("R1"), never database ids. The answer builder maps
   cited labels back to sources, and a label no tool returned is a made-up
   citation (S2-BR-010).
-- A tool never raises to the loop: a failure is a ToolResult with is_error set,
-  so the model can read it and try again.
+- A tool failure is a ToolResult with is_error set, so the model can read it and
+  try again. The one exception is ToolScopeError (guard.py): a review from outside
+  the active target is a bug, so it is raised and the loop lets it stop the question.
 """
 
 from uuid import UUID

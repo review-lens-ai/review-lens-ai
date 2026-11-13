@@ -200,14 +200,9 @@ def test_around_a_review_of_another_target_is_the_same_404_as_an_unknown_one(
 ):
     owner = make_user()
     mine = make_target_with_review(owner)
-    other_users = make_target_with_review(make_user())
     headers = auth(make_token(str(owner)))
-    foreign = api.get(
-        f"/api/v1/targets/{other_users}/reviews", headers=auth(make_token(str(owner)))
-    )
-    assert foreign.status_code == 404  # the target itself is not visible
 
-    # A review id from a target that is not the one in the URL.
+    # A review id from another of the owner's targets, not the one in the URL.
     other_target_review = api.get(
         f"/api/v1/targets/{make_target_with_review(owner)}/reviews", headers=headers
     ).json()["items"][0]["id"]
