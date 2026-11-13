@@ -20,6 +20,7 @@ import {
   server,
   target,
   waitFor,
+  within,
 } from "@/test";
 
 const TARGET_ID = "11111111-1111-1111-1111-111111111111";
@@ -370,13 +371,13 @@ describe("workspace layout", () => {
     expect(ingestButtons()).toHaveLength(1);
   });
 
-  it("does not show the Sprint 2 tabs", async () => {
+  it("shows the Ingestion, Reviews and Summary tabs", async () => {
     backendHas(null);
 
     await openWorkspace("Not ingested");
 
     const tabs = screen.getAllByRole("tab").map((tab) => tab.textContent);
-    expect(tabs).toEqual(["Ingestion", "Reviews"]);
+    expect(tabs).toEqual(["Ingestion", "Reviews", "Summary"]);
   });
 
   it("the Ingestion tab shows the latest run's counts", async () => {
@@ -412,6 +413,35 @@ describe("workspace layout", () => {
 
     await screen.findByText("Never started");
     expect(screen.queryByText("Not started yet")).toBeNull();
+  });
+
+  // S2-006: the Summary tab shows the card for this target. The summary is only asked for
+  // once the tab is opened, so the other tests here don't need a summary handler.
+  it("the Summary tab shows the review count and average for the active target", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" }));
+    const summaryAsked = vi.fn();
+    server.use(
+      http.get(`${TARGET_URL}/summary`, () => {
+        summaryAsked();
+        return jsonResponse({
+          review_count: 5,
+          average_rating: 3.4,
+          rating_counts: [1, 1, 0, 1, 2].map((count, i) => ({ rating: i + 1, count })),
+        });
+      }),
+    );
+
+    await openWorkspace("Ingested");
+    expect(summaryAsked).not.toHaveBeenCalled();
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Summary" }));
+
+    const card = await screen.findByRole("region", {
+      name: "Review summary for Joe's Pizza · Google Maps",
+    });
+    expect(await within(card).findByText("5 reviews")).toBeTruthy();
+    expect(within(card).getByText("3.4 out of 5")).toBeTruthy();
+    expect(summaryAsked).toHaveBeenCalledOnce();
   });
 });
 

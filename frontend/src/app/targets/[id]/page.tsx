@@ -17,6 +17,7 @@ import {
 import { EmptyState } from "@/app/_components/empty-state";
 import { PlatformBadge } from "@/app/_components/platform-badge";
 import { ReviewCard } from "@/app/_components/review-card";
+import { ReviewSummaryCard } from "@/app/_components/review-summary-card";
 import { StatusBadge } from "@/app/_components/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/app/_components/ui/alert";
 import { Button } from "@/app/_components/ui/button";
@@ -229,6 +230,15 @@ function TargetWorkspace({ id }: { id: string }) {
           onPage={reviews.showPage}
         />
       </TabsContent>
+      {/* S2-006: review count and ratings, from the saved reviews. Loads when the tab opens. */}
+      <TabsContent value="summary">
+        <ReviewSummaryCard
+          targetId={id}
+          targetName={target.name}
+          platform={platformLabel(target.platform)}
+          latestRun={latest.loaded ? run : undefined}
+        />
+      </TabsContent>
     </Tabs>
   );
 }
@@ -288,6 +298,7 @@ function TargetContextHeader({
       <TabsList variant="line" className="h-11 px-4">
         <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
         <TabsTrigger value="reviews">Reviews</TabsTrigger>
+        <TabsTrigger value="summary">Summary</TabsTrigger>
         {/* Summary and Q&A are Sprint 2; §3.1 says not to build them in Sprint 1. */}
       </TabsList>
     </div>
