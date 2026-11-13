@@ -39,6 +39,11 @@ from app.repositories.targets import TargetRepository
 from app.schemas.reviews import ReviewCreate
 from app.services.normalize_reviews import RejectedRecord
 
+# The order of a target's reviews: newest first. The list and page_offset_of both use
+# it, so a link to a review opens on the page the list would show it on.
+# id last: pages never overlap or skip a review.
+NEWEST_FIRST = "reviewed_at desc nulls last, created_at desc, id"
+
 
 class ReviewRepository:
     def __init__(self, conn: psycopg.Connection):
@@ -111,14 +116,13 @@ class ReviewRepository:
         limit=None returns them all."""
         self._targets.get_owned(target_id, owner_id)
         return self._conn.execute(
-            """
+            f"""
             select id, target_id, run_id, rating, review_text, mapping_version,
                    reviewed_at, source_review_id, source_url, source_metadata,
                    created_at
               from public.reviews
              where target_id = %s
-             -- id last: pages never overlap or skip a review.
-             order by reviewed_at desc nulls last, created_at desc, id
+             order by {NEWEST_FIRST}
              limit %s offset %s
             """,
             (target_id, limit, offset),
@@ -137,12 +141,10 @@ class ReviewRepository:
         review is not in it (the two look the same to the caller)."""
         self._targets.get_owned(target_id, owner_id)
         row = self._conn.execute(
-            """
+            f"""
             select position from (
               select id,
-                     row_number() over (
-                       order by reviewed_at desc nulls last, created_at desc, id
-                     ) - 1 as position
+                     row_number() over (order by {NEWEST_FIRST}) - 1 as position
                 from public.reviews
                where target_id = %s
             ) ranked
