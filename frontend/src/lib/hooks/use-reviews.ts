@@ -22,12 +22,13 @@ export function runKeyOf(run: IngestionRun | null | undefined): RunKey {
   return `${run.id}:${run.finished_at ?? "going"}`;
 }
 
-type PageView = { page: number; failed: boolean; forRun: RunKey };
+// around: the review a link asked for. Only the first load uses it; Next/Previous drop it.
+type PageView = { page: number; failed: boolean; forRun: RunKey; around?: string };
 
 // Saved reviews only change when a run saves them. The run is part of each page's cache
 // key, so a new run means fresh pages, and a page already loaded for this run is reused.
-function pageOptions(targetId: string, page: number, runKey: RunKey) {
-  const params = reviewPageParams(page);
+function pageOptions(targetId: string, page: number, runKey: RunKey, around?: string) {
+  const params = reviewPageParams(page, around);
   return {
     queryKey: [...getListTargetReviewsQueryKey(targetId, params), runKey],
     staleTime: Infinity,
@@ -35,29 +36,57 @@ function pageOptions(targetId: string, page: number, runKey: RunKey) {
 }
 
 // latestRun: the target's newest run, null if it has none, or undefined while loading.
+// focusReviewId: open on the page that holds this review (a link to one review).
 export function useReviews(
   targetId: string,
-  { enabled, latestRun }: { enabled: boolean; latestRun: IngestionRun | null | undefined },
+  {
+    enabled,
+    latestRun,
+    focusReviewId,
+  }: {
+    enabled: boolean;
+    latestRun: IngestionRun | null | undefined;
+    focusReviewId?: string | null;
+  },
 ) {
   const runKey = runKeyOf(latestRun);
   const queryClient = useQueryClient();
-  const [view, setView] = useState<PageView>({ page: 0, failed: false, forRun: runKey });
+  const [view, setView] = useState<PageView>({
+    page: 0,
+    failed: false,
+    forRun: runKey,
+    around: focusReviewId ?? undefined,
+  });
   const [pageLoading, setPageLoading] = useState(false);
 
   // The page on screen belongs to one run. When a run starts or finishes, new reviews
   // may have been saved, so the list starts again from page 1 (#68).
+  // The first load (the latest run was still unknown) keeps the linked review; a later
+  // run starts the list again and drops it.
   const current: PageView =
-    view.forRun === runKey ? view : { page: 0, failed: false, forRun: runKey };
+    view.forRun === runKey
+      ? view
+      : {
+          page: 0,
+          failed: false,
+          forRun: runKey,
+          around: view.forRun === undefined ? view.around : undefined,
+        };
 
-  const shown = useListTargetReviews(targetId, reviewPageParams(current.page), {
+  const shown = useListTargetReviews(targetId, reviewPageParams(current.page, current.around), {
     query: {
-      ...pageOptions(targetId, current.page, runKey),
+      ...pageOptions(targetId, current.page, runKey, current.around),
       // Wait for the latest run, so the first load isn't repeated once it arrives.
       enabled: enabled && runKey !== undefined,
       // While a new run's page 1 loads, keep showing the reviews from before (§7.3).
       placeholderData: keepPreviousData,
     },
   });
+
+  // A link to a review that is gone (a newer run replaced it) opens page 1 instead.
+  if (shown.isError && current.around) {
+    setView({ page: 0, failed: false, forRun: runKey });
+  }
 
   // Next/Previous: load the page first and switch only once it has arrived, so a failure
   // keeps the current page on screen and says so.

@@ -206,6 +206,7 @@ export type ListTargetReviewsParams = {
    * @maximum 100000
    */
   offset?: number;
+  around?: string | null;
 };
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -752,6 +753,10 @@ export const getListTargetReviewsUrl = (targetId: string,
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  *
+ * around: the id of one review. The page that holds it is returned (offset is
+ * ignored), so a link to a review can open on the right page. A review that is
+ * not in this target is a 404 too.
+ *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
  *   total count reviews the page did not see.
@@ -812,6 +817,10 @@ export type ListTargetReviewsQueryError = ErrorType<ErrorResponse>
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  *
+ * around: the id of one review. The page that holds it is returned (offset is
+ * ignored), so a link to a review can open on the right page. A review that is
+ * not in this target is a 404 too.
+ *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
  *   total count reviews the page did not see.
@@ -835,6 +844,10 @@ export function useListTargetReviews<TData = Awaited<ReturnType<typeof listTarge
 /**
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
+ *
+ * around: the id of one review. The page that holds it is returned (offset is
+ * ignored), so a link to a review can open on the right page. A review that is
+ * not in this target is a 404 too.
  *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
@@ -860,6 +873,10 @@ export function useListTargetReviews<TData = Awaited<ReturnType<typeof listTarge
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  *
+ * around: the id of one review. The page that holds it is returned (offset is
+ * ignored), so a link to a review can open on the right page. A review that is
+ * not in this target is a 404 too.
+ *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
  *   total count reviews the page did not see.
@@ -877,6 +894,10 @@ export function useListTargetReviews<TData = Awaited<ReturnType<typeof listTarge
 /**
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
+ *
+ * around: the id of one review. The page that holds it is returned (offset is
+ * ignored), so a link to a review can open on the right page. A review that is
+ * not in this target is a 404 too.
  *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes

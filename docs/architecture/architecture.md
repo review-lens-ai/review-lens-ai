@@ -46,7 +46,7 @@ The API never calls SerpApi. It only queues a run, and the worker does the fetch
 | 3 | Database | Supabase Postgres | Schema in `supabase/migrations/`. Row level security is on with no policies, and the Data API roles are revoked, so the database is only reachable through our backend. |
 | 4 | Identity provider | Supabase Auth | The frontend signs users in. The backend checks every token (RS256/ES256, audience, issuer, expiry) and takes the user id only from it. |
 | 5 | Review ingestion | SerpApi Google Maps reviews, run by a background worker | One run per target at a time. Stages: INGESTION, then NORMALIZATION. See [019-ingestion-pipeline.md](019-ingestion-pipeline.md) and [review-ingestion.md](review-ingestion.md). |
-| 6 | LLM provider | **Not decided** | Needed for Sprint 2. It will sit behind one backend boundary, and summary numbers will come from stored data, not from the model. |
+| 6 | LLM provider | **Not decided** | Needed for Sprint 2. It sits behind one backend boundary (`backend/app/llm/`), and summary numbers come from stored data, not from the model. The Q&A flow and its test harness are in [qa-harness.md](qa-harness.md). |
 | 7 | Deployment | **Not decided** (README mentions Vercel for the frontend and Render for the backend) | Sprint 3. CI today: GitHub Actions runs `scripts/check.sh` against a Postgres 17 service. |
 | 8 | Domain entities | See section 3 | |
 | 9 | API boundaries | See section 4 | |
@@ -240,7 +240,8 @@ review-lens-ai/
 │   │   ├── api/              # HTTP routes
 │   │   ├── schemas/          # Request and response shapes
 │   │   ├── repositories/     # All SQL, owner-filtered
-│   │   ├── services/         # Processing logic (normalizer); qa/tools/ is what the Q&A model can call
+│   │   ├── services/         # Processing logic (normalizer); qa/orchestration and qa/tools/ is what the Q&A model can call
+│   │   ├── llm/              # The model boundary (ModelClient); no provider yet
 │   │   ├── adapters/serpapi/ # Talks to SerpApi
 │   │   ├── fixtures/         # Saved provider responses, so tests never call the live service
 │   │   └── db/               # Migration runner
@@ -263,6 +264,7 @@ The session transcripts live at the repository root in `ai-transcripts/` (added 
 | [012-cross-user-authorization.md](012-cross-user-authorization.md) | How a user is identified and why other users' data is invisible |
 | [019-ingestion-pipeline.md](019-ingestion-pipeline.md) | How a run moves from QUEUED to a result (still marked Draft) |
 | [review-ingestion.md](review-ingestion.md) | Why SerpApi, the worker's steps and rules, and the adapter that fetches Google Maps reviews |
+| [qa-harness.md](qa-harness.md) | How a question reaches the model, the answer contract, and the deterministic test harness (S2-003) |
 
 ## 8. Keeping this current
 
