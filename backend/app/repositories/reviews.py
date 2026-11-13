@@ -204,6 +204,41 @@ class ReviewRepository:
             "last_reviewed_at": row["last_reviewed_at"],
         }
 
+    def without_embedding(
+        self, *, limit: int, target_id: UUID | str | None = None
+    ) -> list[dict]:
+        """Up to `limit` reviews with no embedding yet ({id, review_text}), of one
+        target or of every target. Only the ingestion worker and the backfill call
+        this; neither acts for a user, so there is no owner check (like
+        TargetRepository.get_for_run)."""
+        return self._conn.execute(
+            """
+            select id, review_text
+              from public.reviews
+             where embedding is null
+               and (%(target_id)s::uuid is null or target_id = %(target_id)s::uuid)
+             order by id
+             limit %(limit)s
+            """,
+            {"target_id": target_id, "limit": limit},
+        ).fetchall()
+
+    def save_embeddings(self, embeddings: list[tuple[UUID, list[float]]]) -> None:
+        """Store each review's embedding. A review that already has one is left
+        as it is, so saving twice changes nothing."""
+        with self._conn.cursor() as cur:
+            cur.executemany(
+                """
+                update public.reviews
+                   set embedding = %s::vector
+                 where id = %s and embedding is null
+                """,
+                [
+                    (_vector_literal(vector), review_id)
+                    for review_id, vector in embeddings
+                ],
+            )
+
     def _require_owned_run(
         self, run_id: UUID | str, target_id: UUID | str, owner_id: UUID | str
     ) -> None:
@@ -226,3 +261,8 @@ class ReviewRepository:
             raise InvalidRunTransitionError(
                 "Reviews can only be saved while the ingestion run is running."
             )
+
+
+def _vector_literal(vector: list[float]) -> str:
+    """pgvector's text form, "[0.1,0.2,...]", so no extra driver package is needed."""
+    return "[" + ",".join(str(float(value)) for value in vector) + "]"

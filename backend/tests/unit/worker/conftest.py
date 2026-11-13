@@ -17,6 +17,7 @@ from app.repositories.ingestion_runs import ErrorCode
 from app.repositories.ingestion_stages import StageStatus
 from app.repositories.targets import DuplicatePlaceError
 from app.worker import Pipeline
+from tests.conftest import FakeEmbedder
 
 FIXTURES = Path(__file__).resolve().parents[3] / "app" / "fixtures"
 PAGE_1 = json.loads(
@@ -177,6 +178,12 @@ class FakeReviews:
     def save_rejections(self, run_id, target_id, owner_id, rejected):
         self.rejected = list(rejected)
 
+    def without_embedding(self, *, limit, target_id=None):
+        return []
+
+    def save_embeddings(self, embeddings):
+        pass
+
 
 @pytest.fixture
 def log():
@@ -210,5 +217,6 @@ def make_pipeline(
             )
         ),
         max_reviews=max_reviews,
+        embedder=FakeEmbedder(),
     )
     return pipeline, google
