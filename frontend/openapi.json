@@ -991,13 +991,39 @@
             },
             "type": "array",
             "title": "Rating Counts"
+          },
+          "first_reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Reviewed At"
+          },
+          "last_reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Reviewed At"
           }
         },
         "type": "object",
         "required": [
           "review_count",
           "average_rating",
-          "rating_counts"
+          "rating_counts",
+          "first_reviewed_at",
+          "last_reviewed_at"
         ],
         "title": "ReviewSummary",
         "description": "S2-008: the summary of a target's active dataset, the same saved reviews\nQ&A reads. Calculated from the reviews table, never from a run's counters."

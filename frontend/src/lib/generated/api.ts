@@ -154,6 +154,8 @@ export interface ReviewSummary {
   review_count: number;
   average_rating: number | null;
   rating_counts: RatingCount[];
+  first_reviewed_at: string | null;
+  last_reviewed_at: string | null;
 }
 
 /**

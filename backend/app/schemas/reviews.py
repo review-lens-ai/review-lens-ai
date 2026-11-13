@@ -69,3 +69,7 @@ class ReviewSummary(BaseModel):
     average_rating: float | None
     # Ratings 1 to 5 in order, each listed even when its count is 0.
     rating_counts: list[RatingCount]
+    # The oldest and newest review dates. Reviews without a date are left out;
+    # None when no review has a date (including a target with no reviews).
+    first_reviewed_at: datetime | None
+    last_reviewed_at: datetime | None
