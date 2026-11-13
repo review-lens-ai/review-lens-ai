@@ -31,6 +31,8 @@ function summaryOf(reviewCount: number) {
       rating,
       count: rating === 4 ? reviewCount : 0,
     })),
+    first_reviewed_at: reviewCount === 0 ? null : "2024-03-02T00:00:00Z",
+    last_reviewed_at: reviewCount === 0 ? null : "2026-11-08T00:00:00Z",
   };
 }
 

@@ -137,9 +137,12 @@ class ReviewRepository:
         from the saved reviews; otherwise NotFoundError.
 
         Returns {"review_count": int, "average_rating": float | None,
-        "rating_counts": [{"rating": 1, "count": n}, ... up to 5]}. Every rating from
-        1 to 5 is listed, with 0 when no review has it. average_rating is None when
-        there are no reviews, and is rounded to 2 decimal places.
+        "rating_counts": [{"rating": 1, "count": n}, ... up to 5],
+        "first_reviewed_at": datetime | None, "last_reviewed_at": datetime | None}.
+        Every rating from 1 to 5 is listed, with 0 when no review has it.
+        average_rating is None when there are no reviews, and is rounded to 2 decimal
+        places. The dates are the oldest and newest review dates; reviews without a
+        date are left out of them, and both are None when no review has a date.
         """
         self._targets.get_owned(target_id, owner_id)
         row = self._conn.execute(
@@ -150,7 +153,9 @@ class ReviewRepository:
                    count(*) filter (where rating = 2) as r2,
                    count(*) filter (where rating = 3) as r3,
                    count(*) filter (where rating = 4) as r4,
-                   count(*) filter (where rating = 5) as r5
+                   count(*) filter (where rating = 5) as r5,
+                   min(reviewed_at) as first_reviewed_at,
+                   max(reviewed_at) as last_reviewed_at
               from public.reviews
              where target_id = %s
             """,
@@ -163,6 +168,8 @@ class ReviewRepository:
             "rating_counts": [
                 {"rating": rating, "count": row[f"r{rating}"]} for rating in range(1, 6)
             ],
+            "first_reviewed_at": row["first_reviewed_at"],
+            "last_reviewed_at": row["last_reviewed_at"],
         }
 
     def _require_owned_run(
