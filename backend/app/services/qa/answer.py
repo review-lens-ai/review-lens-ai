@@ -8,18 +8,95 @@ Rules:
   text, becomes INSUFFICIENT_EVIDENCE with a fixed message (S2-BR-010, S2-BR-011).
 - REFUSALS: INSUFFICIENT_EVIDENCE and OUT_OF_SCOPE keep the model's explanation
   (or a fixed one if it is empty) and never carry evidence (S2-BR-021).
+- REFUSAL REASONS: every INSUFFICIENT_EVIDENCE answer has reason NO_EVIDENCE.
+  OUT_OF_SCOPE keeps the model's reason when it is one of the four out-of-scope
+  reasons, otherwise none. A refusal keeps at most MAX_SUGGESTIONS non-blank,
+  distinct suggestions; an answer has neither.
 - A status outside ReplyStatus is a ModelReplyError, handled like a failed call.
 """
 
 import logging
 
+from pydantic import BaseModel, Field
+
 from app.llm import ModelReply, ModelReplyError, ReplyStatus
-from app.schemas.qa import AnswerContext, AnswerResponse, AnswerStatus, EvidenceReview
+from app.schemas.qa import (
+    AnswerContext,
+    AnswerResponse,
+    AnswerStatus,
+    EvidenceReview,
+    RefusalReason,
+)
 from app.services.qa.context import ContextBundle
 
 logger = logging.getLogger(__name__)
 
 MAX_CITATIONS = 10
+MAX_SUGGESTIONS = 2
+
+# The reasons that go with OUT_OF_SCOPE; NO_EVIDENCE goes with INSUFFICIENT_EVIDENCE.
+OUT_OF_SCOPE_REASONS = frozenset(
+    {
+        RefusalReason.GENERAL_KNOWLEDGE,
+        RefusalReason.OTHER_ENTITY,
+        RefusalReason.OTHER_LOCATION,
+        RefusalReason.OTHER_PLATFORM,
+    }
+)
+
+
+class SubmitAnswer(BaseModel):
+    """Finish the question: give your answer, or say why you cannot answer it.
+
+    The model's final tool call (submit_answer). The Q&A loop binds this class as a
+    tool, so the docstring and each field description are what the model reads:
+    they are part of the prompt (S2-013). Nothing here is trusted as-is; the answer
+    builder still checks citations against what was sent and checks refusals.
+
+    The schema stays permissive on purpose. A status that doesn't match its
+    refusal_reason is corrected by the answer builder, not rejected here, so the
+    model is never stuck retrying a call it can't get past validation.
+    """
+
+    status: ReplyStatus = Field(
+        description=(
+            "ANSWERED if the reviews answer the question. INSUFFICIENT_EVIDENCE if "
+            "the question is about this place but the reviews don't cover it. "
+            "OUT_OF_SCOPE if the question is not about this place's reviews."
+        )
+    )
+    answer: str = Field(
+        description=(
+            "What the user reads. When you decline, say briefly why and what you "
+            "can help with instead. Never pretend you analyzed information you "
+            "were not given."
+        )
+    )
+    cited: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Labels (R1, R2, ...) of the reviews your answer relies on, only labels "
+            f"you were shown, at most {MAX_CITATIONS}. Empty unless ANSWERED."
+        ),
+    )
+    refusal_reason: RefusalReason | None = Field(
+        default=None,
+        description=(
+            "Why you declined. GENERAL_KNOWLEDGE: not about these reviews. "
+            "OTHER_ENTITY: another business, product or person. OTHER_LOCATION: "
+            "another branch of the same chain. OTHER_PLATFORM: a review site other "
+            "than the one these reviews come from. NO_EVIDENCE: about this place, "
+            "but the reviews don't cover it. Leave empty when ANSWERED."
+        ),
+    )
+    suggestions: list[str] = Field(
+        default_factory=list,
+        description=(
+            f"When you decline, up to {MAX_SUGGESTIONS} questions about these "
+            "reviews the user could ask instead. Empty when ANSWERED."
+        ),
+    )
+
 
 NO_REVIEWS_MESSAGE = (
     "This target has no ingested reviews yet. "
@@ -49,13 +126,40 @@ def _respond(
     answer: str,
     bundle: ContextBundle,
     evidence: list[EvidenceReview] | None = None,
+    refusal_reason: RefusalReason | None = None,
+    suggestions: list[str] | None = None,
 ) -> AnswerResponse:
     return AnswerResponse(
         status=status,
         answer=answer,
         evidence=evidence or [],
         context=context_summary(bundle),
+        refusal_reason=refusal_reason,
+        suggestions=suggestions or [],
     )
+
+
+def clean_suggestions(suggestions: tuple[str, ...]) -> list[str]:
+    """The model's suggestions, trimmed, without blanks or repeats, at most
+    MAX_SUGGESTIONS, in the model's order."""
+    cleaned: list[str] = []
+    for suggestion in suggestions:
+        text = (suggestion or "").strip()
+        if text and text not in cleaned:
+            cleaned.append(text)
+        if len(cleaned) == MAX_SUGGESTIONS:
+            break
+    return cleaned
+
+
+def out_of_scope_reason(value: object) -> RefusalReason | None:
+    """The model's reason if it is one of the four out-of-scope reasons, else None.
+    An unknown or mismatched reason is not an error: the refusal itself stands."""
+    try:
+        reason = RefusalReason(value)
+    except ValueError:
+        return None
+    return reason if reason in OUT_OF_SCOPE_REASONS else None
 
 
 def no_reviews_answer(bundle: ContextBundle) -> AnswerResponse:
@@ -64,7 +168,10 @@ def no_reviews_answer(bundle: ContextBundle) -> AnswerResponse:
 
 def insufficient_answer(bundle: ContextBundle) -> AnswerResponse:
     return _respond(
-        AnswerStatus.INSUFFICIENT_EVIDENCE, INSUFFICIENT_EVIDENCE_MESSAGE, bundle
+        AnswerStatus.INSUFFICIENT_EVIDENCE,
+        INSUFFICIENT_EVIDENCE_MESSAGE,
+        bundle,
+        refusal_reason=RefusalReason.NO_EVIDENCE,
     )
 
 
@@ -119,10 +226,19 @@ def build_answer(reply: ModelReply, bundle: ContextBundle) -> AnswerResponse:
             return insufficient_answer(bundle)
         return _respond(AnswerStatus.ANSWERED, text, bundle, evidence)
 
+    suggestions = clean_suggestions(reply.suggestions)
     if status is ReplyStatus.INSUFFICIENT_EVIDENCE:
         return _respond(
             AnswerStatus.INSUFFICIENT_EVIDENCE,
             text or INSUFFICIENT_EVIDENCE_MESSAGE,
             bundle,
+            refusal_reason=RefusalReason.NO_EVIDENCE,
+            suggestions=suggestions,
         )
-    return _respond(AnswerStatus.OUT_OF_SCOPE, text or OUT_OF_SCOPE_MESSAGE, bundle)
+    return _respond(
+        AnswerStatus.OUT_OF_SCOPE,
+        text or OUT_OF_SCOPE_MESSAGE,
+        bundle,
+        refusal_reason=out_of_scope_reason(reply.refusal_reason),
+        suggestions=suggestions,
+    )

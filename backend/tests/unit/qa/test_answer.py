@@ -10,12 +10,14 @@ from datetime import UTC, datetime
 import pytest
 
 from app.llm import ModelReply, ModelReplyError, ReplyStatus
-from app.schemas.qa import AnswerStatus
+from app.schemas.qa import AnswerStatus, RefusalReason
 from app.services.qa.answer import (
     INSUFFICIENT_EVIDENCE_MESSAGE,
     MAX_CITATIONS,
+    MAX_SUGGESTIONS,
     OUT_OF_SCOPE_MESSAGE,
     build_answer,
+    no_reviews_answer,
 )
 from app.services.qa.context import build_bundle
 
@@ -149,3 +151,93 @@ def test_context_counts_come_from_the_bundle_not_the_reply():
     assert result.context.reviews_considered == 3
     assert result.context.reviews_total == 40
     assert result.context.is_subset is True
+
+
+# --- Refusal reasons and suggestions (S2-012, S2-014, S2-015, S2-BR-021) ---
+
+
+def refusal(status, reason=None, suggestions=()):
+    return ModelReply(status, "I can't answer that.", (), reason, tuple(suggestions))
+
+
+def test_an_answer_has_no_refusal_reason_or_suggestions():
+    result = build_answer(
+        ModelReply(
+            ReplyStatus.ANSWERED,
+            "People like the fries.",
+            (review_id(1),),
+            RefusalReason.OTHER_ENTITY,
+            ("Ask about the fries?",),
+        ),
+        bundle(),
+    )
+
+    assert result.status is AnswerStatus.ANSWERED
+    assert result.refusal_reason is None
+    assert result.suggestions == []
+
+
+@pytest.mark.parametrize(
+    "reason",
+    [
+        RefusalReason.GENERAL_KNOWLEDGE,
+        RefusalReason.OTHER_ENTITY,
+        RefusalReason.OTHER_LOCATION,
+        RefusalReason.OTHER_PLATFORM,
+    ],
+)
+def test_out_of_scope_keeps_the_model_reason(reason):
+    result = build_answer(refusal(ReplyStatus.OUT_OF_SCOPE, reason), bundle())
+
+    assert result.status is AnswerStatus.OUT_OF_SCOPE
+    assert result.refusal_reason is reason
+
+
+@pytest.mark.parametrize(
+    "reason",
+    [None, RefusalReason.NO_EVIDENCE, "RUDE"],
+    ids=["no-reason", "evidence-reason", "unknown-reason"],
+)
+def test_out_of_scope_without_a_matching_reason_still_refuses(reason):
+    # The refusal stands; only the reason is left out (no crash, no answer).
+    result = build_answer(refusal(ReplyStatus.OUT_OF_SCOPE, reason), bundle())
+
+    assert result.status is AnswerStatus.OUT_OF_SCOPE
+    assert result.refusal_reason is None
+
+
+@pytest.mark.parametrize("reason", [None, RefusalReason.OTHER_ENTITY])
+def test_insufficient_evidence_always_has_reason_no_evidence(reason):
+    result = build_answer(refusal(ReplyStatus.INSUFFICIENT_EVIDENCE, reason), bundle())
+
+    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert result.refusal_reason is RefusalReason.NO_EVIDENCE
+
+
+def test_an_ungrounded_answer_is_reported_as_no_evidence():
+    result = build_answer(reply(ReplyStatus.ANSWERED, "Customers love it."), bundle())
+
+    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert result.refusal_reason is RefusalReason.NO_EVIDENCE
+
+
+def test_suggestions_are_trimmed_deduplicated_and_capped():
+    result = build_answer(
+        refusal(
+            ReplyStatus.OUT_OF_SCOPE,
+            RefusalReason.OTHER_PLATFORM,
+            ["  What's the rating?  ", "", "What's the rating?", "Fries?", "Staff?"],
+        ),
+        bundle(),
+    )
+
+    assert result.suggestions == ["What's the rating?", "Fries?"]
+    assert len(result.suggestions) == MAX_SUGGESTIONS
+
+
+def test_a_target_without_reviews_has_no_refusal_reason():
+    result = no_reviews_answer(bundle(count=0))
+
+    assert result.status is AnswerStatus.NO_REVIEWS
+    assert result.refusal_reason is None
+    assert result.suggestions == []
