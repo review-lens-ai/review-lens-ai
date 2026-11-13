@@ -1,7 +1,8 @@
 -- Keyword search over review text (S2-010, the Q&A tools).
 --
 -- search_vector holds each review's words in normalized form (lower case, common
--- words dropped, "slow" and "slowly" reduced to one stem). Postgres fills it from
+-- words dropped, "slow", "slows" and "slowed" reduced to one stem; "slowly" is a
+-- different stem, so it is not matched by "slow"). Postgres fills it from
 -- review_text on every insert and update, so it can never disagree with the text
 -- and the worker needs no extra step. The GIN index lets a word search jump to the
 -- matching reviews instead of reading every row.

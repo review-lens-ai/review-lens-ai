@@ -43,20 +43,20 @@ def _texts(conn, target_id, flt):
     return [row["review_text"] for row in rows]
 
 
-def test_a_word_search_matches_other_forms_of_the_word(conn, make_user):
+def test_a_word_search_matches_other_forms_of_the_verb(conn, make_user):
     target_id = _target_with_reviews(
         conn,
         make_user(),
         [
             ("The service was slow", 2),
-            ("Slowly cooked and great", 5),
+            ("Service slows down at lunch", 3),
             ("Fast and friendly", 5),
         ],
     )
 
     found = _texts(conn, target_id, ReviewFilter(words="slow"))
 
-    assert found == ["Slowly cooked and great", "The service was slow"]
+    assert found == ["Service slows down at lunch", "The service was slow"]
 
 
 def test_rating_and_word_conditions_combine(conn, make_user):
