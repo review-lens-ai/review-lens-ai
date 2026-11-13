@@ -102,8 +102,9 @@ def _get(api, make_token, user, path):
 
 
 def _tools(conn, owner, target_id) -> ToolSet:
-    """What the endpoint makes for one question: a fresh tool set for the active target."""
-    return ToolSet(ReviewSearchRepository(conn), owner, target_id)
+    """What the endpoint makes for one question: a repository that checked the owner,
+    and a fresh tool set on top of it. Another user's target stops here."""
+    return ToolSet(ReviewSearchRepository.for_owner(conn, target_id, owner))
 
 
 def _dataset(api, make_token, owner, target_id):
@@ -147,9 +148,9 @@ def test_switching_target_changes_the_summary_the_list_and_the_tools(
 
         assert summary["review_count"] == len(reviews)
         assert {r["review_text"] for r in page["items"]} == {t for t, _ in reviews}
-        found = tools.run("search_reviews", {"words": theme, "limit": 10})
+        found = tools.run("search_reviews", {"keywords": theme, "limit": 10})
         assert len(found.sources) == len(reviews)
-        assert tools.run("search_reviews", {"words": other_theme}).text == (
+        assert tools.run("search_reviews", {"keywords": other_theme}).text == (
             "No reviews match."
         )
 
@@ -157,11 +158,11 @@ def test_switching_target_changes_the_summary_the_list_and_the_tools(
 def test_nothing_of_the_previous_target_carries_over_after_a_switch(conn, world):
     owner = world["owner"]
     first = _tools(conn, owner, world["battery"])
-    shown = first.registry.run("search_reviews", {"words": "battery", "limit": 10})
+    shown = first.registry.run("search_reviews", {"keywords": "battery", "limit": 10})
     assert [s.label for s in shown.sources] == ["R1", "R2", "R3"]
 
     second = _tools(conn, owner, world["service"])
-    result = second.registry.run("search_reviews", {"words": "service", "limit": 10})
+    result = second.registry.run("search_reviews", {"keywords": "service", "limit": 10})
 
     # New labels, none of the first target's reviews, and a label from the first
     # question means nothing to the second.
@@ -187,34 +188,23 @@ def test_another_users_target_is_unreachable_through_every_consumer(
     assert (summary.status_code, reviews.status_code) == (404, 404)
     assert "battery" not in summary.text + reviews.text
 
-    tools = _tools(conn, stranger, target_id).registry
-    for name, arguments in [
-        ("review_stats", {}),
-        ("search_reviews", {"words": "battery"}),
-        ("top_terms", {}),
-    ]:
-        with pytest.raises(NotFoundError):
-            tools.run(name, arguments)
+    # No repository can be made for it, so there is no tool set and no tool to run
+    # (S2-BR-022): get_reviews, search_reviews and the rest are all out of reach.
+    with pytest.raises(NotFoundError):
+        _tools(conn, stranger, target_id)
 
 
 def test_nobody_can_point_their_tools_at_another_users_target(conn, world):
     # The other direction as well: the owner aims a tool set at the stranger's target.
-    tools = _tools(conn, world["owner"], world["strangers"]).registry
-
-    for name, arguments in [
-        ("review_stats", {}),
-        ("search_reviews", {"words": "zebra"}),
-        ("top_terms", {}),
-    ]:
-        with pytest.raises(NotFoundError):
-            tools.run(name, arguments)
+    with pytest.raises(NotFoundError):
+        _tools(conn, world["owner"], world["strangers"])
 
 
 def test_no_tool_finds_the_strangers_review_in_any_of_the_owners_targets(conn, world):
     # The stranger's distinctive phrase must not turn up anywhere in the owner's data.
     for target_id in (world["battery"], world["service"]):
         result = _tools(conn, world["owner"], target_id).registry.run(
-            "search_reviews", {"words": "zebra crossing"}
+            "search_reviews", {"keywords": "zebra crossing"}
         )
 
         assert result.text == "No reviews match."
