@@ -14,8 +14,8 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.{ts,tsx}"],
-      // Generated shadcn components, and the test helpers themselves.
-      exclude: ["src/app/_components/ui/**", "src/test/**", "**/*.test.*"],
+      // Generated code (shadcn components, the Orval API client), and the test helpers themselves.
+      exclude: ["src/app/_components/ui/**", "src/lib/generated/**", "src/test/**", "**/*.test.*"],
       reporter: ["text-summary", "lcov"],
     },
     projects: [

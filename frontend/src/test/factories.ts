@@ -29,6 +29,7 @@ export function review(overrides: Partial<Review> = {}): Review {
     run_id: "run-1",
     rating: 5,
     review_text: "Great slice, friendly staff.",
+    mapping_version: "serpapi@1",
     reviewed_at: "2026-10-20T12:00:00Z",
     source_review_id: null,
     source_url: null,

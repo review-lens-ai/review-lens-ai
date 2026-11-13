@@ -1,19 +1,14 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 // These tests cover pure wording/logic only; no network or env needed.
-vi.mock("@/lib/api", () => ({ apiFetch: vi.fn() }));
-
-import { apiFetch } from "@/lib/api";
 import {
   failureMessage,
-  fetchLatestRun,
   isActive,
   reviewCount,
   runDetail,
   runFailureMessage,
   skippedSummary,
   skipReasonLabel,
-  startIngestionRun,
   type IngestionRun,
 } from "./ingestion-runs";
 import { ingestionRun } from "@/test/factories";
@@ -83,27 +78,6 @@ describe("reviewCount", () => {
   });
 });
 
-describe("startIngestionRun (S1-019)", () => {
-  it("POSTs to the target's ingestion-runs and returns the queued run", async () => {
-    const queued = ingestionRun({ status: "QUEUED", started_at: null, finished_at: null });
-    vi.mocked(apiFetch).mockResolvedValueOnce(queued);
-
-    await expect(startIngestionRun("target-1")).resolves.toEqual(queued);
-    expect(apiFetch).toHaveBeenCalledWith("/api/v1/targets/target-1/ingestion-runs", {
-      method: "POST",
-    });
-  });
-
-  it("passes a refusal (e.g. 409, a run is already active) on to the page", async () => {
-    const conflict = Object.assign(new Error("Reviews are already being collected"), {
-      status: 409,
-    });
-    vi.mocked(apiFetch).mockRejectedValueOnce(conflict);
-
-    await expect(startIngestionRun("target-1")).rejects.toBe(conflict);
-  });
-});
-
 describe("skipReasonLabel (S2-007)", () => {
   it("says a star-rating-only review has no written review", () => {
     expect(skipReasonLabel("MISSING_TEXT")).toBe("no written review (star rating only)");
@@ -165,21 +139,5 @@ describe("runFailureMessage (S2-007)", () => {
   it("leaves every other failure message alone, even if records were skipped", () => {
     const timeout = { ...skippedAll, error_code: "TIMEOUT" };
     expect(runFailureMessage(timeout, [])).toEqual(failureMessage("TIMEOUT"));
-  });
-});
-
-describe("fetchLatestRun (S2-007)", () => {
-  it("returns the run together with why it skipped records", async () => {
-    const run = ingestionRun({ status: "PARTIAL", reviews_rejected: 3 });
-    const reasons = [{ reason: "MISSING_TEXT", count: 3 }];
-    vi.mocked(apiFetch).mockResolvedValueOnce({ run, skipped_reasons: reasons });
-
-    expect(await fetchLatestRun("t1")).toEqual({ run, skipped_reasons: reasons });
-  });
-
-  it("treats a response without reasons as none skipped", async () => {
-    vi.mocked(apiFetch).mockResolvedValueOnce({ run: null });
-
-    expect(await fetchLatestRun("t1")).toEqual({ run: null, skipped_reasons: [] });
   });
 });

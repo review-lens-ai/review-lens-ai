@@ -11,12 +11,13 @@ from uuid import UUID
 import psycopg
 from fastapi import APIRouter, Depends, Query
 
-from app.auth import get_current_user_id
+from app.auth import OwnerId
+from app.core.errors import error_responses
 from app.db import get_connection
 from app.platforms import SUPPORTED_PLATFORM
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
-from app.schemas.reviews import ReviewPage
+from app.schemas.reviews import ReviewPage, ReviewSummary
 from app.schemas.targets import TargetCreate, TargetList, TargetResponse
 
 router = APIRouter(prefix="/targets", tags=["targets"])
@@ -42,7 +43,6 @@ def get_review_repository(
 
 Repo = Annotated[TargetRepository, Depends(get_target_repository)]
 ReviewRepo = Annotated[ReviewRepository, Depends(get_review_repository)]
-OwnerId = Annotated[str, Depends(get_current_user_id)]
 
 
 @router.get("", response_model=TargetList)
@@ -52,14 +52,18 @@ def list_targets(owner_id: OwnerId, repo: Repo) -> dict:
     return {"items": repo.list_for_owner(owner_id)}
 
 
-@router.get("/{target_id}", response_model=TargetResponse)
+@router.get(
+    "/{target_id}", response_model=TargetResponse, responses=error_responses(404)
+)
 def get_target(target_id: UUID, owner_id: OwnerId, repo: Repo) -> dict:
     """S1-018: one target for its workspace. Another user's target is a 404,
     indistinguishable from one that does not exist."""
     return repo.get_owned(target_id, owner_id)
 
 
-@router.get("/{target_id}/reviews", response_model=ReviewPage)
+@router.get(
+    "/{target_id}/reviews", response_model=ReviewPage, responses=error_responses(404)
+)
 def list_target_reviews(
     target_id: UUID,
     owner_id: OwnerId,
@@ -88,7 +92,18 @@ def list_target_reviews(
     }
 
 
-@router.delete("/{target_id}", status_code=204)
+@router.get(
+    "/{target_id}/summary", response_model=ReviewSummary, responses=error_responses(404)
+)
+def get_target_summary(target_id: UUID, owner_id: OwnerId, reviews: ReviewRepo) -> dict:
+    """S2-008: review count, average rating and rating counts for one of the
+    user's targets, calculated from its saved reviews (the same dataset Q&A uses).
+    Another user's target is a 404, indistinguishable from one that does not exist.
+    """
+    return reviews.summary_for_target(target_id, owner_id)
+
+
+@router.delete("/{target_id}", status_code=204, responses=error_responses(404))
 def delete_target(target_id: UUID, owner_id: OwnerId, repo: Repo) -> None:
     """S1-012: delete one of your own targets. Another user's target is a 404."""
     repo.delete_owned(target_id, owner_id)
