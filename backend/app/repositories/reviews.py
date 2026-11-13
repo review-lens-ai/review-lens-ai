@@ -124,6 +124,36 @@ class ReviewRepository:
             (target_id, limit, offset),
         ).fetchall()
 
+    def page_offset_of(
+        self,
+        target_id: UUID | str,
+        owner_id: UUID | str,
+        review_id: UUID | str,
+        *,
+        limit: int,
+    ) -> int:
+        """Offset of the page that holds one review, in the same order as
+        list_for_target. NotFoundError if the target is not the user's or the
+        review is not in it (the two look the same to the caller)."""
+        self._targets.get_owned(target_id, owner_id)
+        row = self._conn.execute(
+            """
+            select position from (
+              select id,
+                     row_number() over (
+                       order by reviewed_at desc nulls last, created_at desc, id
+                     ) - 1 as position
+                from public.reviews
+               where target_id = %s
+            ) ranked
+             where id = %s
+            """,
+            (target_id, review_id),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError("Review not found.")
+        return row["position"] // limit * limit
+
     def count_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> int:
         """How many reviews a target the user owns has; otherwise NotFoundError."""
         self._targets.get_owned(target_id, owner_id)

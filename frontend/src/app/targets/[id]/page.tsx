@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   CircleAlertIcon,
   CircleCheckIcon,
@@ -80,10 +80,12 @@ export default function TargetWorkspacePage() {
 // target with empty state, so one target's reviews or status can never show on another.
 function WorkspaceForUrl() {
   const { id } = useParams<{ id: string }>();
-  return <TargetWorkspace key={id} id={id} />;
+  // ?review=<id> opens the Reviews tab on that review (e.g. a Q&A source link).
+  const focusReviewId = useSearchParams().get("review");
+  return <TargetWorkspace key={id} id={id} focusReviewId={focusReviewId} />;
 }
 
-function TargetWorkspace({ id }: { id: string }) {
+function TargetWorkspace({ id, focusReviewId }: { id: string; focusReviewId: string | null }) {
   // The data, each from its own hook. A 401 from any of them is handled once, by the
   // QueryProvider (redirect to /login).
   const targetQuery = useGetTarget(id);
@@ -96,6 +98,7 @@ function TargetWorkspace({ id }: { id: string }) {
     enabled: everIngested,
     // Reviews belong to the latest run: a new or finished run reloads them from page 1.
     latestRun: latest.loaded ? run : undefined,
+    focusReviewId,
   });
   const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
 
@@ -145,7 +148,7 @@ function TargetWorkspace({ id }: { id: string }) {
 
   // A never-ingested target opens on Ingestion, the first step of the flow (§1);
   // a target with data opens on its Reviews.
-  const firstTab = target.ingestion_status ? "reviews" : "ingestion";
+  const firstTab = target.ingestion_status || focusReviewId ? "reviews" : "ingestion";
 
   return (
     <Tabs defaultValue={firstTab} className="gap-6">
@@ -238,6 +241,7 @@ function TargetWorkspace({ id }: { id: string }) {
           pageLoading={reviews.pageLoading}
           pageFailed={reviews.pageFailed}
           onPage={reviews.showPage}
+          highlightId={focusReviewId}
         />
       </TabsContent>
     </Tabs>
@@ -482,6 +486,7 @@ function ReviewsPanel({
   pageLoading,
   pageFailed,
   onPage,
+  highlightId,
 }: {
   everIngested: boolean;
   reviews: Review[] | null;
@@ -491,6 +496,7 @@ function ReviewsPanel({
   pageLoading: boolean;
   pageFailed: boolean;
   onPage: (page: number) => void;
+  highlightId: string | null;
 }) {
   if (!everIngested || (reviews !== null && total === 0)) {
     return (
@@ -538,7 +544,11 @@ function ReviewsPanel({
       </div>
       <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
         {reviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
+          <ReviewCard
+            key={review.id}
+            review={review}
+            highlighted={review.id === highlightId}
+          />
         ))}
       </div>
       {pageFailed && (

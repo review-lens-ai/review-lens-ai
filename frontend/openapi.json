@@ -288,7 +288,7 @@
           "targets"
         ],
         "summary": "List Target Reviews",
-        "description": "S1-022: one page of a target's saved reviews, through its owner only.\nAnother user's target is a 404, indistinguishable from one that does not exist.\n\nKnown limits, accepted for now:\n- items and total are two queries. A run that commits between them makes\n  total count reviews the page did not see.\n- A run that finishes while someone pages shifts the rows, so the next page\n  can repeat a few reviews. The UI goes back to page 1 when a run finishes.\n- Future: one repository method that checks the owner once and returns\n  (rows, total) would save a round trip and could read both in one snapshot.",
+        "description": "S1-022: one page of a target's saved reviews, through its owner only.\nAnother user's target is a 404, indistinguishable from one that does not exist.\n\naround: the id of one review. The page that holds it is returned (offset is\nignored), so a link to a review can open on the right page. A review that is\nnot in this target is a 404 too.\n\nKnown limits, accepted for now:\n- items and total are two queries. A run that commits between them makes\n  total count reviews the page did not see.\n- A run that finishes while someone pages shifts the rows, so the next page\n  can repeat a few reviews. The UI goes back to page 1 when a run finishes.\n- Future: one repository method that checks the owner once and returns\n  (rows, total) would save a round trip and could read both in one snapshot.",
         "operationId": "list_target_reviews",
         "security": [
           {
@@ -328,6 +328,23 @@
               "minimum": 0,
               "default": 0,
               "title": "Offset"
+            }
+          },
+          {
+            "name": "around",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Around"
             }
           }
         ],

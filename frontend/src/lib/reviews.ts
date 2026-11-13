@@ -18,8 +18,14 @@ export const REVIEWS_PAGE_SIZE = 12;
 const LONG_REVIEW_LENGTH = 280;
 
 // page is 0 for the first page; the server skips page * REVIEWS_PAGE_SIZE reviews.
-export function reviewPageParams(page: number): ListTargetReviewsParams {
-  return { limit: REVIEWS_PAGE_SIZE, offset: page * REVIEWS_PAGE_SIZE };
+// around: a review id. The server then returns the page that holds that review, so a
+// link to one review (e.g. from a Q&A source) opens on the right page.
+export function reviewPageParams(page: number, around?: string): ListTargetReviewsParams {
+  return {
+    limit: REVIEWS_PAGE_SIZE,
+    offset: page * REVIEWS_PAGE_SIZE,
+    ...(around ? { around } : {}),
+  };
 }
 
 export function isLongReview(text: string): boolean {

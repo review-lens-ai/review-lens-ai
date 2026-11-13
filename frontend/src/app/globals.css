@@ -88,3 +88,14 @@
     @apply bg-background text-foreground font-sans;
   }
 }
+
+/* A review opened from a link glows briefly (ReviewCard, highlighted). */
+@keyframes review-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+  50% {
+    box-shadow: 0 0 18px 4px var(--color-primary);
+  }
+}

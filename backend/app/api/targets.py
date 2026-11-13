@@ -70,9 +70,14 @@ def list_target_reviews(
     reviews: ReviewRepo,
     limit: Annotated[int, Query(ge=1, le=MAX_REVIEW_PAGE_SIZE)] = REVIEW_PAGE_SIZE,
     offset: Annotated[int, Query(ge=0, le=MAX_REVIEW_OFFSET)] = 0,
+    around: UUID | None = None,
 ) -> dict:
     """S1-022: one page of a target's saved reviews, through its owner only.
     Another user's target is a 404, indistinguishable from one that does not exist.
+
+    around: the id of one review. The page that holds it is returned (offset is
+    ignored), so a link to a review can open on the right page. A review that is
+    not in this target is a 404 too.
 
     Known limits, accepted for now:
     - items and total are two queries. A run that commits between them makes
@@ -82,6 +87,8 @@ def list_target_reviews(
     - Future: one repository method that checks the owner once and returns
       (rows, total) would save a round trip and could read both in one snapshot.
     """
+    if around is not None:
+        offset = reviews.page_offset_of(target_id, owner_id, around, limit=limit)
     return {
         "items": reviews.list_for_target(
             target_id, owner_id, limit=limit, offset=offset
