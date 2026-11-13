@@ -103,15 +103,30 @@ class ReviewSearchRepository:
         return list(reversed(rows[:months])), cut
 
     def top_terms(self, review_filter: ReviewFilter, *, limit: int = 10) -> list[dict]:
-        """The words (reduced to their stem) used in the most reviews."""
+        """The words used in the most reviews. Forms of one word count together
+        ("service", "services") and are shown as the form used most often."""
         where, params = where_clause(self.target_id, review_filter)
         return self._conn.execute(
             f"""
-            select u.lexeme as term, count(*) as reviews
-              from public.reviews,
-                   unnest(search_vector) as u(lexeme, positions, weights)
-             where {where} and length(u.lexeme) > 2
-             group by u.lexeme
+            with words as (
+                select id, lower(w) as word
+                  from public.reviews,
+                       regexp_split_to_table(review_text, '[^[:alpha:]]+') as w
+                 where {where} and length(w) > 2
+            ),
+            stems as (
+                select d.word,
+                       (select s.lexeme
+                          from unnest(to_tsvector('english', d.word)) as s
+                         limit 1) as stem
+                  from (select distinct word from words) d
+            )
+            select mode() within group (order by words.word) as term,
+                   count(distinct words.id) as reviews
+              from words
+              join stems on stems.word = words.word
+             where stems.stem is not null and length(stems.stem) > 2
+             group by stems.stem
              order by reviews desc, term
              limit %s
             """,

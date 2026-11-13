@@ -35,15 +35,16 @@ def _stats(total=14, average=2.8):
 class FakeRepo:
     target_id = TARGET_ID
 
-    def __init__(self, rows=(), months_cut=False):
+    def __init__(self, rows=(), months_cut=False, totals=None):
         self.rows = list(rows)
         self.months_cut = months_cut
+        self.totals = totals  # filter -> how many reviews it matches (default 14)
         self.stats_filters = []
         self.search_calls = []
 
     def stats(self, review_filter):
         self.stats_filters.append(review_filter)
-        return _stats()
+        return _stats(total=self.totals(review_filter) if self.totals else 14)
 
     def by_month(self, review_filter, **_):
         month = {"month": datetime(2026, 3, 1, tzinfo=UTC), "total": 4, "average": 3.0}
@@ -100,11 +101,51 @@ def test_compare_periods_asks_for_before_and_after_the_date():
         "compare_periods", {"split": "2026-03-01T00:00:00Z", "keywords": "wait"}
     )
 
-    before, after = repo.stats_filters
+    before, after, whole = repo.stats_filters
     assert before.until is not None and before.since is None
     assert after.since is not None and after.until is None
-    assert before.keywords == after.keywords == "wait"
+    assert whole.since is None and whole.until is None
+    assert before.keywords == after.keywords == whole.keywords == "wait"
     assert "Before 2026-03-01" in result.text and "From 2026-03-01" in result.text
+    assert "no date" not in result.text  # 14 + 14 >= 14: nothing is missing
+
+
+def _split_totals(before, after, whole):
+    def total(review_filter):
+        if review_filter.until is not None:
+            return before
+        return after if review_filter.since is not None else whole
+
+    return total
+
+
+def test_compare_periods_says_how_many_reviews_have_no_date():
+    repo = FakeRepo(totals=_split_totals(before=4, after=5, whole=12))
+
+    result = _toolset(repo).registry.run(
+        "compare_periods", {"split": "2026-03-01T00:00:00Z"}
+    )
+
+    assert "3 matching reviews have no date, so they are in neither." in result.text
+
+
+def test_compare_periods_stays_quiet_when_every_review_has_a_date():
+    repo = FakeRepo(totals=_split_totals(before=4, after=5, whole=9))
+
+    result = _toolset(repo).registry.run(
+        "compare_periods", {"split": "2026-03-01T00:00:00Z"}
+    )
+
+    assert "no date" not in result.text
+
+
+def test_the_keywords_argument_explains_and_and_or():
+    specs = {s["name"]: s for s in _toolset(FakeRepo()).registry.specs()}
+
+    for name in ("review_stats", "search_reviews", "top_terms"):
+        description = specs[name]["parameters"]["properties"]["keywords"]["description"]
+        assert "All of them are required" in description
+        assert "slow or rude" in description
 
 
 def test_compare_terms_reports_each_word_and_says_overlap_counts_twice():

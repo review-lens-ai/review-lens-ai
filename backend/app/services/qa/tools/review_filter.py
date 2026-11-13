@@ -33,7 +33,10 @@ class ReviewFilter(BaseModel):
         default=None,
         min_length=1,
         max_length=MAX_PHRASE_LENGTH,
-        description='Words a review must contain, e.g. "slow" or "cold fries".',
+        description=(
+            'Words a review must contain, e.g. "slow" or "cold fries". All of them'
+            ' are required; write "slow or rude" for either.'
+        ),
     )
     similar_to: str | None = Field(
         default=None,
