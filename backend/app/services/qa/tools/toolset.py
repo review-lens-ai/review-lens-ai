@@ -1,15 +1,19 @@
-"""The seven tools for one question, scoped to one owner and one target (S2-010).
+"""The seven tools for one question, fixed to one target (S2-010).
 
-    toolset = ToolSet(repository, owner_id, target_id)
-    toolset.registry.specs()           the menu for the model
-    toolset.registry.run(name, args)   run one tool
+    reviews = ReviewSearchRepository.for_owner(conn, target_id, owner_id)
+    toolset = ToolSet(reviews)          ownership checked once, above, in SQL
+    toolset.registry.specs()            the menu for the model
+    toolset.registry.run(name, args)    run one tool
+
+for_owner is the ownership check, done once per question instead of inside every
+query. The tools then read that one target, and the model never sees or passes an
+owner or a target.
 
 Make a new ToolSet for every question: it holds that question's labels, so nothing
 carries over to the next one (S2-019).
 """
 
 from functools import partial
-from uuid import UUID
 
 from app.repositories.review_search import ReviewSearchRepository
 from app.services.qa.tools import search, stats
@@ -20,21 +24,16 @@ from app.services.qa.tools.scope import ToolScope
 
 
 class ToolSet:
-    def __init__(
-        self,
-        reviews: ReviewSearchRepository,
-        owner_id: UUID | str,
-        target_id: UUID | str,
-    ) -> None:
-        scope = ToolScope(reviews, owner_id, target_id, LabelBook())
+    def __init__(self, reviews: ReviewSearchRepository) -> None:
+        scope = ToolScope(reviews, reviews.target_id, LabelBook())
         self.labels = scope.labels
         self.registry = ToolRegistry(
             [
                 Tool(
                     "review_stats",
                     "Count, average rating, share per star and date range of the reviews"
-                    " that match the filter. Use words to count reviews that mention"
-                    " something.",
+                    " that match the filter. Use keywords to count reviews that mention"
+                    " something. With no filter it repeats the briefing.",
                     ReviewFilter,
                     partial(stats.review_stats, scope),
                 ),
@@ -46,14 +45,15 @@ class ToolSet:
                 ),
                 Tool(
                     "compare_terms",
-                    "Count and average rating for 2 to 5 words side by side, such as"
+                    "Count and average rating for 2 to 5 keywords side by side, such as"
                     " service and food.",
                     stats.CompareTermsArgs,
                     partial(stats.compare_terms, scope),
                 ),
                 Tool(
                     "reviews_over_time",
-                    "Number of reviews and average rating for each month.",
+                    "Number of reviews and average rating for each month (the latest"
+                    " 24 months).",
                     ReviewFilter,
                     partial(stats.reviews_over_time, scope),
                 ),
@@ -65,8 +65,10 @@ class ToolSet:
                 ),
                 Tool(
                     "search_reviews",
-                    "Find reviews. order picks relevance, newest, oldest, lowest,"
-                    " highest or longest. Each result has a label such as R1 to cite.",
+                    "Find reviews. order picks relevance (needs keywords), newest,"
+                    " oldest, lowest, highest or longest; left out, it is relevance"
+                    " with keywords and newest without. Each result has a label such"
+                    " as R1 to cite.",
                     search.SearchArgs,
                     partial(search.search_reviews, scope),
                 ),

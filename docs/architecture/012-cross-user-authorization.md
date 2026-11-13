@@ -57,6 +57,7 @@ Ingestion runs, reviews and rejections have no owner column. They belong to whoe
 | `POST /targets/{id}/ingestion-runs` | `IngestionRunRepository.create_run` → `get_owned` | 404, no run queued |
 | `GET /targets/{id}/ingestion-runs/latest` | `IngestionRunRepository.latest_for_target` | 404 |
 | `GET` / `DELETE /targets/{id}` | `TargetRepository` (`where owner_id = %s`) | 404, target unchanged |
+| Q&A review tools (S2-010) | `ReviewSearchRepository.for_owner` → `get_owned`, once per question; every query is then bound to that target | `NotFoundError` before any tool runs |
 
 No route writes reviews directly. Reviews are created only by the worker, for a run the owner started, and `bulk_insert` / `save_rejections` check the owner again and require the run to be RUNNING. So user B cannot create reviews under user A's target: B's start request is refused, nothing is queued, and the worker has nothing to run.
 
