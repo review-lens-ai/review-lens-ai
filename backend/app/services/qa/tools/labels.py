@@ -25,3 +25,9 @@ class LabelBook:
         )
         self._by_review[review_id] = source
         return source
+
+    def review_id_for(self, label: str) -> UUID | None:
+        """The review a label was given to in this question, or None."""
+        return next(
+            (s.review_id for s in self._by_review.values() if s.label == label), None
+        )
