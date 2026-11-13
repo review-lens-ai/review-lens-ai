@@ -547,7 +547,9 @@ describe("reviews list", () => {
           if (query.get("around")) {
             return apiErrorResponse(404, "NOT_FOUND", "Review not found.");
           }
-          return jsonResponse(reviewPage(reviewsNumbered(0, 12), { total: 30, limit: 12, offset: 0 }));
+          return jsonResponse(
+            reviewPage(reviewsNumbered(0, 12), { total: 30, limit: 12, offset: 0 }),
+          );
         }),
       );
 

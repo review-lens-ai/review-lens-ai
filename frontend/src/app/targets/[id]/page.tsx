@@ -544,11 +544,7 @@ function ReviewsPanel({
       </div>
       <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
         {reviews.map((review) => (
-          <ReviewCard
-            key={review.id}
-            review={review}
-            highlighted={review.id === highlightId}
-          />
+          <ReviewCard key={review.id} review={review} highlighted={review.id === highlightId} />
         ))}
       </div>
       {pageFailed && (
