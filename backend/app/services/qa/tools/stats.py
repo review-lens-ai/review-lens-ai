@@ -3,6 +3,7 @@
 review_stats      count, average, share per star, date range (also answers
                   "how many reviews mention X?" through the words filter)
 compare_periods   the same numbers before and after a date
+compare_terms     the same numbers for 2 to 5 words side by side
 reviews_over_time reviews and average rating per month
 top_terms         the words used in the most reviews
 """
@@ -24,6 +25,18 @@ class CompareArgs(BaseModel):
     words: str | None = Field(default=None, min_length=1, max_length=MAX_PHRASE_LENGTH)
     min_rating: int | None = Field(default=None, ge=1, le=5)
     max_rating: int | None = Field(default=None, ge=1, le=5)
+
+
+class CompareTermsArgs(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    terms: list[Annotated[str, Field(min_length=1, max_length=MAX_PHRASE_LENGTH)]] = (
+        Field(
+            min_length=2,
+            max_length=5,
+            description="Words to compare, e.g. service and food.",
+        )
+    )
 
 
 class TopTermsArgs(ReviewFilter):
@@ -72,6 +85,22 @@ def compare_periods(scope: ToolScope, args: CompareArgs) -> ToolResult:
     return ToolResult(
         text=f"Before {day}: {_describe(before)}\nFrom {day}: {_describe(after)}"
     )
+
+
+def compare_terms(scope: ToolScope, args: CompareTermsArgs) -> ToolResult:
+    lines = []
+    for term in args.terms:
+        stats = scope.reviews.stats(
+            scope.target_id, scope.owner_id, ReviewFilter(words=term)
+        )
+        if stats["total"] == 0:
+            lines.append(f"{term}: no reviews mention it.")
+        else:
+            lines.append(
+                f"{term}: {stats['total']} reviews, average {stats['average']:.2f} out of 5."
+            )
+    note = "A review that mentions several of these words is counted under each."
+    return ToolResult(text="\n".join(lines) + "\n" + note)
 
 
 def reviews_over_time(scope: ToolScope, args: ReviewFilter) -> ToolResult:

@@ -1,4 +1,4 @@
-"""The six tools for one question, scoped to one owner and one target (S2-010).
+"""The seven tools for one question, scoped to one owner and one target (S2-010).
 
     toolset = ToolSet(repository, owner_id, target_id)
     toolset.registry.specs()           the menu for the model
@@ -43,6 +43,13 @@ class ToolSet:
                     "The same numbers for reviews before and after a date.",
                     stats.CompareArgs,
                     partial(stats.compare_periods, scope),
+                ),
+                Tool(
+                    "compare_terms",
+                    "Count and average rating for 2 to 5 words side by side, such as"
+                    " service and food.",
+                    stats.CompareTermsArgs,
+                    partial(stats.compare_terms, scope),
                 ),
                 Tool(
                     "reviews_over_time",

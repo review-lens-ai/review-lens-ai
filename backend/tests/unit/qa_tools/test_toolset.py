@@ -60,12 +60,13 @@ def _toolset(repo):
     return ToolSet(repo, OWNER_ID, TARGET_ID)
 
 
-def test_the_menu_has_the_six_tools():
+def test_the_menu_has_the_seven_tools():
     names = [spec["name"] for spec in _toolset(FakeRepo()).registry.specs()]
 
     assert names == [
         "review_stats",
         "compare_periods",
+        "compare_terms",
         "reviews_over_time",
         "top_terms",
         "search_reviews",
@@ -100,6 +101,27 @@ def test_compare_periods_asks_for_before_and_after_the_date():
     assert after.since is not None and after.until is None
     assert before.words == after.words == "wait"
     assert "Before 2026-03-01" in result.text and "From 2026-03-01" in result.text
+
+
+def test_compare_terms_reports_each_word_and_says_overlap_counts_twice():
+    repo = FakeRepo()
+
+    result = _toolset(repo).registry.run(
+        "compare_terms", {"terms": ["service", "food"]}
+    )
+
+    assert [f.words for f in repo.stats_filters] == ["service", "food"]
+    assert "service: 14 reviews, average 2.80 out of 5." in result.text
+    assert "counted under each" in result.text
+
+
+@pytest.mark.parametrize(
+    "terms", [["service"], ["a", "b", "c", "d", "e", "f"], ["a", ""]]
+)
+def test_compare_terms_needs_two_to_five_words(terms):
+    result = _toolset(FakeRepo()).registry.run("compare_terms", {"terms": terms})
+
+    assert result.is_error
 
 
 def test_over_time_and_top_terms_list_what_the_database_returned():
