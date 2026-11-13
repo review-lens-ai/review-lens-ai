@@ -21,6 +21,11 @@ Rules this module enforces:
   reviews it did not store.
 - HISTORY: nothing here updates or deletes reviews, so a failed run cannot remove
   what earlier runs saved.
+- ACTIVE DATASET (S2-008): a target's dataset is every review saved for it, from
+  every run (`where target_id = %s`). The reviews list, the summary and the Q&A
+  context all read that same set, so the numbers on the Summary tab describe exactly
+  the reviews Q&A will use. Never derive them from a run's counters (one run only),
+  the raw provider pages, the browser, or the model.
 """
 
 from uuid import UUID
@@ -126,6 +131,46 @@ class ReviewRepository:
             "select count(*) as total from public.reviews where target_id = %s",
             (target_id,),
         ).fetchone()["total"]
+
+    def summary_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> dict:
+        """S2-008: the summary of a target's active dataset, calculated in one query
+        from the saved reviews; otherwise NotFoundError.
+
+        Returns {"review_count": int, "average_rating": float | None,
+        "rating_counts": [{"rating": 1, "count": n}, ... up to 5],
+        "first_reviewed_at": datetime | None, "last_reviewed_at": datetime | None}.
+        Every rating from 1 to 5 is listed, with 0 when no review has it.
+        average_rating is None when there are no reviews, and is rounded to 2 decimal
+        places. The dates are the oldest and newest review dates; reviews without a
+        date are left out of them, and both are None when no review has a date.
+        """
+        self._targets.get_owned(target_id, owner_id)
+        row = self._conn.execute(
+            """
+            select count(*) as review_count,
+                   round(avg(rating), 2) as average_rating,
+                   count(*) filter (where rating = 1) as r1,
+                   count(*) filter (where rating = 2) as r2,
+                   count(*) filter (where rating = 3) as r3,
+                   count(*) filter (where rating = 4) as r4,
+                   count(*) filter (where rating = 5) as r5,
+                   min(reviewed_at) as first_reviewed_at,
+                   max(reviewed_at) as last_reviewed_at
+              from public.reviews
+             where target_id = %s
+            """,
+            (target_id,),
+        ).fetchone()
+        average = row["average_rating"]
+        return {
+            "review_count": row["review_count"],
+            "average_rating": None if average is None else float(average),
+            "rating_counts": [
+                {"rating": rating, "count": row[f"r{rating}"]} for rating in range(1, 6)
+            ],
+            "first_reviewed_at": row["first_reviewed_at"],
+            "last_reviewed_at": row["last_reviewed_at"],
+        }
 
     def _require_owned_run(
         self, run_id: UUID | str, target_id: UUID | str, owner_id: UUID | str

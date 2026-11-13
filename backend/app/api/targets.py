@@ -17,7 +17,7 @@ from app.db import get_connection
 from app.platforms import SUPPORTED_PLATFORM
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
-from app.schemas.reviews import ReviewPage
+from app.schemas.reviews import ReviewPage, ReviewSummary
 from app.schemas.targets import TargetCreate, TargetList, TargetResponse
 
 router = APIRouter(prefix="/targets", tags=["targets"])
@@ -90,6 +90,17 @@ def list_target_reviews(
         "limit": limit,
         "offset": offset,
     }
+
+
+@router.get(
+    "/{target_id}/summary", response_model=ReviewSummary, responses=error_responses(404)
+)
+def get_target_summary(target_id: UUID, owner_id: OwnerId, reviews: ReviewRepo) -> dict:
+    """S2-008: review count, average rating and rating counts for one of the
+    user's targets, calculated from its saved reviews (the same dataset Q&A uses).
+    Another user's target is a 404, indistinguishable from one that does not exist.
+    """
+    return reviews.summary_for_target(target_id, owner_id)
 
 
 @router.delete("/{target_id}", status_code=204, responses=error_responses(404))

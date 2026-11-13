@@ -1,0 +1,98 @@
+[
+  {
+    "rating": 5,
+    "review_text": "The crust is thin and crispy, and the sauce tastes fresh. Best plain slice I've had in a while.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-28T18:20:00Z"
+  },
+  {
+    "rating": 5,
+    "review_text": "Staff were friendly and quick to refill our drinks. The pepperoni pizza was excellent.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-26T19:05:00Z"
+  },
+  {
+    "rating": 4,
+    "review_text": "Great pizza with plenty of cheese. We waited about 25 minutes for a table on Friday night, but the food made up for it.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-24T21:40:00Z"
+  },
+  {
+    "rating": 1,
+    "review_text": "Waited over an hour for a pickup order and the pizza was cold by the time we got it. Nobody apologized.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-22T20:15:00Z"
+  },
+  {
+    "rating": 1,
+    "review_text": "The cashier was rude when I asked about a missing topping, and the slice was burnt on the bottom.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-19T13:30:00Z"
+  },
+  {
+    "rating": 2,
+    "review_text": "Long wait even though the dining room was half empty. The garlic knots were soggy.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-17T19:50:00Z"
+  },
+  {
+    "rating": 5,
+    "review_text": "Our server was attentive and made great recommendations. Loved the margherita.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-15T18:10:00Z"
+  },
+  {
+    "rating": 4,
+    "review_text": "Solid pizza and a cozy atmosphere. Service was a little slow at lunch.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-12T12:45:00Z"
+  },
+  {
+    "rating": 3,
+    "review_text": "Pizza was good but not amazing. The wait for a table was about 40 minutes.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-10T20:00:00Z"
+  },
+  {
+    "rating": 5,
+    "review_text": "The sauce is the star here, sweet and tangy. The crust has a nice char from the oven.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-07T19:25:00Z"
+  },
+  {
+    "rating": 1,
+    "review_text": "Our order was wrong twice and the manager didn't seem to care. Won't be back.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-04T18:35:00Z"
+  },
+  {
+    "rating": 4,
+    "review_text": "Friendly staff and a great white pie. My only complaint is the wait on weekends.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-10-01T14:20:00Z"
+  },
+  {
+    "rating": 5,
+    "review_text": "Fast service at the counter and the slices come out hot. My go-to lunch spot.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-09-28T12:15:00Z"
+  },
+  {
+    "rating": 2,
+    "review_text": "The cheese was greasy and the crust was undercooked in the middle.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-09-24T19:00:00Z"
+  },
+  {
+    "rating": 5,
+    "review_text": "Great music, a warm welcome from the staff, and the best buffalo chicken pizza around.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-09-20T20:30:00Z"
+  },
+  {
+    "rating": 3,
+    "review_text": "The pizza itself is great, but the staff seemed overwhelmed and forgot our drinks.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-09-16T19:45:00Z"
+  }
+]
