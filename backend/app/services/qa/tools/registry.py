@@ -1,8 +1,10 @@
 """The tool menu: names, descriptions, argument schemas, and one way to run them.
 
 The loop only calls specs() to show the model the menu and run() to execute a
-choice. It never sees SQL. run() never raises: an unknown tool or bad arguments
-come back as a ToolResult with is_error set (see types.py).
+choice. It never sees SQL. An unknown tool or bad arguments come back as a
+ToolResult with is_error set (see types.py). The one exception is ToolScopeError
+(guard.py): a review from outside the active target is a bug, not the model's
+mistake, so it is raised and must stop the question.
 """
 
 from collections.abc import Callable
