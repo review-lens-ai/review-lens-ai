@@ -195,7 +195,7 @@ def test_around_returns_the_page_that_holds_the_review(
     assert fourth in [review["id"] for review in page["items"]]
 
 
-def test_around_a_review_of_another_target_or_user_is_the_same_404(
+def test_around_a_review_of_another_target_is_the_same_404_as_an_unknown_one(
     api, make_user, make_token, make_target_with_review
 ):
     owner = make_user()
