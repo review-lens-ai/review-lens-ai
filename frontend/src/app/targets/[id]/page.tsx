@@ -17,6 +17,7 @@ import {
 import { EmptyState } from "@/app/_components/empty-state";
 import { PlatformBadge } from "@/app/_components/platform-badge";
 import { ReviewCard } from "@/app/_components/review-card";
+import { ReviewSummaryCard } from "@/app/_components/review-summary-card";
 import { StatusBadge } from "@/app/_components/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/app/_components/ui/alert";
 import { Button } from "@/app/_components/ui/button";
@@ -214,7 +215,17 @@ function TargetWorkspace({ id }: { id: string }) {
         </Alert>
       )}
 
-      <TabsContent value="ingestion">
+      <TabsContent value="ingestion" className="flex flex-col gap-8">
+        {/* S2-006: the numbers behind the result below, from the saved reviews. Not shown
+            for a never-ingested target, where the panel below already says so. */}
+        {everIngested && (
+          <ReviewSummaryCard
+            targetId={id}
+            targetName={target.name}
+            platform={platformLabel(target.platform)}
+            latestRun={latest.loaded ? run : undefined}
+          />
+        )}
         <IngestionPanel target={target} run={run} reasons={skippedReasons} />
       </TabsContent>
       <TabsContent value="reviews">
