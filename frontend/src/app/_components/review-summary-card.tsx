@@ -84,9 +84,7 @@ function SummaryBody({ summary, failed }: { summary: ReviewSummary | null; faile
         <div>
           <dt className="text-muted-foreground">Average rating</dt>
           {/* One decimal, as Google Maps shows it. */}
-          <dd className="text-xl font-semibold">
-            {summary.average_rating?.toFixed(1)} out of 5
-          </dd>
+          <dd className="text-xl font-semibold">{summary.average_rating?.toFixed(1)} out of 5</dd>
         </div>
       </dl>
 
