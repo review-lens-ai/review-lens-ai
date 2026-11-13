@@ -197,13 +197,28 @@ def test_another_users_target_is_unreachable_through_every_consumer(
             tools.run(name, arguments)
 
 
-def test_the_owners_tools_never_return_another_users_reviews(conn, world):
-    tools = _tools(conn, world["owner"], world["battery"]).registry
+def test_nobody_can_point_their_tools_at_another_users_target(conn, world):
+    # The other direction as well: the owner aims a tool set at the stranger's target.
+    tools = _tools(conn, world["owner"], world["strangers"]).registry
 
-    result = tools.run("search_reviews", {"words": "zebra crossing"})
+    for name, arguments in [
+        ("review_stats", {}),
+        ("search_reviews", {"words": "zebra"}),
+        ("top_terms", {}),
+    ]:
+        with pytest.raises(NotFoundError):
+            tools.run(name, arguments)
 
-    assert result.text == "No reviews match."
-    assert result.sources == []
+
+def test_no_tool_finds_the_strangers_review_in_any_of_the_owners_targets(conn, world):
+    # The stranger's distinctive phrase must not turn up anywhere in the owner's data.
+    for target_id in (world["battery"], world["service"]):
+        result = _tools(conn, world["owner"], target_id).registry.run(
+            "search_reviews", {"words": "zebra crossing"}
+        )
+
+        assert result.text == "No reviews match."
+        assert result.sources == []
 
 
 # --- A target with no saved reviews gives no review-grounded data (S2-BR-025) ---
