@@ -215,7 +215,17 @@ function TargetWorkspace({ id }: { id: string }) {
         </Alert>
       )}
 
-      <TabsContent value="ingestion">
+      <TabsContent value="ingestion" className="flex flex-col gap-8">
+        {/* S2-006: the numbers behind the result below, from the saved reviews. Not shown
+            for a never-ingested target, where the panel below already says so. */}
+        {everIngested && (
+          <ReviewSummaryCard
+            targetId={id}
+            targetName={target.name}
+            platform={platformLabel(target.platform)}
+            latestRun={latest.loaded ? run : undefined}
+          />
+        )}
         <IngestionPanel target={target} run={run} reasons={skippedReasons} />
       </TabsContent>
       <TabsContent value="reviews">
@@ -228,15 +238,6 @@ function TargetWorkspace({ id }: { id: string }) {
           pageLoading={reviews.pageLoading}
           pageFailed={reviews.pageFailed}
           onPage={reviews.showPage}
-        />
-      </TabsContent>
-      {/* S2-006: review count and ratings, from the saved reviews. Loads when the tab opens. */}
-      <TabsContent value="summary">
-        <ReviewSummaryCard
-          targetId={id}
-          targetName={target.name}
-          platform={platformLabel(target.platform)}
-          latestRun={latest.loaded ? run : undefined}
         />
       </TabsContent>
     </Tabs>
@@ -298,7 +299,6 @@ function TargetContextHeader({
       <TabsList variant="line" className="h-11 px-4">
         <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
         <TabsTrigger value="reviews">Reviews</TabsTrigger>
-        <TabsTrigger value="summary">Summary</TabsTrigger>
         {/* Summary and Q&A are Sprint 2; §3.1 says not to build them in Sprint 1. */}
       </TabsList>
     </div>

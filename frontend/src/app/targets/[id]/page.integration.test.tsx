@@ -76,6 +76,16 @@ function backendHas(latestRun: IngestionRun | null, skippedReasons: SkippedReaso
     http.get(LATEST_RUN_URL, () =>
       jsonResponse({ run: latestRun, skipped_reasons: skippedReasons }),
     ),
+    // The Ingestion tab shows the review summary for a target that has a run (S2-006), so
+    // every test that opens it needs this endpoint. An empty summary adds almost no text;
+    // a test that cares about the numbers adds its own handler after this one.
+    http.get(`${TARGET_URL}/summary`, () =>
+      jsonResponse({
+        review_count: 0,
+        average_rating: null,
+        rating_counts: [1, 2, 3, 4, 5].map((rating) => ({ rating, count: 0 })),
+      }),
+    ),
   );
 }
 
@@ -371,13 +381,13 @@ describe("workspace layout", () => {
     expect(ingestButtons()).toHaveLength(1);
   });
 
-  it("shows the Ingestion, Reviews and Summary tabs", async () => {
+  it("does not show the Sprint 2 tabs", async () => {
     backendHas(null);
 
     await openWorkspace("Not ingested");
 
     const tabs = screen.getAllByRole("tab").map((tab) => tab.textContent);
-    expect(tabs).toEqual(["Ingestion", "Reviews", "Summary"]);
+    expect(tabs).toEqual(["Ingestion", "Reviews"]);
   });
 
   it("the Ingestion tab shows the latest run's counts", async () => {
@@ -415,9 +425,9 @@ describe("workspace layout", () => {
     expect(screen.queryByText("Not started yet")).toBeNull();
   });
 
-  // S2-006: the Summary tab shows the card for this target. The summary is only asked for
-  // once the tab is opened, so the other tests here don't need a summary handler.
-  it("the Summary tab shows the review count and average for the active target", async () => {
+  // S2-006: the Ingestion tab shows the summary card above the latest run. The summary is
+  // only asked for once that tab is opened, so the other tests here don't need a handler.
+  it("the Ingestion tab shows the review count and average above the latest run", async () => {
     backendHas(ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" }));
     const summaryAsked = vi.fn();
     server.use(
@@ -434,7 +444,7 @@ describe("workspace layout", () => {
     await openWorkspace("Ingested");
     expect(summaryAsked).not.toHaveBeenCalled();
 
-    fireEvent.mouseDown(screen.getByRole("tab", { name: "Summary" }));
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
 
     const card = await screen.findByRole("region", {
       name: "Review summary for Joe's Pizza · Google Maps",
@@ -442,6 +452,25 @@ describe("workspace layout", () => {
     expect(await within(card).findByText("5 reviews")).toBeTruthy();
     expect(within(card).getByText("3.4 out of 5")).toBeTruthy();
     expect(summaryAsked).toHaveBeenCalledOnce();
+    // The summary comes first, and the latest run below it.
+    const latestRun = screen.getByRole("heading", { name: "Latest run" });
+    expect(card.compareDocumentPosition(latestRun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("a never-ingested target shows no summary card and asks for no summary", async () => {
+    backendHas(null);
+    const summaryAsked = vi.fn();
+    server.use(
+      http.get(`${TARGET_URL}/summary`, () => {
+        summaryAsked();
+        return jsonResponse({ review_count: 0, average_rating: null, rating_counts: [] });
+      }),
+    );
+
+    await openWorkspace("Not ingested");
+
+    expect(screen.queryByRole("region", { name: /Review summary for/ })).toBeNull();
+    expect(summaryAsked).not.toHaveBeenCalled();
   });
 });
 
