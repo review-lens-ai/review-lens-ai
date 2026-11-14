@@ -58,10 +58,22 @@ def where_clause(
     return " and ".join(conditions), params
 
 
-class ReviewSearchRepository:
-    """The search queries for one target the caller owns. Make it with for_owner."""
+# Only for_owner holds this, so a repository can't be made without the owner check.
+_CHECKED = object()
 
-    def __init__(self, conn: psycopg.Connection, target_id: UUID | str):
+
+class ReviewSearchRepository:
+    """The search queries for one target the caller owns. Make it with for_owner;
+    calling the class directly raises TypeError."""
+
+    def __init__(
+        self, conn: psycopg.Connection, target_id: UUID | str, *, _checked=None
+    ):
+        if _checked is not _CHECKED:
+            raise TypeError(
+                "Make a ReviewSearchRepository with "
+                "ReviewSearchRepository.for_owner(conn, target_id, owner_id)."
+            )
         self._conn = conn
         self.target_id = target_id
 
@@ -71,7 +83,7 @@ class ReviewSearchRepository:
     ) -> "ReviewSearchRepository":
         """The repository for this target if owner_id owns it; otherwise NotFoundError."""
         target = TargetRepository(conn).get_owned(target_id, owner_id)
-        return cls(conn, target["id"])
+        return cls(conn, target["id"], _checked=_CHECKED)
 
     def stats(self, review_filter: ReviewFilter) -> dict:
         """Count, average, per-star counts and date range of the matching reviews,
