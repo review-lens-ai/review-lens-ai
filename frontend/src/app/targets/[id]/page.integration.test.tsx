@@ -384,7 +384,7 @@ describe("workspace layout", () => {
     expect(ingestButtons()).toHaveLength(1);
   });
 
-  it("does not show the Sprint 2 tabs", async () => {
+  it("shows the Ingestion and Reviews tabs", async () => {
     backendHas(null);
 
     await openWorkspace("Not ingested");

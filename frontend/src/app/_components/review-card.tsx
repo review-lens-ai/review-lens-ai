@@ -7,14 +7,21 @@ import { StarIcon } from "lucide-react";
 import { Card, CardContent } from "@/app/_components/ui/card";
 import { formatReviewDate, isLongReview, type Review } from "@/lib/reviews";
 
+// Only what the card shows, so a Q&A answer's evidence reviews use it too.
+type ShownReview = Pick<Review, "id" | "rating" | "review_text" | "reviewed_at">;
+
 // highlighted: this is the review a link pointed at. It is scrolled into view, outlined,
 // and glows for a few seconds (not at all for people who prefer reduced motion).
+// anchor: give the card its review-<id> anchor. Only the reviews list does, so a review
+// shown again elsewhere on the page (Q&A evidence) never repeats the id.
 export function ReviewCard({
   review,
   highlighted = false,
+  anchor = true,
 }: {
-  review: Review;
+  review: ShownReview;
   highlighted?: boolean;
+  anchor?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const long = isLongReview(review.review_text);
@@ -27,7 +34,7 @@ export function ReviewCard({
   return (
     <Card
       ref={ref}
-      id={`review-${review.id}`}
+      id={anchor ? `review-${review.id}` : undefined}
       data-highlighted={highlighted || undefined}
       className={`py-5 ${highlighted ? "ring-2 ring-primary motion-safe:animate-[review-glow_1.2s_ease-in-out_3]" : ""}`}
     >

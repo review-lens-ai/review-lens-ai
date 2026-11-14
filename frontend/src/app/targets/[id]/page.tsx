@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useId, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -9,6 +9,7 @@ import {
   ExternalLinkIcon,
   InboxIcon,
   Loader2Icon,
+  MessageSquareTextIcon,
   RefreshCwIcon,
   SearchXIcon,
   TriangleAlertIcon,
@@ -39,6 +40,10 @@ import {
 } from "@/lib/ingestion-runs";
 import { REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
+import { ReviewQaPanel } from "./_components/review-qa-panel";
+
+// S2-009: the header button that opens and closes the docked Q&A panel.
+type QaToggle = { open: boolean; panelId: string; buttonId: string; onToggle: () => void };
 
 // S1-019: what the ingest buttons need to start a run.
 type IngestAction = { onStart: () => void; starting: boolean; disabled: boolean };
@@ -82,10 +87,31 @@ function WorkspaceForUrl() {
   const { id } = useParams<{ id: string }>();
   // ?review=<id> opens the Reviews tab on that review (e.g. a Q&A source link).
   const focusReviewId = useSearchParams().get("review");
-  return <TargetWorkspace key={id} id={id} focusReviewId={focusReviewId} />;
+  // S2-009: whether the Q&A panel is open. Kept outside the key, so the panel stays open
+  // on a switch while its conversation (inside the key) starts over for the new target.
+  const [qaOpen, setQaOpen] = useState(false);
+  return (
+    <TargetWorkspace
+      key={id}
+      id={id}
+      focusReviewId={focusReviewId}
+      qaOpen={qaOpen}
+      setQaOpen={setQaOpen}
+    />
+  );
 }
 
-function TargetWorkspace({ id, focusReviewId }: { id: string; focusReviewId: string | null }) {
+function TargetWorkspace({
+  id,
+  focusReviewId,
+  qaOpen,
+  setQaOpen,
+}: {
+  id: string;
+  focusReviewId: string | null;
+  qaOpen: boolean;
+  setQaOpen: (open: boolean) => void;
+}) {
   // The data, each from its own hook. A 401 from any of them is handled once, by the
   // QueryProvider (redirect to /login).
   const targetQuery = useGetTarget(id);
@@ -101,9 +127,19 @@ function TargetWorkspace({ id, focusReviewId }: { id: string; focusReviewId: str
     focusReviewId,
   });
   const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
+  // S2-009: a question came back NOT_FOUND, so the target is gone or not this user's.
+  const [qaNotFound, setQaNotFound] = useState(false);
+  // S2-009: the Q&A panel, docked beside the tabs. Closed until the user opens it; the
+  // conversation is kept while it is closed (it stays mounted, hidden).
+  const qaPanelId = useId();
+  const qaButtonId = useId();
+  // Opening the panel puts the cursor in the question box.
+  useEffect(() => {
+    if (qaOpen) document.getElementById(qaPanelId)?.querySelector("textarea")?.focus();
+  }, [qaOpen, qaPanelId]);
 
   // Another user's target looks exactly like a missing one.
-  if (isNotFound(targetQuery.error) || isNotFound(latest.startError)) {
+  if (isNotFound(targetQuery.error) || isNotFound(latest.startError) || qaNotFound) {
     return (
       <EmptyState
         icon={<SearchXIcon />}
@@ -150,9 +186,27 @@ function TargetWorkspace({ id, focusReviewId }: { id: string; focusReviewId: str
   // a target with data opens on its Reviews.
   const firstTab = target.ingestion_status || focusReviewId ? "reviews" : "ingestion";
 
+  const qa: QaToggle = {
+    open: qaOpen,
+    panelId: qaPanelId,
+    buttonId: qaButtonId,
+    onToggle: () => setQaOpen(!qaOpen),
+  };
+  // Closing returns focus to the button that opened the panel.
+  function closeQa() {
+    setQaOpen(false);
+    document.getElementById(qaButtonId)?.focus();
+  }
+
   return (
     <Tabs defaultValue={firstTab} className="gap-6">
-      <TargetContextHeader target={target} run={run} reviewsKept={reviews.total} ingest={ingest} />
+      <TargetContextHeader
+        target={target}
+        run={run}
+        reviewsKept={reviews.total}
+        ingest={ingest}
+        qa={qa}
+      />
 
       {run?.status === "FAILED" && (
         <RunFailedBanner
@@ -218,32 +272,66 @@ function TargetWorkspace({ id, focusReviewId }: { id: string; focusReviewId: str
         </Alert>
       )}
 
-      <TabsContent value="ingestion" className="flex flex-col gap-8">
-        {/* S2-006: the numbers behind the result below, from the saved reviews. Not shown
-            for a never-ingested target, where the panel below already says so. */}
-        {everIngested && (
-          <ReviewSummaryCard
-            targetId={id}
-            targetName={target.name}
-            platform={platformLabel(target.platform)}
-            latestRun={latest.loaded ? run : undefined}
+      {/* S2-009: with the Q&A panel open, it takes 65% and the tabs move to the other 35%,
+          each scrolling on its own. Below lg the panel takes the whole width instead. */}
+      <div
+        className={
+          qaOpen
+            ? "grid items-start gap-6 lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)]"
+            : "flex flex-col"
+        }
+      >
+        <div
+          id={qaPanelId}
+          hidden={!qaOpen}
+          className="h-[75dvh] min-h-[28rem] lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)]"
+        >
+          <ReviewQaPanel
+            target={target}
+            reviewTotal={everIngested && reviews.reviews === null ? null : reviews.total}
+            onNotFound={() => setQaNotFound(true)}
+            onClose={closeQa}
           />
-        )}
-        <IngestionPanel target={target} run={run} reasons={skippedReasons} />
-      </TabsContent>
-      <TabsContent value="reviews">
-        <ReviewsPanel
-          everIngested={everIngested}
-          reviews={reviews.reviews}
-          total={reviews.total}
-          page={reviews.page}
-          failed={reviews.failed}
-          pageLoading={reviews.pageLoading}
-          pageFailed={reviews.pageFailed}
-          onPage={reviews.showPage}
-          highlightId={focusReviewId}
-        />
-      </TabsContent>
+        </div>
+        <div
+          className={
+            qaOpen
+              ? "hidden min-h-[28rem] flex-col overflow-hidden rounded-xl border bg-card lg:sticky lg:top-4 lg:flex lg:h-[calc(100dvh-8rem)]"
+              : "flex flex-col"
+          }
+        >
+          {qaOpen && <WorkspaceTabs className="shrink-0 border-b" />}
+          {/* Tab content lays itself out by the room it has (container queries). */}
+          <div className={qaOpen ? "@container min-h-0 flex-1 overflow-y-auto p-4" : "@container"}>
+            <TabsContent value="ingestion" className="flex flex-col gap-8">
+              {/* S2-006: the numbers behind the result below, from the saved reviews. Not shown
+                  for a never-ingested target, where the panel below already says so. */}
+              {everIngested && (
+                <ReviewSummaryCard
+                  targetId={id}
+                  targetName={target.name}
+                  platform={platformLabel(target.platform)}
+                  latestRun={latest.loaded ? run : undefined}
+                />
+              )}
+              <IngestionPanel target={target} run={run} reasons={skippedReasons} />
+            </TabsContent>
+            <TabsContent value="reviews">
+              <ReviewsPanel
+                everIngested={everIngested}
+                reviews={reviews.reviews}
+                total={reviews.total}
+                page={reviews.page}
+                failed={reviews.failed}
+                pageLoading={reviews.pageLoading}
+                pageFailed={reviews.pageFailed}
+                onPage={reviews.showPage}
+                highlightId={focusReviewId}
+              />
+            </TabsContent>
+          </div>
+        </div>
+      </div>
     </Tabs>
   );
 }
@@ -255,11 +343,13 @@ function TargetContextHeader({
   run,
   reviewsKept,
   ingest,
+  qa,
 }: {
   target: Target;
   run: IngestionRun | null;
   reviewsKept: number;
   ingest: IngestAction;
+  qa: QaToggle;
 }) {
   const status = run?.status ?? target.ingestion_status;
 
@@ -283,7 +373,20 @@ function TargetContextHeader({
             </a>
           </div>
         </div>
-        <IngestButton ingest={ingest} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            id={qa.buttonId}
+            variant="outline"
+            aria-expanded={qa.open}
+            aria-controls={qa.panelId}
+            onClick={qa.onToggle}
+            className="aria-expanded:border-primary aria-expanded:bg-primary/10 aria-expanded:text-primary"
+          >
+            <MessageSquareTextIcon aria-hidden="true" />
+            Ask about reviews
+          </Button>
+          <IngestButton ingest={ingest} />
+        </div>
       </div>
 
       {/* S1-023: status badge + detail line. aria-live announces status changes. */}
@@ -300,12 +403,18 @@ function TargetContextHeader({
         </span>
       </div>
 
-      <TabsList variant="line" className="h-11 px-4">
-        <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
-        <TabsTrigger value="reviews">Reviews</TabsTrigger>
-        {/* Summary and Q&A are Sprint 2; §3.1 says not to build them in Sprint 1. */}
-      </TabsList>
+      {/* With the Q&A panel open, the tabs sit above their own column instead. */}
+      {!qa.open && <WorkspaceTabs />}
     </div>
+  );
+}
+
+function WorkspaceTabs({ className = "" }: { className?: string }) {
+  return (
+    <TabsList variant="line" className={`h-11 px-4 ${className}`}>
+      <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
+      <TabsTrigger value="reviews">Reviews</TabsTrigger>
+    </TabsList>
   );
 }
 
@@ -520,7 +629,7 @@ function ReviewsPanel({
 
   if (!reviews) {
     return (
-      <div role="status" aria-label="Loading reviews" className="grid gap-4 md:grid-cols-3">
+      <div role="status" aria-label="Loading reviews" className="grid gap-4 @xl:grid-cols-3">
         {[0, 1, 2].map((i) => (
           <Skeleton key={i} className="h-40 rounded-xl" />
         ))}
@@ -542,7 +651,7 @@ function ReviewsPanel({
           Showing {first}–{last} of {total}
         </p>
       </div>
-      <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid items-start gap-4 @xl:grid-cols-2 @4xl:grid-cols-3">
         {reviews.map((review) => (
           <ReviewCard key={review.id} review={review} highlighted={review.id === highlightId} />
         ))}
