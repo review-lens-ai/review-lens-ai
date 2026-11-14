@@ -35,11 +35,13 @@ const LATEST_RUN_URL = `${RUNS_URL}/latest`;
 const router = { replace: vi.fn() };
 const refreshSidebar = vi.fn(async () => {});
 
+// Which target the URL names. The sidebar changes it without leaving the page.
+let currentTargetId = TARGET_ID;
 // The page's query string, e.g. "review=<id>". Empty unless a test sets it.
 let searchString = "";
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
-  useParams: () => ({ id: TARGET_ID }),
+  useParams: () => ({ id: currentTargetId }),
   useSearchParams: () => new URLSearchParams(searchString),
 }));
 vi.mock("@/lib/hooks/use-targets", () => ({
@@ -901,5 +903,49 @@ describe("reviews list", () => {
     expect(screen.getByText("Showing 1–12 of 30")).toBeTruthy();
     expect(screen.getByText("Review number 0")).toBeTruthy();
     await waitFor(() => expect(button("Next").disabled).toBe(false));
+  });
+});
+
+// S2-002 / S2-018: moving to another target shows only that target's data.
+describe("switching to another target", () => {
+  const OTHER_ID = "22222222-2222-2222-2222-222222222222";
+  const OTHER_URL = `${API}/api/v1/targets/${OTHER_ID}`;
+
+  afterEach(() => {
+    currentTargetId = TARGET_ID;
+  });
+
+  it("shows the new target's name and reviews and none of the previous target's", async () => {
+    const completed = ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" });
+    backendHas(completed);
+    server.use(
+      http.get(REVIEWS_URL, () =>
+        jsonResponse(reviewPage([review({ id: "a-1", review_text: "The battery life is short" })])),
+      ),
+      http.get(OTHER_URL, () =>
+        jsonResponse(target({ id: OTHER_ID, name: "Service Cafe", ingestion_status: "COMPLETED" })),
+      ),
+      http.get(`${OTHER_URL}/ingestion-runs/latest`, () =>
+        jsonResponse({
+          run: ingestionRun({ target_id: OTHER_ID, status: "COMPLETED" }),
+          skipped_reasons: [],
+        }),
+      ),
+      http.get(`${OTHER_URL}/reviews`, () =>
+        jsonResponse(
+          reviewPage([review({ id: "b-1", review_text: "Customer service was great" })]),
+        ),
+      ),
+    );
+    const { rerender } = render(<TargetWorkspacePage />, { wrapper: queryWrapper() });
+    await screen.findByText("The battery life is short");
+
+    currentTargetId = OTHER_ID;
+    rerender(<TargetWorkspacePage />);
+
+    await screen.findByRole("heading", { name: "Service Cafe" });
+    await screen.findByText("Customer service was great");
+    expect(screen.queryByText("The battery life is short")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Joe's Pizza" })).toBeNull();
   });
 });
