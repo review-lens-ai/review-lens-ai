@@ -99,6 +99,16 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:55432/postgres \
 
 When the model's refusal is blank or longer than `MAX_REFUSAL_CHARACTERS` (it has probably answered anyway), `build_answer` replaces it with the fixed template for its reason, and adds a fallback suggestion when the model gave none. The check reads the model's output only, never the user's question, so it is not a blocklist (S2-BR-020). Tests check that each rule, reason and fact is present, not exact sentences; the live evaluation (S2-004's set, run by hand) checks a real model follows them.
 
+## Known limits
+
+Written down so nobody presents these as solved.
+
+- **The injection flag is not a defence.** Review text shown to the model is quoted and flagged when it matches a short regex ("ignore previous instructions" and similar). A reworded attack passes it. The real boundary is that tools are read-only, run SQL written by us, and are bound to one target whose owner was checked in SQL (`ReviewSearchRepository.for_owner`). A review that convinces the model still cannot make a tool read another user's or target's data.
+- **Keyword search is English-only.** `search_vector` uses the `english` configuration, so stems of other languages don't match ("lento" won't find "lenta").
+- **The `search_vector` migration must reach Supabase.** It adds a stored generated column, which rewrites the `reviews` table once and locks it briefly. Fine at our size, but keyword tools fail on any database where it hasn't run.
+- **No search by meaning yet.** The tools match keywords only. Meaning search becomes a new `ReviewFilter` field once embedding search exists; counts by similar meaning will then depend on one threshold, so they will be approximate ("about N").
+- **`reviews_over_time` covers the latest 24 months** that have reviews and says so when it leaves older months out.
+
 ## Planned: persistent chat history
 
 Q&A will keep conversation history; S2-003 ships without it. The design already leaves room:

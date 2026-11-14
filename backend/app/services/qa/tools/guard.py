@@ -4,7 +4,14 @@
   The SQL already filters by target; this is the second lock, so a future query bug
   fails loudly instead of leaking another target's review.
 - quote: review text is data written by strangers. It is shown as one quoted line,
-  shortened, and flagged if it reads like an instruction, so it can't pass as one.
+  shortened, and flagged if it reads like an instruction.
+
+WHAT THE FLAG IS NOT: the instruction check is a short regex. It only catches
+phrasing it already knows, and a reworded attack passes it. It is a hint to the
+model, not a defence. The real boundary is that the tools are read-only, run
+SQL written by us, and are fixed to one target the gate already checked: even a
+review that fully convinces the model cannot make a tool read another user's or
+another target's data, or change anything.
 """
 
 import json
