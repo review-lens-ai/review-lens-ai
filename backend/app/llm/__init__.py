@@ -1,28 +1,11 @@
-"""S2-003: the boundary between ReviewLens and an LLM provider.
+"""S2-010: the boundary between ReviewLens and an LLM provider.
 
-The rest of the app talks to a model only through ModelClient. A real provider
-adapter (for example one built on LangChain) will implement it later; tests use
-a fake that records every ModelRequest and returns scripted ModelReply values.
+The app talks to a model only through ChatModel (client.py). The real one is
+built by app.llm.openrouter.make_chat_model; tests use a fake that records every
+call. openrouter is not imported here, so importing app.llm never loads a
+provider SDK.
 """
 
-from app.llm.client import (
-    ChatMessage,
-    ModelClient,
-    ModelError,
-    ModelReply,
-    ModelReplyError,
-    ModelRequest,
-    ModelUnavailableError,
-    ReplyStatus,
-)
+from app.llm.client import BoundChatModel, ChatModel, ModelError, ModelUnavailableError
 
-__all__ = [
-    "ChatMessage",
-    "ModelClient",
-    "ModelError",
-    "ModelReply",
-    "ModelReplyError",
-    "ModelRequest",
-    "ModelUnavailableError",
-    "ReplyStatus",
-]
+__all__ = ["BoundChatModel", "ChatModel", "ModelError", "ModelUnavailableError"]

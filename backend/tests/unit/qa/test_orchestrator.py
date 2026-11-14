@@ -1,23 +1,28 @@
-"""S2-003: what answer_question sends to the model, and when it sends nothing.
+"""S2-010: what answer_question sends to the model, and when it sends nothing.
 
-Covers the issue's checks 2 to 5 at the orchestration level: the right reviews
-are supplied, wrong-target and cross-user reviews are not, and every stop before
-the model really leaves the model uncalled. The prompt itself is in
-test_prompt.py and reply handling in test_answer.py.
+The real orchestrator, loop, prompt and answer builder run on in-memory data; only
+the model is the recording FakeChatModel. These cover the S2-003 checks at the
+orchestration level (right instructions, right reviews, no wrong-target or
+cross-user reviews, correct handling of each reply) and the stops before the model.
 """
 
 import logging
-from datetime import UTC, datetime
-from uuid import UUID
+from types import SimpleNamespace
 
 import pytest
+from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.core.errors import NotFoundError
-from app.llm import ModelReplyError, ModelUnavailableError
+from app.llm import ModelUnavailableError
 from app.schemas.qa import AnswerStatus
-from app.services.qa import InvalidQuestionError, QAUnavailableError
-from app.services.qa.context import MAX_CONTEXT_CHARACTERS, ContextIsolationError
-from app.services.qa.prompt import MAX_QUESTION_LENGTH
+from app.services.qa import (
+    InvalidQuestionError,
+    NoReviewsError,
+    QAConfig,
+    QAContextError,
+    QAUnavailableError,
+    answer_question,
+)
 from tests.unit.qa.conftest import (
     LEAK_PHRASE,
     OWNER_A,
@@ -26,258 +31,253 @@ from tests.unit.qa.conftest import (
     TARGET_A2,
     TARGET_B,
     TARGET_EMPTY,
-    FakeModel,
-    answered,
-    review_ids,
+    FakeChatModel,
+    call,
+    fake_toolset,
+    rows_of,
+    submit,
 )
 
 
-def sent_ids(request) -> list[str]:
-    """Review ids in the order they appear in the request's review block."""
-    return [
-        line.split('id="')[1].split('"')[0]
-        for line in request.reviews_block.splitlines()
-        if line.startswith("<review id=")
+class CountingFactory:
+    """make_model that counts how often the model was made."""
+
+    def __init__(self, model):
+        self.model, self.made = model, 0
+
+    def __call__(self):
+        self.made += 1
+        return self.model
+
+
+# --- What the model is sent -------------------------------------------------------
+
+
+def test_the_model_gets_the_rules_and_briefing_then_the_question(ask):
+    model = FakeChatModel(submit("OUT_OF_SCOPE", "No."))
+    ask(model, question="  What do people say about the food?  ")
+
+    system, human = model.calls[0]["messages"]
+    assert isinstance(system, SystemMessage)
+    assert '"Luigi\'s Trattoria"' in system.content
+    assert "Saved reviews: 3." in system.content
+    assert human == HumanMessage("What do people say about the food?")
+
+
+def test_the_model_is_offered_the_tool_set_and_submit_answer(ask):
+    model = FakeChatModel(submit("OUT_OF_SCOPE", "No."))
+    ask(model)
+
+    assert model.last["tools"] == ["find_reviews", "count_reviews", "submit_answer"]
+
+
+def test_review_text_reaches_the_model_only_through_tool_results(ask):
+    model = FakeChatModel(call("find_reviews"), submit("ANSWERED", cited=["R1"]))
+    ask(model)
+
+    system = model.calls[0]["messages"][0].content
+    assert all(row["review_text"] not in system for row in rows_of(TARGET_A))
+    tool_result = model.last["messages"][-1].content
+    assert all(row["review_text"] in tool_result for row in rows_of(TARGET_A))
+
+
+def test_a_grounded_answer_returns_the_cited_stored_reviews(ask):
+    model = FakeChatModel(
+        call("find_reviews", words="slow"),
+        submit("ANSWERED", "Service is slow.", cited=["R1"]),
+    )
+    result = ask(model)
+
+    assert result.status is AnswerStatus.ANSWERED
+    assert [e.review_text for e in result.evidence] == [
+        "Service was slow and the waiter forgot our drinks."
     ]
-
-
-# --- Correct context ---------------------------------------------------------
-
-
-def test_model_receives_every_review_of_the_active_target(ask):
-    model = FakeModel()
-    ask(model)
-
-    assert len(model.requests) == 1
-    assert sent_ids(model.last) == review_ids(TARGET_A)
-
-
-def test_question_is_sent_trimmed(ask):
-    model = FakeModel()
-    ask(model, question="   What do people say about the service?  ")
-
-    assert model.last.question == "What do people say about the service?"
-
-
-def test_history_is_empty_until_conversations_are_stored(ask):
-    model = FakeModel()
-    ask(model)
-
-    assert model.last.history == ()
-
-
-def test_answer_context_reports_the_active_target_and_counts(ask):
-    result = ask(FakeModel(answered(review_ids(TARGET_A)[0])))
-
-    assert str(result.context.target_id) == TARGET_A
-    assert result.context.target_name == "Luigi's Trattoria"
-    assert result.context.reviews_considered == 3
+    assert [s.tool for s in result.steps] == ["find_reviews"]
+    assert result.context.target_id == TARGET_A
     assert result.context.reviews_total == 3
-    assert result.context.is_subset is False
 
 
-# --- Wrong-target reviews (S2-BR-023, S2-BR-024) ------------------------------
+# --- Wrong-target and cross-user reviews (S2-BR-022 to S2-BR-024) ------------------
 
 
 def test_switching_target_sends_only_the_new_targets_reviews(ask):
-    model = FakeModel()
-    ask(model, target_id=TARGET_A)
-    ask(model, target_id=TARGET_A2)
+    first = FakeChatModel(call("find_reviews"), submit("ANSWERED", cited=["R1"]))
+    second = FakeChatModel(call("find_reviews"), submit("ANSWERED", cited=["R1"]))
+    ask(first, target_id=TARGET_A)
+    ask(second, target_id=TARGET_A2)
 
-    first, second = model.requests
-    assert sent_ids(first) == review_ids(TARGET_A)
-    assert sent_ids(second) == review_ids(TARGET_A2)
-    assert LEAK_PHRASE not in second.reviews_block
-    assert "Luigi's Trattoria" not in second.system_prompt
-
-
-def test_selector_that_returns_another_targets_review_stops_before_the_model(
-    ask, store, caplog
-):
-    def leaky_selector(reviews, target, owner_id, question):
-        # A future selector that forgot its target filter.
-        return reviews.list_for_target(target["id"], owner_id) + [
-            {**store.reviews.rows[3], "target_id": TARGET_A2}
-        ]
-
-    model = FakeModel()
-    with caplog.at_level(logging.ERROR), pytest.raises(ContextIsolationError):
-        ask(model, select_reviews=leaky_selector)
-
-    assert model.requests == []
-    assert "nothing was sent to the model" in caplog.text
+    sent = second.sent_text()
+    assert all(row["review_text"] in sent for row in rows_of(TARGET_A2))
+    assert LEAK_PHRASE not in sent
+    assert "Luigi's Trattoria" not in sent
 
 
-def test_selector_that_finds_nothing_answers_insufficient_without_the_model(ask):
-    model = FakeModel()
-    result = ask(model, select_reviews=lambda *args: [])
-
-    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
-    assert result.context.is_subset is True
-    assert model.requests == []
-
-
-# --- Size limit of the temporary selector ---------------------------------------
-
-
-def test_a_target_that_fits_gets_every_review_and_no_subset_note(ask):
-    model = FakeModel()
-    result = ask(model)
-
-    assert result.context.is_subset is False
-    assert "subset" not in model.last.system_prompt
-
-
-def test_a_target_too_big_for_one_request_gets_its_newest_reviews_and_says_so(
-    ask, monkeypatch
-):
-    # Room for two of the target's three reviews (about 150 characters each).
-    monkeypatch.setattr("app.services.qa.context.MAX_CONTEXT_CHARACTERS", 320)
-    model = FakeModel()
-    result = ask(model)
-
-    assert sent_ids(model.last) == review_ids(TARGET_A)[:2]
-    assert result.context.reviews_considered == 2
-    assert result.context.reviews_total == 3
-    assert result.context.is_subset is True
-    assert "a subset of the 3 reviews" in model.last.system_prompt
-
-
-def test_the_newest_review_is_sent_even_when_it_alone_exceeds_the_limit(
-    ask, monkeypatch
-):
-    monkeypatch.setattr("app.services.qa.context.MAX_CONTEXT_CHARACTERS", 10)
-    model = FakeModel()
-    result = ask(model)
-
-    assert sent_ids(model.last) == review_ids(TARGET_A)[:1]
-    assert result.context.is_subset is True
-
-
-def test_a_very_large_target_never_sends_more_than_the_limit(ask, store):
-    # 500 older reviews of 1,000 characters each: about 550,000 characters in all.
-    store.reviews.rows.extend(
-        {
-            "id": f"c0000000-0000-0000-0000-{number:012d}",
-            "target_id": TARGET_A,
-            "rating": 3,
-            "review_text": "x" * 1000,
-            "reviewed_at": datetime(2026, 9, 1, tzinfo=UTC),
-        }
-        for number in range(500)
+def test_user_a_phrase_never_reaches_user_b(ask):
+    model = FakeChatModel(
+        call("find_reviews", words=LEAK_PHRASE),
+        call("find_reviews"),
+        submit("INSUFFICIENT_EVIDENCE", "B's reviews don't mention it."),
     )
-    model = FakeModel()
-    result = ask(model)
-
-    assert len(model.last.reviews_block) <= MAX_CONTEXT_CHARACTERS
-    # The newest reviews come first, then as many older ones as fit.
-    assert sent_ids(model.last)[:3] == review_ids(TARGET_A)
-    assert result.context.reviews_total == 503
-    assert result.context.is_subset is True
-
-
-# --- Cross-user reviews (S2-BR-022, S2-BR-026) --------------------------------
-
-
-def test_user_b_asking_about_user_a_target_is_not_found_and_model_not_called(ask):
-    model = FakeModel()
-    with pytest.raises(NotFoundError):
-        ask(model, owner_id=OWNER_B, target_id=TARGET_A)
-
-    assert model.requests == []
-
-
-def test_user_a_phrase_never_reaches_user_b_request(ask):
-    model = FakeModel()
     ask(
         model,
         owner_id=OWNER_B,
         target_id=TARGET_B,
-        question=f"What do reviewers say about the {LEAK_PHRASE} special?",
+        question="What do reviewers say about the special?",
     )
 
-    request = model.last
-    assert sent_ids(request) == review_ids(TARGET_B)
-    assert LEAK_PHRASE not in request.reviews_block
-    assert LEAK_PHRASE not in request.system_prompt
-    # The phrase reaches the model only inside B's own question, which B typed.
+    assert LEAK_PHRASE not in model.sent_text()
+    assert "No reviews match." in model.sent_text()
 
 
-def test_user_b_cannot_get_user_a_review_back_through_a_citation(ask):
-    model = FakeModel(answered(review_ids(TARGET_A)[0]))
-    result = ask(model, owner_id=OWNER_B, target_id=TARGET_B)
-
-    # The cited id is not in B's context, so nothing of A's is returned.
-    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
-    assert result.evidence == []
-
-
-# --- Stops before the model ----------------------------------------------------
-
-
-def test_target_without_reviews_returns_no_reviews_without_calling_model(ask):
-    model = FakeModel()
-    result = ask(model, target_id=TARGET_EMPTY)
-
-    assert result.status is AnswerStatus.NO_REVIEWS
-    assert result.evidence == []
-    assert result.context.reviews_total == 0
-    assert model.requests == []
+def test_user_b_asking_about_user_a_target_is_not_found_and_no_model_is_made(repos):
+    model = FakeChatModel()
+    factory = CountingFactory(model)
+    targets, reviews, search = repos
+    with pytest.raises(NotFoundError):
+        answer_question(
+            owner_id=OWNER_B,
+            target_id=TARGET_A,
+            question="What is good here?",
+            targets=targets,
+            reviews=reviews,
+            search=search,
+            make_model=factory,
+            make_toolset=fake_toolset,
+        )
+    assert factory.made == 0
+    assert model.calls == []
 
 
-@pytest.mark.parametrize(
-    "question", ["", "   ", "\n\t", "x" * (MAX_QUESTION_LENGTH + 1)]
-)
-def test_blank_or_too_long_question_is_rejected_without_calling_model(ask, question):
-    model = FakeModel()
+def test_a_review_of_another_target_stops_the_question_before_more_is_sent(ask, caplog):
+    def leaky(search, owner_id, target_id):
+        return fake_toolset(search, owner_id, target_id, leak_from=TARGET_B)
+
+    model = FakeChatModel(call("find_reviews"), submit("ANSWERED", cited=["R1"]))
+    with caplog.at_level(logging.ERROR), pytest.raises(QAContextError):
+        ask(model, make_toolset=leaky)
+
+    assert len(model.calls) == 1
+    assert "nothing more was sent to the model" in caplog.text
+
+
+# --- Stops before the model ---------------------------------------------------------
+
+
+def test_a_target_without_reviews_is_409_and_no_model_is_made(repos):
+    targets, reviews, search = repos
+    factory = CountingFactory(FakeChatModel())
+    with pytest.raises(NoReviewsError) as exc:
+        answer_question(
+            owner_id=OWNER_A,
+            target_id=TARGET_EMPTY,
+            question="What is good here?",
+            targets=targets,
+            reviews=reviews,
+            search=search,
+            make_model=factory,
+        )
+
+    assert exc.value.status_code == 409
+    assert exc.value.code == "QA_NO_REVIEWS"
+    assert factory.made == 0
+
+
+@pytest.mark.parametrize("question", ["", "   "])
+def test_a_blank_question_is_rejected_before_the_model(ask, question):
+    model = FakeChatModel()
     with pytest.raises(InvalidQuestionError):
         ask(model, question=question)
 
-    assert model.requests == []
+    assert model.calls == []
 
 
-# --- Provider failure ------------------------------------------------------------
+# --- Model failures -------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
     "error",
     [
         ModelUnavailableError("upstream 529: overloaded, key sk-secret-123"),
-        # Adapters turn provider timeouts into ModelUnavailableError.
         ModelUnavailableError("read timeout after 30s, key sk-secret-123"),
-        ModelReplyError("could not parse: {'answer': sk-secret-123"),
     ],
-    ids=["unavailable", "timeout", "bad-reply"],
+    ids=["unavailable", "timeout"],
 )
-def test_model_failure_is_qa_unavailable_without_provider_text(ask, error, caplog):
+def test_a_model_failure_is_503_without_provider_text(ask, error, caplog):
     with caplog.at_level(logging.WARNING), pytest.raises(QAUnavailableError) as exc:
-        ask(FakeModel(error=error))
+        ask(FakeChatModel(error))
 
+    assert exc.value.status_code == 503
     assert exc.value.code == "QA_UNAVAILABLE"
-    assert str(error) not in exc.value.message
-    # Server log names the error type only, never the provider's text.
-    assert type(error).__name__ in caplog.text
+    assert "sk-secret-123" not in exc.value.message
+    assert "ModelUnavailableError" in caplog.text
     assert "sk-secret-123" not in caplog.text
-    assert str(error) not in caplog.text
 
 
-def test_unknown_reply_status_is_qa_unavailable(ask):
-    model = FakeModel()
-    model.reply = type(model.reply)("MAYBE", "Hmm.", ())  # status outside ReplyStatus
+def test_a_model_that_is_not_configured_is_503(repos):
+    targets, reviews, search = repos
+
+    def not_configured():
+        raise ModelUnavailableError("OPENROUTER_API_KEY and QA_MODEL must be set")
 
     with pytest.raises(QAUnavailableError):
-        ask(model)
+        answer_question(
+            owner_id=OWNER_A,
+            target_id=TARGET_A,
+            question="What is good here?",
+            targets=targets,
+            reviews=reviews,
+            search=search,
+            make_model=not_configured,
+            make_toolset=fake_toolset,
+        )
 
 
-def test_unexpected_exception_from_model_is_not_hidden(ask):
-    # Only ModelError means "the provider failed". A bug in an adapter is raised
-    # as itself, so it reaches the generic 500 handler and the logs.
+def test_an_unexpected_error_is_not_hidden(ask):
+    # Only ModelError means "the provider failed"; a bug is raised as itself.
     with pytest.raises(RuntimeError):
-        ask(FakeModel(error=RuntimeError("bug in adapter")))
+        ask(FakeChatModel(RuntimeError("bug in adapter")))
 
 
-def test_owner_and_target_ids_may_be_given_as_uuids(ask):
-    model = FakeModel()
-    ask(model, owner_id=UUID(OWNER_A), target_id=UUID(TARGET_A))
+# --- Full mode (the fallback) ---------------------------------------------------------
 
-    assert sent_ids(model.last) == review_ids(TARGET_A)
+
+def test_full_mode_sends_every_review_and_only_submit_answer(ask):
+    model = FakeChatModel(submit("ANSWERED", "Slow service.", cited=["R2"]))
+    result = ask(model, config=QAConfig(mode="full"))
+
+    system, human = model.calls[0]["messages"]
+    assert "listed in the user message" in system.content
+    assert human.content.startswith("All 3 reviews:")
+    assert human.content.endswith("Question: What do people say about the food?")
+    assert model.last["tools"] == ["submit_answer"]
+    assert model.last["tool_choice"] == "submit_answer"
+    # R2 is the second-newest review; the label maps back to the stored text.
+    assert result.evidence[0].review_text.startswith("Service was slow")
+    assert result.context.reviews_considered == 3
+    assert result.context.is_subset is False
+
+
+def test_full_mode_uses_tools_for_a_target_too_big_for_one_request(ask):
+    model = FakeChatModel(submit("OUT_OF_SCOPE", "No."))
+    ask(model, config=QAConfig(mode="full", full_mode_max_characters=200))
+
+    system, human = model.calls[0]["messages"]
+    assert "through the tools" in system.content
+    assert human.content == "What do people say about the food?"
+    assert model.last["tools"] == ["find_reviews", "count_reviews", "submit_answer"]
+
+
+def test_config_is_read_from_settings():
+    settings = SimpleNamespace(
+        qa_max_tool_calls=4,
+        qa_timeout_seconds=12.5,
+        qa_mode="full",
+        qa_full_mode_max_characters=5000,
+    )
+
+    assert QAConfig.from_settings(settings) == QAConfig(
+        max_tool_calls=4,
+        timeout_seconds=12.5,
+        mode="full",
+        full_mode_max_characters=5000,
+    )
