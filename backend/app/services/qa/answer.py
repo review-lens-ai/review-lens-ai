@@ -7,11 +7,14 @@ Rules:
 - NO UNGROUNDED ANSWERS: an ANSWERED reply with no valid citation, or with no
   text, becomes INSUFFICIENT_EVIDENCE with a fixed message (S2-BR-010, S2-BR-011).
 - REFUSALS: INSUFFICIENT_EVIDENCE and OUT_OF_SCOPE keep the model's explanation
-  (or a fixed one if it is empty) and never carry evidence (S2-BR-021).
+  when it passes usable_refusal (not blank, at most MAX_REFUSAL_CHARACTERS);
+  otherwise they get the fixed template for their reason. They never carry
+  evidence (S2-BR-021).
 - REFUSAL REASONS: every INSUFFICIENT_EVIDENCE answer has reason NO_EVIDENCE.
   OUT_OF_SCOPE keeps the model's reason when it is one of the four out-of-scope
   reasons, otherwise none. A refusal keeps at most MAX_SUGGESTIONS non-blank,
-  distinct suggestions; an answer has neither.
+  distinct suggestions, or one fallback suggestion for its reason when the model
+  gave none; an answer has neither.
 - A status outside ReplyStatus is a ModelReplyError, handled like a failed call.
 """
 
@@ -109,6 +112,41 @@ OUT_OF_SCOPE_MESSAGE = (
     "ReviewLens can only answer questions about the reviews for this target."
 )
 
+# A refusal says briefly why it declined (the prompt asks for that). One much longer
+# than this has most likely answered the question anyway, so it is replaced.
+MAX_REFUSAL_CHARACTERS = 500
+
+# The fixed message for each reason, used when the model's own refusal is blank or
+# too long (architecture doc, "Refusal message"). {name}, {platform} and {location}
+# come from the bundle; the name is the user's own label, shown as typed.
+REFUSAL_TEMPLATES = {
+    RefusalReason.GENERAL_KNOWLEDGE: (
+        "I can only answer questions about the {platform} reviews for {name}, "
+        "so I can't help with that."
+    ),
+    RefusalReason.OTHER_ENTITY: (
+        "I only have reviews for {name}, so I can't speak to other businesses, "
+        "products or people."
+    ),
+    RefusalReason.OTHER_LOCATION: (
+        "These reviews are for {name}{location} only, not other locations."
+    ),
+    RefusalReason.OTHER_PLATFORM: (
+        "I only have {platform} reviews for {name}, not reviews from other sites."
+    ),
+    RefusalReason.NO_EVIDENCE: INSUFFICIENT_EVIDENCE_MESSAGE,
+}
+
+# Offered when the model declines without suggestions, so the user always has an
+# in-scope question to try. Kept general: they must fit any target.
+FALLBACK_SUGGESTIONS = {
+    RefusalReason.GENERAL_KNOWLEDGE: "What do reviewers like most?",
+    RefusalReason.OTHER_ENTITY: "What do reviewers like most here?",
+    RefusalReason.OTHER_LOCATION: "What do reviewers say about the service here?",
+    RefusalReason.OTHER_PLATFORM: "What's the overall rating on {platform}?",
+    RefusalReason.NO_EVIDENCE: "What do reviewers mention most often?",
+}
+
 
 def context_summary(bundle: ContextBundle) -> AnswerContext:
     return AnswerContext(
@@ -162,16 +200,68 @@ def out_of_scope_reason(value: object) -> RefusalReason | None:
     return reason if reason in OUT_OF_SCOPE_REASONS else None
 
 
+def usable_refusal(text: str) -> bool:
+    """A light check on the model's own refusal: not blank and brief. It checks the
+    model's output, never the user's question, so it is not a blocklist
+    (S2-BR-020). A failing refusal is replaced by the template for its reason."""
+    return bool(text) and len(text) <= MAX_REFUSAL_CHARACTERS
+
+
+def refusal_template(reason: RefusalReason | None, bundle: ContextBundle) -> str:
+    """The fixed message for a reason, filled in for this target. Without a reason,
+    the general out-of-scope message."""
+    if reason is None:
+        return OUT_OF_SCOPE_MESSAGE
+    return REFUSAL_TEMPLATES[reason].format(
+        name=bundle.target_name,
+        platform=bundle.platform_label,
+        location=f" at {bundle.address}" if bundle.address else "",
+    )
+
+
+def fallback_suggestions(
+    reason: RefusalReason | None, bundle: ContextBundle
+) -> list[str]:
+    if reason is None:
+        return []
+    return [FALLBACK_SUGGESTIONS[reason].format(platform=bundle.platform_label)]
+
+
+def _refusal(
+    status: AnswerStatus,
+    reason: RefusalReason | None,
+    text: str,
+    suggestions: list[str],
+    bundle: ContextBundle,
+) -> AnswerResponse:
+    """A refusal with the model's text when usable, otherwise the reason's template,
+    and the model's suggestions, otherwise the reason's fallback one."""
+    if not usable_refusal(text):
+        if text:
+            logger.info(
+                "Refusal for target %s was %d characters; replaced with the %s "
+                "template.",
+                bundle.target_id,
+                len(text),
+                reason or "general",
+            )
+        text = refusal_template(reason, bundle)
+    return _respond(
+        status,
+        text,
+        bundle,
+        refusal_reason=reason,
+        suggestions=suggestions or fallback_suggestions(reason, bundle),
+    )
+
+
 def no_reviews_answer(bundle: ContextBundle) -> AnswerResponse:
     return _respond(AnswerStatus.NO_REVIEWS, NO_REVIEWS_MESSAGE, bundle)
 
 
 def insufficient_answer(bundle: ContextBundle) -> AnswerResponse:
-    return _respond(
-        AnswerStatus.INSUFFICIENT_EVIDENCE,
-        INSUFFICIENT_EVIDENCE_MESSAGE,
-        bundle,
-        refusal_reason=RefusalReason.NO_EVIDENCE,
+    return _refusal(
+        AnswerStatus.INSUFFICIENT_EVIDENCE, RefusalReason.NO_EVIDENCE, "", [], bundle
     )
 
 
@@ -228,17 +318,17 @@ def build_answer(reply: ModelReply, bundle: ContextBundle) -> AnswerResponse:
 
     suggestions = clean_suggestions(reply.suggestions)
     if status is ReplyStatus.INSUFFICIENT_EVIDENCE:
-        return _respond(
+        return _refusal(
             AnswerStatus.INSUFFICIENT_EVIDENCE,
-            text or INSUFFICIENT_EVIDENCE_MESSAGE,
+            RefusalReason.NO_EVIDENCE,
+            text,
+            suggestions,
             bundle,
-            refusal_reason=RefusalReason.NO_EVIDENCE,
-            suggestions=suggestions,
         )
-    return _respond(
+    return _refusal(
         AnswerStatus.OUT_OF_SCOPE,
-        text or OUT_OF_SCOPE_MESSAGE,
+        out_of_scope_reason(reply.refusal_reason),
+        text,
+        suggestions,
         bundle,
-        refusal_reason=out_of_scope_reason(reply.refusal_reason),
-        suggestions=suggestions,
     )

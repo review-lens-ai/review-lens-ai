@@ -33,7 +33,11 @@ TARGET_B = "10000000-0000-0000-0000-00000000000b"
 LEAK_PHRASE = "ZEBRA-PASTA-7"
 
 TARGETS = {
-    TARGET_A: {"owner_id": OWNER_A, "name": "Luigi's Trattoria"},
+    TARGET_A: {
+        "owner_id": OWNER_A,
+        "name": "Luigi's Trattoria",
+        "address": "12 Mulberry St, New York, NY 10013",
+    },
     TARGET_A2: {"owner_id": OWNER_A, "name": "Harbor Coffee"},
     TARGET_EMPTY: {"owner_id": OWNER_A, "name": "Not Ingested Yet"},
     TARGET_B: {"owner_id": OWNER_B, "name": "Bella's Diner"},
@@ -80,6 +84,10 @@ class FakeTargets:
             "platform": "google_maps",
         }
 
+    def place_address(self, target_id, owner_id):
+        self.get_owned(target_id, owner_id)
+        return self.rows[str(target_id)].get("address")
+
 
 class FakeReviews:
     def __init__(self, targets, rows):
@@ -100,6 +108,21 @@ class FakeReviews:
 
     def count_for_target(self, target_id, owner_id):
         return len(self._for(target_id, owner_id))
+
+    def summary_for_target(self, target_id, owner_id):
+        """The same shape as ReviewRepository.summary_for_target."""
+        rows = self._for(target_id, owner_id)
+        ratings = [r["rating"] for r in rows]
+        dates = [r["reviewed_at"] for r in rows if r["reviewed_at"]]
+        return {
+            "review_count": len(rows),
+            "average_rating": round(sum(ratings) / len(ratings), 2) if rows else None,
+            "rating_counts": [
+                {"rating": n, "count": ratings.count(n)} for n in range(1, 6)
+            ],
+            "first_reviewed_at": min(dates) if dates else None,
+            "last_reviewed_at": max(dates) if dates else None,
+        }
 
 
 class FakeModel:

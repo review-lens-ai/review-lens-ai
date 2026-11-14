@@ -1,6 +1,6 @@
 # Q&A Orchestration and Test Harness (S2-003)
 
-How a question about the active AnalysisTarget becomes a model call, what comes back, and how we test all of it without a live model. Status: the harness is in place. The provider, the context strategy (S2-010) and the final prompt (S2-013) are not decided yet.
+How a question about the active AnalysisTarget becomes a model call, what comes back, and how we test all of it without a live model. Status: the harness and the full-mode system prompt (S2-013) are in place. The provider and the context strategy (S2-010) are not decided yet.
 
 ## The flow
 
@@ -10,7 +10,7 @@ How a question about the active AnalysisTarget becomes a model call, what comes 
 |---|---|---|---|
 | 1 | Clean the question (trim; blank or over 1000 characters is rejected) | `InvalidQuestionError` (422) | No |
 | 2 | Load the target through `TargetRepository.get_owned` | `NotFoundError` (404) for another user's target | No |
-| 3 | Count the target's reviews | `NO_REVIEWS` answer when there are none (S2-BR-025) | No |
+| 3 | Summarize the target's saved reviews (`summary_for_target`: count, average, stars, dates) | `NO_REVIEWS` answer when there are none (S2-BR-025) | No |
 | 4 | Select reviews and check every one belongs to the active target | `ContextIsolationError` (500) if one does not; `INSUFFICIENT_EVIDENCE` if none were selected | No |
 | 5 | Build the system prompt and the review block, call `ModelClient.complete` | `QAUnavailableError` (503) on any `ModelError` | Yes |
 | 6 | Check the reply against the reviews that were sent | `AnswerResponse` | — |
@@ -90,7 +90,14 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:55432/postgres \
 ## Temporary parts
 
 - **Selector.** `select_newest_reviews` sends the target's newest reviews that fit a size limit (`MAX_CONTEXT_CHARACTERS`, about 30,000 tokens), so every review for most targets and a subset for a very large one. The answer's `context.is_subset` and the prompt say when some were left out. S2-010 replaces it with the chosen strategy and documents the real token limits. Any function with the `ReviewSelector` signature plugs in, and the isolation check and its tests apply unchanged.
-- **Prompt wording.** A first draft; S2-013 owns the final text. Tests check rules are present, not exact sentences.
+## The system prompt (S2-013)
+
+[`prompt.py`](../../backend/app/services/qa/prompt.py) builds it in two parts:
+
+- **`scope_prompt(bundle)`, shared by every mode:** the target (quoted), platform and address (quoted; from `TargetRepository.place_address`), the facts from the saved-review summary (`tools/briefing.py`, the numbers the Summary card shows, S2-BR-007), the rules, and the five refusal reasons with the status each goes with.
+- **The full-mode part:** where the reviews are (the `<reviews>` block) and the reply fields, including `refusal_reason` and up to 2 `suggestions`. Tools mode will add its own short part and reply through `submit_answer` (`answer.SubmitAnswer`).
+
+When the model's refusal is blank or longer than `MAX_REFUSAL_CHARACTERS` (it has probably answered anyway), `build_answer` replaces it with the fixed template for its reason, and adds a fallback suggestion when the model gave none. The check reads the model's output only, never the user's question, so it is not a blocklist (S2-BR-020). Tests check that each rule, reason and fact is present, not exact sentences; the live evaluation (S2-004's set, run by hand) checks a real model follows them.
 
 ## Planned: persistent chat history
 

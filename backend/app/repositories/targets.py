@@ -82,6 +82,24 @@ class TargetRepository:
             raise NotFoundError("Target not found.")
         return row
 
+    def place_address(self, target_id: UUID | str, owner_id: UUID | str) -> str | None:
+        """The place's address as the provider gave it (source_metadata.address),
+        for Q&A to tell this location from others (S2-BR-017). None until the
+        first ingestion saves place details, or when the provider has none.
+        NotFoundError unless `owner_id` owns the target."""
+        row = self._conn.execute(
+            """
+            select t.source_metadata ->> 'address' as address
+              from public.analysis_targets t
+             where t.id = %s and t.owner_id = %s
+            """,
+            (target_id, owner_id),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError("Target not found.")
+        address = (row["address"] or "").strip()
+        return address or None
+
     def delete_owned(self, target_id: UUID | str, owner_id: UUID | str) -> None:
         """Delete the target if `owner_id` owns it; otherwise NotFoundError.
         Runs and reviews are removed by their foreign-key cascade."""
