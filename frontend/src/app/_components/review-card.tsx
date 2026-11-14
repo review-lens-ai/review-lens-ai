@@ -7,7 +7,10 @@ import { StarIcon } from "lucide-react";
 import { Card, CardContent } from "@/app/_components/ui/card";
 import { formatReviewDate, isLongReview, type Review } from "@/lib/reviews";
 
-export function ReviewCard({ review }: { review: Review }) {
+// Only what the card shows, so a Q&A answer's evidence reviews use it too.
+type ShownReview = Pick<Review, "rating" | "review_text" | "reviewed_at">;
+
+export function ReviewCard({ review }: { review: ShownReview }) {
   const [expanded, setExpanded] = useState(false);
   const long = isLongReview(review.review_text);
 

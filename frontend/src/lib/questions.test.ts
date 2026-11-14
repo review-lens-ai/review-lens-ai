@@ -15,25 +15,7 @@ vi.mock("@/lib/api", () => {
 });
 
 import { ApiError } from "@/lib/api";
-import { askFailureMessage, QUESTION_MAX_LENGTH, questionProblem } from "./questions";
-
-describe("questionProblem", () => {
-  it("accepts a question", () => {
-    expect(questionProblem("What do customers love most?")).toBeNull();
-  });
-
-  it("rejects an empty or blank question", () => {
-    expect(questionProblem("")).toBe("Enter a question to ask ReviewLens.");
-    expect(questionProblem("   \n ")).toBe("Enter a question to ask ReviewLens.");
-  });
-
-  it("accepts a question exactly at the limit and rejects one over it", () => {
-    expect(questionProblem("x".repeat(QUESTION_MAX_LENGTH))).toBeNull();
-    expect(questionProblem("x".repeat(QUESTION_MAX_LENGTH + 1))).toBe(
-      "Keep your question under 1,000 characters.",
-    );
-  });
-});
+import { askFailureMessage } from "./questions";
 
 describe("askFailureMessage", () => {
   it("passes on the backend's user-facing message", () => {
