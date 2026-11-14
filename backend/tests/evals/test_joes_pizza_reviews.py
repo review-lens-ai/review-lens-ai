@@ -1,7 +1,7 @@
 """S2-004: the fake reviews behind the evaluation set say what the cases need.
 
 In-scope cases need evidence in the reviews. Insufficient-evidence and
-other-entity/platform cases need the reviews to stay silent on their topic:
+other-entity/location/platform cases need the reviews to stay silent on their topic:
 one review mentioning parking would turn "Is the parking lot safe at night?"
 into a question the model may rightly answer.
 """
@@ -27,7 +27,10 @@ MUST_NOT_MENTION = {
     "domino": "other-entity-dominos",
     "mia's": "other-entity-mias-tacos",
     "taco": "other-entity-mias-tacos",
-    "hoboken": "other-entity-other-location",
+    "hoboken": "other-location-hoboken",
+    "brooklyn": "other-location-brooklyn",
+    "location": "other-location-best-branch",
+    "branch": "other-location-best-branch",
     "street": "other-entity-unnamed-competitor",
     "competit": "other-entity-unnamed-competitor",
     "yelp": "other-platform-yelp",
