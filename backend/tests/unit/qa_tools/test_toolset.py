@@ -222,7 +222,7 @@ def test_a_review_from_another_target_is_refused_loudly():
         {"target_id": "x"},
         {"min_rating": 9},
         {"order": "relevance"},  # relevance without keywords is refused, not changed
-        {"similar_to": "long wait"},  # not built yet: refused, never ignored
+        {"similar_to": "long wait"},  # not a field yet: refused, never ignored
     ],
 )
 def test_bad_search_arguments_come_back_as_an_error_result(arguments):
