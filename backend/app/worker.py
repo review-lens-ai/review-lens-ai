@@ -17,6 +17,9 @@ once. This process does the slow part, one run at a time:
         normalize the stored pages           (app/services/normalize_reviews.py)
         save reviews and rejections          (S1-022's ReviewRepository)
         finish the run                       -> COMPLETED / PARTIAL / FAILED
+    EMBED step (after a finished run)
+        embed the target's new reviews       -> reviews.embedding
+                                                (app/services/embed_reviews.py)
 
 Rules:
 - ONE STAGE AT A TIME: a stage is marked COMPLETED only once its data is
@@ -29,6 +32,9 @@ Rules:
   to the server log, scrubbed by mark_failed.
 - NO CREDITS FOR DUPLICATES: the place id is resolved (free) and saved before any
   SerpApi search, so a place the owner already has fails without spending one.
+- EMBEDDINGS NEVER FAIL A RUN: the run is already finished and its reviews saved
+  when the EMBED step starts. If it fails, it is logged, and the next run of this
+  target or ./scripts/embed-reviews.sh embeds what is left.
 """
 
 import logging
@@ -54,6 +60,12 @@ from app.repositories.ingestion_stages import (
 )
 from app.repositories.targets import DuplicatePlaceError, TargetRepository
 from app.schemas.reviews import ReviewCreate
+from app.services.embed_reviews import (
+    Embedder,
+    EmbeddingStore,
+    FastEmbedder,
+    embed_missing,
+)
 from app.services.normalize_reviews import RejectedRecord, normalize_pages
 
 logger = logging.getLogger(__name__)
@@ -62,8 +74,9 @@ logger = logging.getLogger(__name__)
 POLL_SECONDS = 5
 
 
-class ReviewStore(Protocol):
-    """Saves normalized reviews: S1-022's ReviewRepository (app/repositories/reviews.py)."""
+class ReviewStore(EmbeddingStore, Protocol):
+    """Saves normalized reviews and their embeddings: S1-022's ReviewRepository
+    (app/repositories/reviews.py)."""
 
     def bulk_insert(
         self,
@@ -123,9 +136,10 @@ class Pipeline:
     reviews: ReviewStore
     open_source: Callable[[], SerpApiReviewSource]
     max_reviews: int
+    embedder: Embedder
 
     @classmethod
-    def for_connection(cls, conn: Any, settings: Any) -> "Pipeline":
+    def for_connection(cls, conn: Any, settings: Any, embedder: Embedder) -> "Pipeline":
         return cls(
             conn=conn,
             runs=IngestionRunRepository(conn),
@@ -135,6 +149,7 @@ class Pipeline:
             reviews=_review_store(conn),
             open_source=lambda: SerpApiReviewSource.from_settings(settings),
             max_reviews=settings.max_reviews_per_run,
+            embedder=embedder,
         )
 
 
@@ -178,6 +193,7 @@ def process_run(pipeline: Pipeline, run_id: UUID | str) -> None:
             lambda: _normalize_and_finish(pipeline, run_id, target),
         )
         logger.info("Ingestion run %s finished", run_id)
+        _embed(pipeline, run_id, target)
     except _StageFailedError as failure:
         _fail_run(pipeline, run_id, failure.error_code, failure.detail)
     except Exception as error:  # anything outside a stage, e.g. the run vanished
@@ -189,6 +205,7 @@ def run_forever(poll_seconds: float = POLL_SECONDS) -> None:
     """Process queued runs until stopped (Ctrl+C). A failure in one pass is
     logged and the loop goes on, so one bad run never stops the worker."""
     settings = get_settings()
+    embedder = FastEmbedder()  # one per process: the model loads once
     logger.info(
         "Ingestion worker started; checking for queued runs every %ss", poll_seconds
     )
@@ -196,7 +213,9 @@ def run_forever(poll_seconds: float = POLL_SECONDS) -> None:
         worked = False
         try:
             with connect() as conn:
-                worked = process_next_run(Pipeline.for_connection(conn, settings))
+                worked = process_next_run(
+                    Pipeline.for_connection(conn, settings, embedder)
+                )
         except Exception as error:
             logger.error("Worker pass failed: %s", scrub_detail(_describe(error)))
         if not worked:
@@ -288,6 +307,27 @@ def _normalize_and_finish(pipeline: Pipeline, run_id: UUID | str, target: dict) 
     # duplicates, so fetched = saved + rejected + duplicates still holds.
     duplicates = result.duplicates + (len(result.reviews) - saved)
     pipeline.runs.mark_succeeded(run_id, saved, len(result.rejected), duplicates)
+
+
+def _embed(pipeline: Pipeline, run_id: UUID | str, target: dict) -> None:
+    """EMBED: embed the target's reviews that have none yet. The run is already
+    finished, so a failure is only logged; nothing here can fail the run."""
+    try:
+        count = embed_missing(
+            pipeline.reviews,
+            pipeline.embedder,
+            pipeline.conn.commit,
+            pipeline.conn.rollback,
+            target["id"],
+        )
+        logger.info("Run %s embedded %s reviews", run_id, count)
+    except Exception as error:
+        pipeline.conn.rollback()
+        logger.warning(
+            "Run %s could not embed its reviews; ./scripts/embed-reviews.sh will: %s",
+            run_id,
+            scrub_detail(_describe(error)),
+        )
 
 
 def _fail_run(

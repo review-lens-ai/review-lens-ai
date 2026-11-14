@@ -18,6 +18,7 @@ Rules: S1-BR-018 to S1-BR-025.
 | SerpApi adapter | Turns the Maps link into a place id and fetches review pages | `backend/app/adapters/serpapi/` |
 | Normalizer | Raw records → reviews, rejections, duplicates | `backend/app/services/normalize_reviews.py` |
 | Review repository | Saves reviews and rejections, reads a target's reviews | `backend/app/repositories/reviews.py` |
+| Embedding step | After a run finishes, embeds the target's reviews that have no embedding yet. A failure is logged and never fails the run; `./scripts/embed-reviews.sh` (same code) fills any left over | `backend/app/services/embed_reviews.py` |
 
 ## Flow of one run
 

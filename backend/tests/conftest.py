@@ -15,6 +15,7 @@ from fastapi.testclient import TestClient
 from app.auth import get_key_resolver
 from app.core.config import get_settings
 from app.main import app
+from app.services.embed_reviews import EMBEDDING_DIMENSIONS
 
 ISSUER = f"{SUPABASE_URL}/auth/v1"
 
@@ -62,3 +63,23 @@ def make_token(trusted_key):
 
 def auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
+
+
+class FakeEmbedder:
+    """Stands in for the real embedding model, so tests never download it.
+    Returns a fixed unit vector per text; broken=True fails like a model that
+    could not load."""
+
+    def __init__(self, broken: bool = False):
+        self.broken = broken
+
+    def embed(self, texts: list[str]) -> list[list[float]]:
+        if self.broken:
+            raise RuntimeError("embedding model unavailable")
+        return [_unit_vector(len(text) % EMBEDDING_DIMENSIONS) for text in texts]
+
+
+def _unit_vector(position: int) -> list[float]:
+    vector = [0.0] * EMBEDDING_DIMENSIONS
+    vector[position] = 1.0
+    return vector
