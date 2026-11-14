@@ -178,7 +178,7 @@ class FakeReviews:
     def save_rejections(self, run_id, target_id, owner_id, rejected):
         self.rejected = list(rejected)
 
-    def without_embedding(self, *, limit, target_id=None):
+    def without_embedding(self, *, limit, target_id=None, after=None):
         return []
 
     def save_embeddings(self, embeddings):

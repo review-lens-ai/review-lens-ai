@@ -205,10 +205,15 @@ class ReviewRepository:
         }
 
     def without_embedding(
-        self, *, limit: int, target_id: UUID | str | None = None
+        self,
+        *,
+        limit: int,
+        target_id: UUID | str | None = None,
+        after: UUID | None = None,
     ) -> list[dict]:
         """Up to `limit` reviews with no embedding yet ({id, review_text}), of one
-        target or of every target. Only the ingestion worker and the backfill call
+        target or of every target, in id order and after the id `after` if given
+        (so a caller can move past a batch it skipped). Only the ingestion worker and the backfill call
         this; neither acts for a user, so there is no owner check (like
         TargetRepository.get_for_run)."""
         return self._conn.execute(
@@ -217,10 +222,11 @@ class ReviewRepository:
               from public.reviews
              where embedding is null
                and (%(target_id)s::uuid is null or target_id = %(target_id)s::uuid)
+               and (%(after)s::uuid is null or id > %(after)s::uuid)
              order by id
              limit %(limit)s
             """,
-            {"target_id": target_id, "limit": limit},
+            {"target_id": target_id, "after": after, "limit": limit},
         ).fetchall()
 
     def save_embeddings(self, embeddings: list[tuple[UUID, list[float]]]) -> None:

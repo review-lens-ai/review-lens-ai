@@ -17,6 +17,19 @@ from tests.conftest import FakeEmbedder
 URL = "https://www.google.com/maps/place/Joes+Pizza"
 
 
+def _noop():
+    pass
+
+
+class _FailsOnBad(FakeEmbedder):
+    """Fails any batch that holds the text "bad", like a review the model chokes on."""
+
+    def embed(self, texts):
+        if "bad" in texts:
+            raise RuntimeError("model could not read this text")
+        return super().embed(texts)
+
+
 def _target_with_reviews(conn, owner_id, texts):
     target = TargetRepository(conn).create(owner_id, "Joe's", "google_maps", URL)
     run_id = conn.execute(
@@ -50,8 +63,8 @@ def test_every_review_gets_one_embedding_and_a_second_run_does_nothing(conn, mak
     target_id = _target_with_reviews(conn, make_user(), ["Slow service", "Great pizza"])
     repo = ReviewRepository(conn)
 
-    first = embed_missing(repo, FakeEmbedder(), commit=lambda: None)
-    again = embed_missing(repo, FakeEmbedder(), commit=lambda: None)
+    first = embed_missing(repo, FakeEmbedder(), _noop, _noop)
+    again = embed_missing(repo, FakeEmbedder(), _noop, _noop)
 
     assert (first, again) == (2, 0)
     assert _missing(conn, target_id) == 0
@@ -61,7 +74,7 @@ def test_a_target_id_embeds_only_that_target(conn, make_user):
     mine = _target_with_reviews(conn, make_user(), ["Slow service"])
     other = _target_with_reviews(conn, make_user(), ["Cold fries"])
 
-    embed_missing(ReviewRepository(conn), FakeEmbedder(), lambda: None, target_id=mine)
+    embed_missing(ReviewRepository(conn), FakeEmbedder(), _noop, _noop, mine)
 
     assert (_missing(conn, mine), _missing(conn, other)) == (0, 1)
 
@@ -74,17 +87,40 @@ def test_it_commits_after_each_batch(conn, make_user, monkeypatch):
     commits = []
 
     count = embed_missing(
-        ReviewRepository(conn), FakeEmbedder(), lambda: commits.append(1), target_id
+        ReviewRepository(conn),
+        FakeEmbedder(),
+        lambda: commits.append(1),
+        _noop,
+        target_id,
     )
 
     assert count == 5
     assert len(commits) == 3  # batches of 2, 2 and 1: a crash keeps what was done
 
 
+def test_a_failing_batch_is_skipped_and_the_rest_are_embedded(
+    conn, make_user, monkeypatch
+):
+    monkeypatch.setattr(embed_reviews, "BATCH_SIZE", 1)
+    target_id = _target_with_reviews(conn, make_user(), ["bad", "Slow", "Great"])
+    rollbacks = []
+
+    count = embed_missing(
+        ReviewRepository(conn),
+        _FailsOnBad(),
+        _noop,
+        lambda: rollbacks.append(1),
+        target_id,
+    )
+
+    assert (count, len(rollbacks)) == (2, 1)
+    assert _missing(conn, target_id) == 1  # "bad" stays empty for the next run
+
+
 def test_saving_never_overwrites_an_existing_embedding(conn, make_user):
     target_id = _target_with_reviews(conn, make_user(), ["Slow service"])
     repo = ReviewRepository(conn)
-    embed_missing(repo, FakeEmbedder(), lambda: None)
+    embed_missing(repo, FakeEmbedder(), _noop, _noop)
     review_id = conn.execute(
         "select id from public.reviews where target_id = %s", (target_id,)
     ).fetchone()["id"]
@@ -102,7 +138,7 @@ def test_saving_never_overwrites_an_existing_embedding(conn, make_user):
 
 def test_stored_embeddings_have_384_numbers_and_length_one(conn, make_user):
     target_id = _target_with_reviews(conn, make_user(), ["Slow service"])
-    embed_missing(ReviewRepository(conn), FakeEmbedder(), lambda: None)
+    embed_missing(ReviewRepository(conn), FakeEmbedder(), _noop, _noop)
 
     row = conn.execute(
         "select vector_dims(embedding) as dims, vector_norm(embedding) as norm "

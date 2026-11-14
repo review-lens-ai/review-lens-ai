@@ -45,7 +45,7 @@ def test_a_failed_embedding_never_fails_the_run_and_the_backfill_recovers(
     assert run_row(conn, queued_run["id"])["status"] == "PARTIAL"
     assert _counts(conn, target["id"])["embedded"] == 0
 
-    embed_missing(ReviewRepository(conn), FakeEmbedder(), lambda: None)
+    embed_missing(ReviewRepository(conn), FakeEmbedder(), lambda: None, lambda: None)
 
     counts = _counts(conn, target["id"])
     assert counts["embedded"] == counts["reviews"]

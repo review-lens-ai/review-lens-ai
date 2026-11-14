@@ -314,7 +314,11 @@ def _embed(pipeline: Pipeline, run_id: UUID | str, target: dict) -> None:
     finished, so a failure is only logged; nothing here can fail the run."""
     try:
         count = embed_missing(
-            pipeline.reviews, pipeline.embedder, pipeline.conn.commit, target["id"]
+            pipeline.reviews,
+            pipeline.embedder,
+            pipeline.conn.commit,
+            pipeline.conn.rollback,
+            target["id"],
         )
         logger.info("Run %s embedded %s reviews", run_id, count)
     except Exception as error:
