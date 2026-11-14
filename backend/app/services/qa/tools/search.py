@@ -2,13 +2,14 @@
 
 search_reviews  matching reviews, shortened, in a chosen order (relevance, newest,
                 oldest, lowest, highest, longest) - so "the worst reviews" and
-                "the most recent ones" need no sorting by the model
+                "the most recent ones" need no sorting by the model. The order
+                used is stated in the result.
 get_reviews     the full text of reviews already shown, by label
 """
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.repositories.review_search import ORDERS, RELEVANCE
 from app.services.qa.tools.guard import quote, require_in_scope
@@ -24,8 +25,19 @@ assert set(ORDERS) | {RELEVANCE} == set(Order.__args__)
 
 
 class SearchArgs(ReviewFilter):
-    order: Order = "relevance"
+    # Left out: relevance when there are keywords, newest otherwise. Asking for
+    # relevance without keywords is refused, never quietly changed.
+    order: Order | None = None
     limit: Annotated[int, Field(ge=1, le=10)] = 5
+
+    @model_validator(mode="after")
+    def _relevance_needs_keywords(self) -> "SearchArgs":
+        if self.order == RELEVANCE and self.keywords is None:
+            raise ValueError(
+                "order 'relevance' needs keywords; use newest, oldest, lowest,"
+                " highest or longest instead"
+            )
+        return self
 
 
 class GetReviewsArgs(BaseModel):
@@ -45,20 +57,19 @@ def _line(scope: ToolScope, row: dict, characters: int) -> tuple[str, object]:
 
 
 def search_reviews(scope: ToolScope, args: SearchArgs) -> ToolResult:
-    flt = ReviewFilter(**args.model_dump(exclude={"order", "limit"}))
-    rows = scope.reviews.search(
-        scope.target_id, scope.owner_id, flt, order=args.order, limit=args.limit
-    )
+    review_filter = ReviewFilter(**args.model_dump(exclude={"order", "limit"}))
+    order = args.order or (RELEVANCE if args.keywords is not None else "newest")
+    rows = scope.reviews.search(review_filter, order=order, limit=args.limit)
     require_in_scope(rows, scope.target_id)
     if not rows:
         return ToolResult(text="No reviews match.")
-    total = scope.reviews.stats(scope.target_id, scope.owner_id, flt)["total"]
+    total = scope.reviews.stats(review_filter)["review_count"]
     lines, sources = [], []
     for row in rows:
         line, source = _line(scope, row, EXCERPT_CHARACTERS)
         lines.append(line)
         sources.append(source)
-    header = f"{len(rows)} of {total} matching reviews:"
+    header = f"{len(rows)} of {total} matching reviews, {order} first:"
     return ToolResult(text=header + "\n" + "\n".join(lines), sources=sources)
 
 
@@ -70,9 +81,7 @@ def get_reviews(scope: ToolScope, args: GetReviewsArgs) -> ToolResult:
             text=f"Unknown labels: {', '.join(unknown)}. Use labels from earlier results.",
             is_error=True,
         )
-    rows = scope.reviews.get_many(
-        scope.target_id, scope.owner_id, [i for i in ids.values() if i is not None]
-    )
+    rows = scope.reviews.get_many([i for i in ids.values() if i is not None])
     require_in_scope(rows, scope.target_id)
     by_id = {row["id"]: row for row in rows}
     lines, sources = [], []
