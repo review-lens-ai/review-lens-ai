@@ -50,8 +50,9 @@ def test_there_are_five_refusal_reasons():
         {"status": "MAYBE", "answer": "x"},  # not a status
         {"status": "OUT_OF_SCOPE", "answer": "x", "refusal_reason": "RUDE"},
         {"status": "ANSWERED"},  # no answer text
+        {"status": "ANSWERED", "answer": "x", "cited_review_ids": ["R1"]},  # misnamed
     ],
-    ids=["unknown-status", "unknown-reason", "missing-answer"],
+    ids=["unknown-status", "unknown-reason", "missing-answer", "unknown-field"],
 )
 def test_arguments_outside_the_schema_are_rejected(args):
     with pytest.raises(ValidationError):

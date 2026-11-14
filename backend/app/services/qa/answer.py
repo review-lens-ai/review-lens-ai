@@ -17,7 +17,7 @@ Rules:
 
 import logging
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.llm import ModelReply, ModelReplyError, ReplyStatus
 from app.schemas.qa import (
@@ -55,8 +55,12 @@ class SubmitAnswer(BaseModel):
 
     The schema stays permissive on purpose. A status that doesn't match its
     refusal_reason is corrected by the answer builder, not rejected here, so the
-    model is never stuck retrying a call it can't get past validation.
+    model is never stuck retrying a call it can't get past validation. A field it
+    doesn't know is rejected, though: ignoring a misnamed field (cited_review_ids
+    for cited) would quietly drop the citations and turn an answer into a refusal.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     status: ReplyStatus = Field(
         description=(
