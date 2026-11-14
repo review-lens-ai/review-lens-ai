@@ -65,3 +65,40 @@ def test_ingestion_status_is_none_until_a_run_exists_then_shows_the_latest(
 
     insert_run(conn, target["id"], "FAILED")
     assert repo.get_owned(target["id"], owner)["ingestion_status"] == "FAILED"
+
+
+# --- place_address: the address Q&A uses to tell this location from others ---
+
+
+def test_place_address_is_none_until_place_details_are_saved(repo, make_user):
+    owner = make_user()
+    target = repo.create(owner, "Joe's Pizza", "google_maps", URL)
+
+    assert repo.place_address(target["id"], owner) is None
+
+
+def test_place_address_comes_from_the_saved_place_details(repo, make_user):
+    owner = make_user()
+    target = repo.create(owner, "Joe's Pizza", "google_maps", URL)
+    repo.save_place_details(
+        target["id"], owner, {"title": "Joe's", "address": " 7 Carmine St, NY "}
+    )
+
+    assert repo.place_address(target["id"], owner) == "7 Carmine St, NY"
+
+
+def test_a_blank_saved_address_counts_as_none(repo, make_user):
+    owner = make_user()
+    target = repo.create(owner, "Joe's Pizza", "google_maps", URL)
+    repo.save_place_details(target["id"], owner, {"address": "   "})
+
+    assert repo.place_address(target["id"], owner) is None
+
+
+def test_user_b_cannot_read_user_a_place_address(repo, make_user):
+    owner = make_user()
+    target = repo.create(owner, "Joe's Pizza", "google_maps", URL)
+    repo.save_place_details(target["id"], owner, {"address": "7 Carmine St"})
+
+    with pytest.raises(NotFoundError):
+        repo.place_address(target["id"], make_user())
