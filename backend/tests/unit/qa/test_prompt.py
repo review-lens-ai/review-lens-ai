@@ -197,6 +197,12 @@ def test_prompt_allows_a_comparison_inside_the_reviews():
     assert "A comparison inside these reviews" in full_prompt()
 
 
+def test_prompt_keeps_the_targets_own_staff_and_products_in_scope():
+    # Guards against over-refusing: "Is the manager friendly?" or "Do people like
+    # the milkshakes?" is about this place, not another person or product.
+    assert "Its own staff, menu, products and services are part of" in full_prompt()
+
+
 def test_prompt_gives_the_address_quoted_to_tell_this_location_from_others():
     prompt = full_prompt()
 
