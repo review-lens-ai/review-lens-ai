@@ -136,6 +136,28 @@ def test_top_terms_count_reviews_not_repeats(seeded):
     assert terms["great"] == 3  # "Great pizza, great price" counts once
 
 
+def test_top_terms_show_real_words_and_group_their_forms(conn, make_user):
+    owner = make_user()
+    target_id = _target(
+        conn,
+        owner,
+        [
+            ("Customer service was slow", 2, _day(1)),
+            ("Customer service is friendly", 5, _day(2)),
+            ("The services here are fine", 4, _day(3)),
+        ],
+    )
+    repo = ReviewSearchRepository.for_owner(conn, target_id, owner)
+
+    terms = {t["term"]: t["reviews"] for t in repo.top_terms(ReviewFilter())}
+
+    # "service" and "services" are one word (3 reviews), shown as the common form.
+    assert terms["service"] == 3
+    assert "servic" not in terms and "custom" not in terms
+    assert terms["customer"] == 2
+    assert "the" not in terms and "was" not in terms  # common words are left out
+
+
 @pytest.mark.parametrize(
     "order, first",
     [
