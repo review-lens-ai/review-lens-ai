@@ -7,8 +7,10 @@ The runner takes any `ask` function, so the same questions run in two places:
 - By hand: `ask` calls the pipeline with the real model, to check the system
   prompt actually works (S2-BR-031).
 
-A response passes when its status matches the case's expected behavior and it
-has some text for the user. Wording is never compared.
+A response passes when its status matches the case's expected behavior, it has
+some text for the user, a refusal gives the expected reason (expected_reason),
+and the answer contains none of the case's must_not_contain text. Wording is
+never compared otherwise.
 """
 
 import json
@@ -18,7 +20,7 @@ from pathlib import Path
 
 from pydantic import TypeAdapter
 
-from app.schemas.qa import AnswerResponse, AnswerStatus
+from app.schemas.qa import AnswerResponse, AnswerStatus, RefusalReason
 from app.schemas.reviews import ReviewCreate
 
 EVALS_DIR = Path(__file__).parent
@@ -27,6 +29,7 @@ CASES_FILE = EVALS_DIR / "scope_guard_cases.json"
 REVIEWS_FILE = EVALS_DIR / "joes_pizza_reviews.json"
 
 _STATUS = TypeAdapter(AnswerStatus)
+_REASON = TypeAdapter(RefusalReason)
 _REVIEWS = TypeAdapter(list[ReviewCreate])
 
 
@@ -37,6 +40,10 @@ class ScopeGuardCase:
     question: str
     expected: AnswerStatus
     why: str
+    # Why a refusal should refuse; None for questions that should be answered.
+    expected_reason: RefusalReason | None = None
+    # Text only a made-up answer would contain, matched ignoring case.
+    must_not_contain: tuple[str, ...] = ()
 
 
 def load_cases(path: Path = CASES_FILE) -> list[ScopeGuardCase]:
@@ -48,6 +55,12 @@ def load_cases(path: Path = CASES_FILE) -> list[ScopeGuardCase]:
             question=case["question"],
             expected=_STATUS.validate_python(case["expected"]),
             why=case["why"],
+            expected_reason=(
+                _REASON.validate_python(case["expected_reason"])
+                if "expected_reason" in case
+                else None
+            ),
+            must_not_contain=tuple(case.get("must_not_contain", ())),
         )
         for case in raw["cases"]
     ]
@@ -68,7 +81,8 @@ class CaseResult:
     case: ScopeGuardCase
     # None when no usable response came back (see error).
     actual: AnswerStatus | None
-    # Why the case failed without a status to compare, e.g. the call raised.
+    # Why the case failed apart from the status: the call raised, the answer was
+    # blank, the refusal gave the wrong reason, or it contained forbidden text.
     error: str | None = None
 
     @property
@@ -77,9 +91,24 @@ class CaseResult:
 
 
 def judge(case: ScopeGuardCase, response: AnswerResponse) -> CaseResult:
-    """Passes when the response is the expected kind and says something."""
+    """Passes when the response is the expected kind, says something, refuses for
+    the expected reason, and contains none of the case's forbidden text. The status
+    is checked first, so a wrong status is reported as such."""
     if not response.answer.strip():
         return CaseResult(case, response.status, error="empty answer")
+    if response.status != case.expected:
+        return CaseResult(case, response.status)
+    if case.expected_reason and response.refusal_reason != case.expected_reason:
+        got = response.refusal_reason or "no reason"
+        return CaseResult(
+            case,
+            response.status,
+            error=f"expected reason {case.expected_reason}, got {got}",
+        )
+    answer = response.answer.lower()
+    for text in case.must_not_contain:
+        if text.lower() in answer:
+            return CaseResult(case, response.status, error=f"answer contains {text!r}")
     return CaseResult(case, response.status)
 
 
@@ -108,11 +137,11 @@ class EvalReport:
         passed_total = len(self.results) - len(self.failures)
         lines.append(f"Total: {passed_total}/{len(self.results)} passed")
         for result in self.failures:
-            got = result.error or f"got {result.actual}"
-            lines.append(
-                f"FAILED {result.case.id}: expected {result.case.expected}, {got}"
-                f" ({result.case.question})"
-            )
+            if result.error:
+                problem = result.error
+            else:
+                problem = f"expected {result.case.expected}, got {result.actual}"
+            lines.append(f"FAILED {result.case.id}: {problem} ({result.case.question})")
         return "\n".join(lines)
 
 
