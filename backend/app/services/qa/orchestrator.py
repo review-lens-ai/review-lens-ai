@@ -2,7 +2,7 @@
 
     1. clean the question               blank or too long -> InvalidQuestionError
     2. load the target the caller owns  another user's    -> NotFoundError
-    3. no reviews at all                -> NO_REVIEWS
+    3. summarize its saved reviews      none at all       -> NO_REVIEWS
     4. select and check the context     wrong target      -> ContextIsolationError
        nothing selected                 -> INSUFFICIENT_EVIDENCE
     5. build the prompt, call the model provider failure  -> QAUnavailableError
@@ -48,6 +48,10 @@ class QAUnavailableError(AppError):
 class TargetSource(Protocol):
     def get_owned(self, target_id: UUID | str, owner_id: UUID | str) -> dict: ...
 
+    def place_address(
+        self, target_id: UUID | str, owner_id: UUID | str
+    ) -> str | None: ...
+
 
 def answer_question(
     *,
@@ -62,12 +66,20 @@ def answer_question(
     question = clean_question(question)
 
     target = targets.get_owned(target_id, owner_id)
-    reviews_total = reviews.count_for_target(target["id"], owner_id)
+    # One query for the count and the briefing, the numbers the Summary card shows.
+    summary = reviews.summary_for_target(target["id"], owner_id)
+    reviews_total = summary["review_count"]
     if reviews_total == 0:
         return no_reviews_answer(build_bundle(target, [], 0))
 
     rows = select_reviews(reviews, target, owner_id, question)
-    bundle = build_bundle(target, rows, reviews_total)
+    bundle = build_bundle(
+        target,
+        rows,
+        reviews_total,
+        address=targets.place_address(target["id"], owner_id),
+        summary=summary,
+    )
     if not bundle.reviews:
         return insufficient_answer(bundle)
 
