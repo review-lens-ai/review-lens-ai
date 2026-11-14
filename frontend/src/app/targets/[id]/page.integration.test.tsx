@@ -1,6 +1,6 @@
 // Integration tests for the target workspace page: the Start ingestion and
 // Try again buttons (#55). The whole page is rendered, and MSW plays the backend.
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { SkippedReason } from "@/lib/generated/api";
 import type { IngestionRun } from "@/lib/ingestion-runs";
 import {
@@ -35,9 +35,12 @@ const LATEST_RUN_URL = `${RUNS_URL}/latest`;
 const router = { replace: vi.fn() };
 const refreshSidebar = vi.fn(async () => {});
 
+// The page's query string, e.g. "review=<id>". Empty unless a test sets it.
+let searchString = "";
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
   useParams: () => ({ id: TARGET_ID }),
+  useSearchParams: () => new URLSearchParams(searchString),
 }));
 vi.mock("@/lib/hooks/use-targets", () => ({
   useTargets: () => ({ refresh: refreshSidebar }),
@@ -505,6 +508,57 @@ describe("reviews list", () => {
   function button(name: string) {
     return screen.getByRole<HTMLButtonElement>("button", { name });
   }
+
+  // A link to one review (?review=<id>, e.g. from a Q&A source) opens the Reviews tab on
+  // the page that holds it, and marks that review.
+  describe("opened from a review link", () => {
+    afterEach(() => {
+      searchString = "";
+    });
+
+    it("asks for the page around that review and highlights it", async () => {
+      searchString = "review=review-14";
+      backendHas(completedRun);
+      const around: (string | null)[] = [];
+      server.use(
+        http.get(REVIEWS_URL, ({ request }) => {
+          around.push(new URL(request.url).searchParams.get("around"));
+          return jsonResponse(
+            reviewPage(reviewsNumbered(12, 12), { total: 30, limit: 12, offset: 12 }),
+          );
+        }),
+      );
+
+      await openWorkspace("Ingested");
+
+      await screen.findByText("Showing 13–24 of 30");
+      expect(around).toEqual(["review-14"]);
+      const linked = screen.getByText("Review number 14").closest("[data-highlighted]");
+      expect(linked?.id).toBe("review-review-14");
+      expect(document.querySelectorAll("[data-highlighted]")).toHaveLength(1);
+    });
+
+    it("shows the first page when that review no longer exists", async () => {
+      searchString = "review=gone";
+      backendHas(completedRun);
+      server.use(
+        http.get(REVIEWS_URL, ({ request }) => {
+          const query = new URL(request.url).searchParams;
+          if (query.get("around")) {
+            return apiErrorResponse(404, "NOT_FOUND", "Review not found.");
+          }
+          return jsonResponse(
+            reviewPage(reviewsNumbered(0, 12), { total: 30, limit: 12, offset: 0 }),
+          );
+        }),
+      );
+
+      await openWorkspace("Ingested");
+
+      await screen.findByText("Showing 1–12 of 30");
+      expect(document.querySelector("[data-highlighted]")).toBeNull();
+    });
+  });
 
   it("shows the first page and counts every review of the target", async () => {
     backendHas(completedRun);

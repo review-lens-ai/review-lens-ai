@@ -170,8 +170,11 @@ Normalized reviews. No reviewer name is stored.
 | `source_metadata` | jsonb | Default `{}` |
 | `mapping_version` | text | Required. Which version of the field mapping produced the row |
 | `created_at` | timestamptz | |
+| `search_vector` | tsvector | Generated from `review_text`, with a GIN index. Keyword search for the Q&A tools (S2-010). Postgres keeps it up to date; nothing writes it |
 
 Rule: `(target_id, source_review_id)` is unique, so a second run over the same reviews adds none twice.
+
+The Q&A tools (S2-010) read `reviews` live and store nothing of their own: counts, averages and terms are calculated each time, so they always match the summary card.
 
 ### `ingestion_rejections`
 
@@ -237,7 +240,7 @@ review-lens-ai/
 │   │   ├── api/              # HTTP routes
 │   │   ├── schemas/          # Request and response shapes
 │   │   ├── repositories/     # All SQL, owner-filtered
-│   │   ├── services/         # Processing logic (normalizer, qa/ orchestration)
+│   │   ├── services/         # Processing logic (normalizer); qa/orchestration and qa/tools/ is what the Q&A model can call
 │   │   ├── llm/              # The model boundary (ModelClient); no provider yet
 │   │   ├── adapters/serpapi/ # Talks to SerpApi
 │   │   ├── fixtures/         # Saved provider responses, so tests never call the live service

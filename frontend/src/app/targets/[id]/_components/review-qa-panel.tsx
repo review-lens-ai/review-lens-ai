@@ -396,7 +396,7 @@ function Answer({ response }: { response: AnswerResponse }) {
           <ul className="mt-3 flex flex-col gap-3">
             {response.evidence.map((review) => (
               <li key={review.id}>
-                <ReviewCard review={review} />
+                <ReviewCard review={review} anchor={false} />
               </li>
             ))}
           </ul>

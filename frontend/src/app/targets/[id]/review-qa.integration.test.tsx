@@ -32,6 +32,8 @@ const url = vi.hoisted(() => ({ id: "22222222-2222-2222-2222-222222222222" }));
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
   useParams: () => ({ id: url.id }),
+  // No ?review= link in these tests.
+  useSearchParams: () => new URLSearchParams(),
 }));
 vi.mock("@/lib/hooks/use-targets", () => ({
   useTargets: () => ({ refresh: vi.fn(async () => {}) }),

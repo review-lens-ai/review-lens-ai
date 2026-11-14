@@ -177,3 +177,41 @@ def test_user_b_gets_the_same_404_as_for_a_target_that_does_not_exist(
     assert denied.status_code == 404
     assert "Private to A" not in denied.text
     assert denied.json() == unknown.json()
+
+
+def test_around_returns_the_page_that_holds_the_review(
+    api, make_user, make_token, make_target_with_review
+):
+    owner = make_user()
+    target_id = make_target_with_review(owner, count=5)
+    url = f"/api/v1/targets/{target_id}/reviews"
+    headers = auth(make_token(str(owner)))
+    everything = api.get(f"{url}?limit={MAX_REVIEW_PAGE_SIZE}", headers=headers).json()
+    fourth = everything["items"][3]["id"]
+
+    page = api.get(f"{url}?limit=2&around={fourth}", headers=headers).json()
+
+    assert page["offset"] == 2
+    assert fourth in [review["id"] for review in page["items"]]
+
+
+def test_around_a_review_of_another_target_is_the_same_404_as_an_unknown_one(
+    api, make_user, make_token, make_target_with_review
+):
+    owner = make_user()
+    mine = make_target_with_review(owner)
+    headers = auth(make_token(str(owner)))
+
+    # A review id from another of the owner's targets, not the one in the URL.
+    other_target_review = api.get(
+        f"/api/v1/targets/{make_target_with_review(owner)}/reviews", headers=headers
+    ).json()["items"][0]["id"]
+    wrong_target = api.get(
+        f"/api/v1/targets/{mine}/reviews?around={other_target_review}", headers=headers
+    )
+    unknown = api.get(
+        f"/api/v1/targets/{mine}/reviews?around={UNKNOWN_ID}", headers=headers
+    )
+
+    assert wrong_target.status_code == 404
+    assert wrong_target.json() == unknown.json()

@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useId, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   CircleAlertIcon,
   CircleCheckIcon,
@@ -85,18 +85,30 @@ export default function TargetWorkspacePage() {
 // target with empty state, so one target's reviews or status can never show on another.
 function WorkspaceForUrl() {
   const { id } = useParams<{ id: string }>();
+  // ?review=<id> opens the Reviews tab on that review (e.g. a Q&A source link).
+  const focusReviewId = useSearchParams().get("review");
   // S2-009: whether the Q&A panel is open. Kept outside the key, so the panel stays open
   // on a switch while its conversation (inside the key) starts over for the new target.
   const [qaOpen, setQaOpen] = useState(false);
-  return <TargetWorkspace key={id} id={id} qaOpen={qaOpen} setQaOpen={setQaOpen} />;
+  return (
+    <TargetWorkspace
+      key={id}
+      id={id}
+      focusReviewId={focusReviewId}
+      qaOpen={qaOpen}
+      setQaOpen={setQaOpen}
+    />
+  );
 }
 
 function TargetWorkspace({
   id,
+  focusReviewId,
   qaOpen,
   setQaOpen,
 }: {
   id: string;
+  focusReviewId: string | null;
   qaOpen: boolean;
   setQaOpen: (open: boolean) => void;
 }) {
@@ -112,6 +124,7 @@ function TargetWorkspace({
     enabled: everIngested,
     // Reviews belong to the latest run: a new or finished run reloads them from page 1.
     latestRun: latest.loaded ? run : undefined,
+    focusReviewId,
   });
   const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
   // S2-009: a question came back NOT_FOUND, so the target is gone or not this user's.
@@ -171,7 +184,7 @@ function TargetWorkspace({
 
   // A never-ingested target opens on Ingestion, the first step of the flow (§1);
   // a target with data opens on its Reviews.
-  const firstTab = target.ingestion_status ? "reviews" : "ingestion";
+  const firstTab = target.ingestion_status || focusReviewId ? "reviews" : "ingestion";
 
   const qa: QaToggle = {
     open: qaOpen,
@@ -313,6 +326,7 @@ function TargetWorkspace({
                 pageLoading={reviews.pageLoading}
                 pageFailed={reviews.pageFailed}
                 onPage={reviews.showPage}
+                highlightId={focusReviewId}
               />
             </TabsContent>
           </div>
@@ -581,6 +595,7 @@ function ReviewsPanel({
   pageLoading,
   pageFailed,
   onPage,
+  highlightId,
 }: {
   everIngested: boolean;
   reviews: Review[] | null;
@@ -590,6 +605,7 @@ function ReviewsPanel({
   pageLoading: boolean;
   pageFailed: boolean;
   onPage: (page: number) => void;
+  highlightId: string | null;
 }) {
   if (!everIngested || (reviews !== null && total === 0)) {
     return (
@@ -637,7 +653,7 @@ function ReviewsPanel({
       </div>
       <div className="grid items-start gap-4 @xl:grid-cols-2 @4xl:grid-cols-3">
         {reviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
+          <ReviewCard key={review.id} review={review} highlighted={review.id === highlightId} />
         ))}
       </div>
       {pageFailed && (
