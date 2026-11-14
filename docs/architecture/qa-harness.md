@@ -92,6 +92,16 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:55432/postgres \
 - **Selector.** `select_newest_reviews` sends the target's newest reviews that fit a size limit (`MAX_CONTEXT_CHARACTERS`, about 30,000 tokens), so every review for most targets and a subset for a very large one. The answer's `context.is_subset` and the prompt say when some were left out. S2-010 replaces it with the chosen strategy and documents the real token limits. Any function with the `ReviewSelector` signature plugs in, and the isolation check and its tests apply unchanged.
 - **Prompt wording.** A first draft; S2-013 owns the final text. Tests check rules are present, not exact sentences.
 
+## Known limits
+
+Written down so nobody presents these as solved.
+
+- **The injection flag is not a defence.** Review text shown to the model is quoted and flagged when it matches a short regex ("ignore previous instructions" and similar). A reworded attack passes it. The real boundary is that tools are read-only, run SQL written by us, and are bound to one target whose owner was checked in SQL (`ReviewSearchRepository.for_owner`). A review that convinces the model still cannot make a tool read another user's or target's data.
+- **Keyword search is English-only.** `search_vector` uses the `english` configuration, so stems of other languages don't match ("lento" won't find "lenta").
+- **The `search_vector` migration must reach Supabase.** It adds a stored generated column, which rewrites the `reviews` table once and locks it briefly. Fine at our size, but keyword tools fail on any database where it hasn't run.
+- **No search by meaning yet.** The tools match keywords only. Meaning search becomes a new `ReviewFilter` field once embedding search exists; counts by similar meaning will then depend on one threshold, so they will be approximate ("about N").
+- **`reviews_over_time` covers the latest 24 months** that have reviews and says so when it leaves older months out.
+
 ## Planned: persistent chat history
 
 Q&A will keep conversation history; S2-003 ships without it. The design already leaves room:
