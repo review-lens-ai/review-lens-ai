@@ -5,10 +5,12 @@ services/repositories that query user-scoped data (S1-BR-009).
 """
 
 import logging
+import ssl
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import Annotated, Any
 
+import certifi
 import jwt
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -38,7 +40,14 @@ class SigningKeyResolver:
     """Looks up the public key for a token. Replaced in tests."""
 
     def __init__(self, jwks_url: str):
-        self._client = PyJWKClient(jwks_url, cache_keys=True, timeout=5)
+        # Trust certifi's CA bundle, not the interpreter's. A python.org Python has no
+        # CA certificates until "Install Certificates.command" is run, so the key fetch
+        # failed with CERTIFICATE_VERIFY_FAILED and every token was rejected with a 401.
+        # httpx (SerpApi) already uses certifi, so this matches the rest of the backend.
+        ssl_context = ssl.create_default_context(cafile=certifi.where())
+        self._client = PyJWKClient(
+            jwks_url, cache_keys=True, timeout=5, ssl_context=ssl_context
+        )
 
     def key_for(self, token: str) -> Any:
         return self._client.get_signing_key_from_jwt(token).key

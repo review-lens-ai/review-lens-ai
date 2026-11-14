@@ -99,7 +99,7 @@ Written down so nobody presents these as solved.
 - **The injection flag is not a defence.** Review text shown to the model is quoted and flagged when it matches a short regex ("ignore previous instructions" and similar). A reworded attack passes it. The real boundary is that tools are read-only, run SQL written by us, and are bound to one target whose owner was checked in SQL (`ReviewSearchRepository.for_owner`). A review that convinces the model still cannot make a tool read another user's or target's data.
 - **Keyword search is English-only.** `search_vector` uses the `english` configuration, so stems of other languages don't match ("lento" won't find "lenta").
 - **The `search_vector` migration must reach Supabase.** It adds a stored generated column, which rewrites the `reviews` table once and locks it briefly. Fine at our size, but keyword tools fail on any database where it hasn't run.
-- **`similar_to` is not built yet.** The filter field exists so the tool schema is stable, but setting it is refused with "use keywords instead" until the embedding column lands. Once it does, counts by similar meaning depend on one threshold, so they are approximate ("about N").
+- **No search by meaning yet.** The tools match keywords only. Meaning search becomes a new `ReviewFilter` field once embedding search exists; counts by similar meaning will then depend on one threshold, so they will be approximate ("about N").
 - **`reviews_over_time` covers the latest 24 months** that have reviews and says so when it leaves older months out.
 
 ## Planned: persistent chat history

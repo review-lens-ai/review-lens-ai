@@ -86,9 +86,14 @@ def compare_periods(scope: ToolScope, args: CompareArgs) -> ToolResult:
     before = scope.reviews.stats(ReviewFilter(until=args.split, **shared))
     after = scope.reviews.stats(ReviewFilter(since=args.split, **shared))
     day = _day(args.split)
-    return ToolResult(
-        text=f"Before {day}: {_describe(before)}\nFrom {day}: {_describe(after)}"
-    )
+    text = f"Before {day}: {_describe(before)}\nFrom {day}: {_describe(after)}"
+    # A review with no date is in neither period. Say so only when there are some, so
+    # the two counts are not mistaken for the whole.
+    matching = scope.reviews.stats(ReviewFilter(**shared))["review_count"]
+    undated = matching - before["review_count"] - after["review_count"]
+    if undated > 0:
+        text += f"\n{undated} matching reviews have no date, so they are in neither."
+    return ToolResult(text=text)
 
 
 def compare_terms(scope: ToolScope, args: CompareTermsArgs) -> ToolResult:
@@ -127,6 +132,4 @@ def top_terms(scope: ToolScope, args: TopTermsArgs) -> ToolResult:
     if not rows:
         return ToolResult(text="No reviews match.")
     lines = [f"{row['term']}: {row['reviews']} reviews" for row in rows]
-    return ToolResult(
-        text="Words used in the most reviews (stems):\n" + "\n".join(lines)
-    )
+    return ToolResult(text="Words used in the most reviews:\n" + "\n".join(lines))

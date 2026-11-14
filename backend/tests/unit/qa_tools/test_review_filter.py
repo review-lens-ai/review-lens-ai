@@ -4,7 +4,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from app.repositories.review_search import where_clause
+from app.repositories.review_search import ReviewSearchRepository, where_clause
 from app.services.qa.tools.review_filter import MAX_PHRASE_LENGTH, ReviewFilter
 
 
@@ -29,8 +29,9 @@ def test_every_condition_is_a_parameter_not_text_in_the_sql():
     assert text in params
 
 
-def test_similar_to_is_refused_until_embedding_search_exists():
-    with pytest.raises(ValidationError, match="keywords instead"):
+def test_meaning_search_is_not_offered_until_it_exists():
+    assert "similar_to" not in ReviewFilter.model_json_schema()["properties"]
+    with pytest.raises(ValidationError):
         ReviewFilter(similar_to="rude staff")
 
 
@@ -49,3 +50,9 @@ def test_similar_to_is_refused_until_embedding_search_exists():
 def test_bad_filters_are_rejected(bad):
     with pytest.raises(ValidationError):
         ReviewFilter(**bad)
+
+
+def test_a_repository_cannot_be_made_without_the_owner_check():
+    # for_owner is the only way in (it runs get_owned); the DB tests cover it.
+    with pytest.raises(TypeError, match="for_owner"):
+        ReviewSearchRepository(object(), uuid4())
