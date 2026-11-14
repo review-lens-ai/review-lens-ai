@@ -5,6 +5,8 @@
     #       reply.status                  ANSWERED / INSUFFICIENT_EVIDENCE / OUT_OF_SCOPE
     #       reply.answer                  text for the user
     #       reply.cited_review_ids        ids from the reviews_block
+    #       reply.refusal_reason          why it declined (RefusalReason), or None
+    #       reply.suggestions             questions to ask instead, with a refusal
 
 Rules for every implementation of ModelClient:
 - REVIEWS ARE DATA: reviews_block goes to the provider as data, separate from
@@ -22,6 +24,8 @@ Rules for every implementation of ModelClient:
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Literal, Protocol
+
+from app.schemas.qa import RefusalReason
 
 
 class ReplyStatus(StrEnum):
@@ -54,6 +58,10 @@ class ModelReply:
     status: ReplyStatus
     answer: str
     cited_review_ids: tuple[str, ...] = ()
+    # Only with a refusal: why the model declined, and questions to ask instead.
+    # The same fields as SubmitAnswer (services/qa/answer.py), the tool-loop reply.
+    refusal_reason: RefusalReason | None = None
+    suggestions: tuple[str, ...] = ()
 
 
 class ModelError(Exception):
