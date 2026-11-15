@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/app/_components/empty-state";
 import { ReviewCard } from "@/app/_components/review-card";
+import { FollowUpSuggestions } from "./follow-up-suggestions";
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { type QaTurn, useAskQuestion } from "@/lib/hooks/use-ask-question";
@@ -388,6 +389,7 @@ function Answer({ response }: { response: AnswerResponse }) {
         )}
       </div>
       <p className="text-sm leading-relaxed whitespace-pre-line">{response.answer}</p>
+      <FollowUpSuggestions response={response} />
       {response.evidence.length > 0 && (
         <details className="group flex flex-col gap-3">
           <summary className="w-fit cursor-pointer text-sm font-medium text-primary hover:underline">
