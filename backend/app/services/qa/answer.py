@@ -1,9 +1,14 @@
-"""S2-003: turn the model's reply into the AnswerResponse the API returns.
+"""S2-010: the model's final call (submit_answer) and the answer the API returns.
+
+    spec = submit_answer_spec()                       offered with the review tools
+    response = build_answer(submitted, bundle=...)    SubmitAnswer | None -> AnswerResponse
 
 Rules:
-- EVIDENCE FROM CONTEXT: cited ids are looked up in the reviews that were sent.
-  Unknown ids are dropped, duplicates removed and the list capped at
-  MAX_CITATIONS. Review text always comes from the bundle, never from the model.
+- EVIDENCE FROM THE DATABASE: cited labels (R1, R2, ...) are mapped back through the
+  question's LabelBook and the reviews are read again from the active target. A
+  label no tool handed out is dropped, duplicates are removed, and the list is
+  capped at MAX_CITATIONS. Review text always comes from the database, never from
+  the model.
 - NO UNGROUNDED ANSWERS: an ANSWERED reply with no valid citation, or with no
   text, becomes INSUFFICIENT_EVIDENCE with a fixed message (S2-BR-010, S2-BR-011).
 - REFUSALS: INSUFFICIENT_EVIDENCE and OUT_OF_SCOPE keep the model's explanation
@@ -15,25 +20,33 @@ Rules:
   reasons, otherwise none. A refusal keeps at most MAX_SUGGESTIONS non-blank,
   distinct suggestions, or one fallback suggestion for its reason when the model
   gave none; an answer has neither.
-- A status outside ReplyStatus is a ModelReplyError, handled like a failed call.
+- NO REPLY: when the loop ends without a valid submit_answer, the answer is
+  INSUFFICIENT_EVIDENCE.
 """
 
 import logging
+from dataclasses import dataclass
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.llm import ModelReply, ModelReplyError, ReplyStatus
+from app.llm import ReplyStatus
+from app.repositories.review_search import ReviewSearchRepository
 from app.schemas.qa import (
     AnswerContext,
     AnswerResponse,
     AnswerStatus,
     EvidenceReview,
     RefusalReason,
+    ToolStep,
 )
 from app.services.qa.context import ContextBundle
+from app.services.qa.tools.guard import require_in_scope
+from app.services.qa.tools.labels import LabelBook
 
 logger = logging.getLogger(__name__)
 
+SUBMIT_ANSWER = "submit_answer"
 MAX_CITATIONS = 10
 MAX_SUGGESTIONS = 2
 
@@ -51,10 +64,10 @@ OUT_OF_SCOPE_REASONS = frozenset(
 class SubmitAnswer(BaseModel):
     """Finish the question: give your answer, or say why you cannot answer it.
 
-    The model's final tool call (submit_answer). The Q&A loop binds this class as a
-    tool, so the docstring and each field description are what the model reads:
-    they are part of the prompt (S2-013). Nothing here is trusted as-is; the answer
-    builder still checks citations against what was sent and checks refusals.
+    The model's final tool call (submit_answer). submit_answer_spec() sends the
+    first line above as the tool's description, and each field description: they
+    are part of the prompt (S2-013). Nothing here is trusted as-is; the answer
+    builder still checks citations against what was shown and checks refusals.
 
     The schema stays permissive on purpose. A status that doesn't match its
     refusal_reason is corrected by the answer builder, not rejected here, so the
@@ -105,6 +118,20 @@ class SubmitAnswer(BaseModel):
     )
 
 
+def submit_answer_spec() -> dict:
+    """The tool spec the model sees, in the same shape as ToolRegistry.specs(): the
+    first line of SubmitAnswer's docstring and its fields. The rest of the
+    docstring is for developers, so it is left out."""
+    parameters = SubmitAnswer.model_json_schema()
+    parameters.pop("description", None)
+    parameters.pop("title", None)
+    return {
+        "name": SUBMIT_ANSWER,
+        "description": SubmitAnswer.__doc__.splitlines()[0],
+        "parameters": parameters,
+    }
+
+
 NO_REVIEWS_MESSAGE = (
     "This target has no ingested reviews yet. "
     "Run an ingestion before asking questions about it."
@@ -152,14 +179,27 @@ FALLBACK_SUGGESTIONS = {
 }
 
 
-def context_summary(bundle: ContextBundle) -> AnswerContext:
+@dataclass(frozen=True)
+class LoopRecord:
+    """What the tool loop did for one question: the tools it ran (for the UI) and
+    the reviews whose text the model was shown (for context.reviews_considered)."""
+
+    steps: tuple[ToolStep, ...] = ()
+    shown_review_ids: frozenset[UUID] = frozenset()
+
+
+NOTHING_RAN = LoopRecord()
+
+
+def context_summary(bundle: ContextBundle, record: LoopRecord) -> AnswerContext:
+    considered = len(record.shown_review_ids)
     return AnswerContext(
         target_id=bundle.target_id,
         target_name=bundle.target_name,
         platform=bundle.platform,
-        reviews_considered=len(bundle.reviews),
+        reviews_considered=considered,
         reviews_total=bundle.reviews_total,
-        is_subset=bundle.is_subset,
+        is_subset=considered < bundle.reviews_total,
     )
 
 
@@ -167,6 +207,7 @@ def _respond(
     status: AnswerStatus,
     answer: str,
     bundle: ContextBundle,
+    record: LoopRecord,
     evidence: list[EvidenceReview] | None = None,
     refusal_reason: RefusalReason | None = None,
     suggestions: list[str] | None = None,
@@ -175,13 +216,14 @@ def _respond(
         status=status,
         answer=answer,
         evidence=evidence or [],
-        context=context_summary(bundle),
+        steps=list(record.steps),
+        context=context_summary(bundle, record),
         refusal_reason=refusal_reason,
         suggestions=suggestions or [],
     )
 
 
-def clean_suggestions(suggestions: tuple[str, ...]) -> list[str]:
+def clean_suggestions(suggestions: list[str]) -> list[str]:
     """The model's suggestions, trimmed, without blanks or repeats, at most
     MAX_SUGGESTIONS, in the model's order."""
     cleaned: list[str] = []
@@ -237,6 +279,7 @@ def _refusal(
     text: str,
     suggestions: list[str],
     bundle: ContextBundle,
+    record: LoopRecord,
 ) -> AnswerResponse:
     """A refusal with the model's text when usable, otherwise the reason's template,
     and the model's suggestions, otherwise the reason's fallback one."""
@@ -254,85 +297,105 @@ def _refusal(
         status,
         text,
         bundle,
+        record,
         refusal_reason=reason,
         suggestions=suggestions or fallback_suggestions(reason, bundle),
     )
 
 
 def no_reviews_answer(bundle: ContextBundle) -> AnswerResponse:
-    return _respond(AnswerStatus.NO_REVIEWS, NO_REVIEWS_MESSAGE, bundle)
+    """The target has no saved reviews: decided before any model call (S2-BR-025)."""
+    return _respond(AnswerStatus.NO_REVIEWS, NO_REVIEWS_MESSAGE, bundle, NOTHING_RAN)
 
 
-def insufficient_answer(bundle: ContextBundle) -> AnswerResponse:
+def insufficient_answer(bundle: ContextBundle, record: LoopRecord) -> AnswerResponse:
     return _refusal(
-        AnswerStatus.INSUFFICIENT_EVIDENCE, RefusalReason.NO_EVIDENCE, "", [], bundle
+        AnswerStatus.INSUFFICIENT_EVIDENCE,
+        RefusalReason.NO_EVIDENCE,
+        "",
+        [],
+        bundle,
+        record,
     )
 
 
 def cited_evidence(
-    cited_ids: tuple[str, ...], bundle: ContextBundle
+    cited: list[str],
+    bundle: ContextBundle,
+    labels: LabelBook,
+    search: ReviewSearchRepository,
 ) -> list[EvidenceReview]:
-    evidence: list[EvidenceReview] = []
-    seen: set[str] = set()
+    """The cited reviews, read again from the active target, in the model's order."""
+    review_ids: list[UUID] = []
     unknown = 0
-    for review_id in cited_ids:
-        review = bundle.by_id.get(str(review_id))
-        if review is None:
+    for label in cited:
+        review_id = labels.review_id_for(label.strip())
+        if review_id is None:
             unknown += 1
-            continue
-        if review.id in seen:
-            continue
-        seen.add(review.id)
-        evidence.append(
-            EvidenceReview(
-                id=review.id,
-                rating=review.rating,
-                review_text=review.review_text,
-                reviewed_at=review.reviewed_at,
-            )
-        )
-        if len(evidence) == MAX_CITATIONS:
-            break
+        elif review_id not in review_ids:
+            review_ids.append(review_id)
     if unknown:
         logger.info(
-            "Dropped %d cited review id(s) that were not in the context of target %s.",
+            "Dropped %d cited label(s) no tool returned, for target %s.",
             unknown,
             bundle.target_id,
         )
-    return evidence
+    review_ids = review_ids[:MAX_CITATIONS]
+    if not review_ids:
+        return []
+    rows = search.get_many(review_ids)
+    require_in_scope(rows, bundle.target_id)
+    by_id = {row["id"]: row for row in rows}
+    return [
+        EvidenceReview(
+            id=row["id"],
+            rating=row["rating"],
+            review_text=row["review_text"],
+            reviewed_at=row["reviewed_at"],
+        )
+        for row in (by_id.get(review_id) for review_id in review_ids)
+        if row is not None
+    ]
 
 
-def build_answer(reply: ModelReply, bundle: ContextBundle) -> AnswerResponse:
-    try:
-        status = ReplyStatus(reply.status)
-    except ValueError:
-        raise ModelReplyError("The model returned an unknown status.") from None
-    text = (reply.answer or "").strip()
+def build_answer(
+    submitted: SubmitAnswer | None,
+    *,
+    bundle: ContextBundle,
+    labels: LabelBook,
+    search: ReviewSearchRepository,
+    record: LoopRecord,
+) -> AnswerResponse:
+    if submitted is None:
+        return insufficient_answer(bundle, record)
+    text = submitted.answer.strip()
 
-    if status is ReplyStatus.ANSWERED:
-        evidence = cited_evidence(reply.cited_review_ids, bundle)
+    if submitted.status is ReplyStatus.ANSWERED:
+        evidence = cited_evidence(submitted.cited, bundle, labels, search)
         if not evidence or not text:
             logger.info(
                 "Answer for target %s had no valid citation or text; "
                 "returned as insufficient evidence.",
                 bundle.target_id,
             )
-            return insufficient_answer(bundle)
-        return _respond(AnswerStatus.ANSWERED, text, bundle, evidence)
+            return insufficient_answer(bundle, record)
+        return _respond(AnswerStatus.ANSWERED, text, bundle, record, evidence)
 
-    suggestions = clean_suggestions(reply.suggestions)
-    if status is ReplyStatus.INSUFFICIENT_EVIDENCE:
+    suggestions = clean_suggestions(submitted.suggestions)
+    if submitted.status is ReplyStatus.INSUFFICIENT_EVIDENCE:
         return _refusal(
             AnswerStatus.INSUFFICIENT_EVIDENCE,
             RefusalReason.NO_EVIDENCE,
             text,
             suggestions,
             bundle,
+            record,
         )
     return _refusal(
         AnswerStatus.OUT_OF_SCOPE,
-        out_of_scope_reason(reply.refusal_reason),
+        out_of_scope_reason(submitted.refusal_reason),
         text,
         suggestions,
         bundle,
+        record,
     )
