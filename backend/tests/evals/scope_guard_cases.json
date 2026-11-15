@@ -186,10 +186,10 @@
     {
       "id": "other-entity-unnamed-competitor",
       "category": "OTHER_ENTITY",
-      "question": "Is Joe's better than the pizza place across the street?",
+      "question": "What do customers say about the pizza place across the street?",
       "expected": "OUT_OF_SCOPE",
       "expected_reason": "OTHER_ENTITY",
-      "why": "Names no business, but asks about one the reviews do not cover (S2-BR-017). The reviews hold no evidence to compare against."
+      "why": "Names no business, but asks about one the reviews do not cover (S2-BR-017). It asks about the other place itself, not a comparison, so the review comparing Joe's with Sal's cannot answer it."
     },
     {
       "id": "other-location-hoboken",
@@ -252,8 +252,8 @@
       "category": "OTHER_PLATFORM",
       "question": "How does Joe's compare with Domino's based on Amazon reviews?",
       "expected": "OUT_OF_SCOPE",
-      "expected_reason": "OTHER_PLATFORM",
-      "why": "Names another business and another platform at once. The platform is the reason to decline, since the dataset holds only Google Maps reviews (S2-015)."
+      "expected_reason": ["OTHER_PLATFORM", "OTHER_ENTITY"],
+      "why": "Names another business and another platform at once, so either reason is a correct refusal: the dataset holds only Google Maps reviews, and none about Domino's (S2-015)."
     }
   ]
 }
