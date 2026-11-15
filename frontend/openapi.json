@@ -609,6 +609,105 @@
         }
       }
     },
+    "/api/v1/targets/{target_id}/questions": {
+      "post": {
+        "tags": [
+          "questions"
+        ],
+        "summary": "Ask Question",
+        "description": "S2-009: ask one question about one of the user's targets. The answer is\nbuilt from that target's saved reviews only.",
+        "operationId": "ask_question",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuestionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnswerResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -628,6 +727,108 @@
   },
   "components": {
     "schemas": {
+      "AnswerContext": {
+        "properties": {
+          "target_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Target Id"
+          },
+          "target_name": {
+            "type": "string",
+            "title": "Target Name"
+          },
+          "platform": {
+            "type": "string",
+            "title": "Platform"
+          },
+          "reviews_considered": {
+            "type": "integer",
+            "title": "Reviews Considered"
+          },
+          "reviews_total": {
+            "type": "integer",
+            "title": "Reviews Total"
+          },
+          "is_subset": {
+            "type": "boolean",
+            "title": "Is Subset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "target_id",
+          "target_name",
+          "platform",
+          "reviews_considered",
+          "reviews_total",
+          "is_subset"
+        ],
+        "title": "AnswerContext"
+      },
+      "AnswerResponse": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/AnswerStatus"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/EvidenceReview"
+            },
+            "type": "array",
+            "title": "Evidence"
+          },
+          "context": {
+            "$ref": "#/components/schemas/AnswerContext"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/ToolStep"
+            },
+            "type": "array",
+            "title": "Steps"
+          },
+          "refusal_reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RefusalReason"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "suggestions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "answer",
+          "evidence",
+          "context"
+        ],
+        "title": "AnswerResponse"
+      },
+      "AnswerStatus": {
+        "type": "string",
+        "enum": [
+          "ANSWERED",
+          "INSUFFICIENT_EVIDENCE",
+          "OUT_OF_SCOPE",
+          "NO_REVIEWS"
+        ],
+        "title": "AnswerStatus"
+      },
       "CurrentUserResponse": {
         "properties": {
           "user_id": {
@@ -697,6 +898,43 @@
         ],
         "title": "ErrorResponse",
         "description": "The body of every /api/v1 error response."
+      },
+      "EvidenceReview": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "rating": {
+            "type": "integer",
+            "title": "Rating"
+          },
+          "review_text": {
+            "type": "string",
+            "title": "Review Text"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "rating",
+          "review_text",
+          "reviewed_at"
+        ],
+        "title": "EvidenceReview"
       },
       "FieldIssue": {
         "properties": {
@@ -845,6 +1083,19 @@
         "title": "LatestIngestionRun",
         "description": "`run` is None when the target has never been ingested.\n\n`skipped_reasons` explains the run's skipped records, most common reason\nfirst. It is empty when nothing was skipped. Counts only: the skipped\nrecords themselves are never sent."
       },
+      "QuestionCreate": {
+        "properties": {
+          "question": {
+            "type": "string",
+            "title": "Question"
+          }
+        },
+        "type": "object",
+        "required": [
+          "question"
+        ],
+        "title": "QuestionCreate"
+      },
       "RatingCount": {
         "properties": {
           "rating": {
@@ -863,6 +1114,18 @@
         ],
         "title": "RatingCount",
         "description": "How many of the target's reviews have one star rating (S2-008)."
+      },
+      "RefusalReason": {
+        "type": "string",
+        "enum": [
+          "GENERAL_KNOWLEDGE",
+          "OTHER_ENTITY",
+          "OTHER_LOCATION",
+          "OTHER_PLATFORM",
+          "NO_EVIDENCE"
+        ],
+        "title": "RefusalReason",
+        "description": "Why the model declined (S2-012, S2-014, S2-015). The model picks one in\nsubmit_answer; the first four go with OUT_OF_SCOPE, NO_EVIDENCE with\nINSUFFICIENT_EVIDENCE. Unset when the question was answered."
       },
       "ReviewPage": {
         "properties": {
@@ -1165,6 +1428,25 @@
           "updated_at"
         ],
         "title": "TargetResponse"
+      },
+      "ToolStep": {
+        "properties": {
+          "tool": {
+            "type": "string",
+            "title": "Tool"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "type": "object",
+        "required": [
+          "tool",
+          "summary"
+        ],
+        "title": "ToolStep",
+        "description": "One tool the model ran, e.g. {\"tool\": \"review_stats\", \"summary\": \"61 of 640\"}."
       }
     },
     "securitySchemes": {

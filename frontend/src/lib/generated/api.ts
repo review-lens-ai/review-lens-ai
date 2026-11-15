@@ -25,6 +25,66 @@ import type {
 
 import { apiFetch } from '../api';
 import type { ErrorType } from '../api';
+export interface AnswerContext {
+  target_id: string;
+  target_name: string;
+  platform: string;
+  reviews_considered: number;
+  reviews_total: number;
+  is_subset: boolean;
+}
+
+export type AnswerStatus = typeof AnswerStatus[keyof typeof AnswerStatus];
+
+
+export const AnswerStatus = {
+  ANSWERED: 'ANSWERED',
+  INSUFFICIENT_EVIDENCE: 'INSUFFICIENT_EVIDENCE',
+  OUT_OF_SCOPE: 'OUT_OF_SCOPE',
+  NO_REVIEWS: 'NO_REVIEWS',
+} as const;
+
+export interface EvidenceReview {
+  id: string;
+  rating: number;
+  review_text: string;
+  reviewed_at: string | null;
+}
+
+/**
+ * One tool the model ran, e.g. {"tool": "review_stats", "summary": "61 of 640"}.
+ */
+export interface ToolStep {
+  tool: string;
+  summary: string;
+}
+
+/**
+ * Why the model declined (S2-012, S2-014, S2-015). The model picks one in
+ * submit_answer; the first four go with OUT_OF_SCOPE, NO_EVIDENCE with
+ * INSUFFICIENT_EVIDENCE. Unset when the question was answered.
+ */
+export type RefusalReason = typeof RefusalReason[keyof typeof RefusalReason];
+
+
+export const RefusalReason = {
+  GENERAL_KNOWLEDGE: 'GENERAL_KNOWLEDGE',
+  OTHER_ENTITY: 'OTHER_ENTITY',
+  OTHER_LOCATION: 'OTHER_LOCATION',
+  OTHER_PLATFORM: 'OTHER_PLATFORM',
+  NO_EVIDENCE: 'NO_EVIDENCE',
+} as const;
+
+export interface AnswerResponse {
+  status: AnswerStatus;
+  answer: string;
+  evidence: EvidenceReview[];
+  context: AnswerContext;
+  steps?: ToolStep[];
+  refusal_reason?: RefusalReason | null;
+  suggestions?: string[];
+}
+
 export interface CurrentUserResponse {
   user_id: string;
   email: string | null;
@@ -113,6 +173,10 @@ export interface SkippedReason {
 export interface LatestIngestionRun {
   run: IngestionRunResponse | null;
   skipped_reasons?: SkippedReason[];
+}
+
+export interface QuestionCreate {
+  question: string;
 }
 
 /**
@@ -1261,6 +1325,99 @@ export function useGetLatestIngestionRun<TData = Awaited<ReturnType<typeof getLa
 
 
 
+
+export const getAskQuestionUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/v1/targets/${targetId}/questions`
+}
+
+/**
+ * S2-009: ask one question about one of the user's targets. The answer is
+ * built from that target's saved reviews only.
+ * @summary Ask Question
+ */
+export const askQuestion = async (targetId: string,
+    questionCreate: QuestionCreate, options?: Parameters<typeof apiFetch>[1]): Promise<AnswerResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<AnswerResponse>(getAskQuestionUrl(targetId),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(questionCreate)
+  }
+);}
+
+
+
+
+
+export const getAskQuestionMutationKey = () => ['askQuestion'] as const;
+
+export const getAskQuestionMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askQuestion>>, TError,AskQuestionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof askQuestion>>, TError,AskQuestionMutationVariables, TContext> => {
+
+const mutationKey = getAskQuestionMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof askQuestion>>, AskQuestionMutationVariables> = (props) => {
+          const {targetId,data} = props ?? {};
+
+          return  askQuestion(targetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AskQuestionMutationResult = NonNullable<Awaited<ReturnType<typeof askQuestion>>>
+    export type AskQuestionMutationBody = QuestionCreate
+    export type AskQuestionMutationError = ErrorType<ErrorResponse>
+    export type AskQuestionMutationVariables = {targetId: string;data: QuestionCreate}
+
+    /**
+ * S2-009: ask one question about one of the user's targets. The answer is
+ * built from that target's saved reviews only.
+ * @summary Ask Question
+ */
+export const useAskQuestion = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof askQuestion>>, TError,AskQuestionMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof askQuestion>>,
+        TError,
+        AskQuestionMutationVariables,
+        TContext
+      > => {
+      return useMutation(getAskQuestionMutationOptions(options), queryClient);
+    }
 
 export const getHealthUrl = () => {
 

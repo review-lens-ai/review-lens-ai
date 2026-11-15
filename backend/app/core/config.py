@@ -28,6 +28,16 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     max_reviews_per_run: int = 1000
 
+    # Q&A (S2-010). qa_model is an OpenRouter model id, e.g. "provider/model-name".
+    qa_model: str | None = None
+    qa_max_tool_calls: int = 6
+    qa_timeout_seconds: float = 30
+    # "tools": the model calls the review tools. "full": every review is sent in
+    # one message (fallback), used only while the target's review text fits in
+    # qa_full_mode_max_characters (about 30,000 tokens); larger targets use tools.
+    qa_mode: Literal["tools", "full"] = "tools"
+    qa_full_mode_max_characters: int = 120_000
+
     @property
     def jwks_url(self) -> str:
         return f"{self.supabase_url.rstrip('/')}/auth/v1/.well-known/jwks.json"

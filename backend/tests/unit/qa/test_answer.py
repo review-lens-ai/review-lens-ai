@@ -1,124 +1,205 @@
-"""S2-003 check 5: application behavior for controlled model responses.
+"""S2-010, S2-013: the answer built from the model's submit_answer.
 
-Each test scripts one ModelReply and checks the AnswerResponse ReviewLens
-returns: evidence only from the reviews that were sent, no ungrounded answers,
-and refusals without evidence.
+Each test gives build_answer one SubmitAnswer (or none) and checks the
+AnswerResponse: evidence read back from the reviews the labels point to, no
+ungrounded answers, refusals without evidence, and each refusal's reason, message
+and suggestions.
 """
 
-from datetime import UTC, datetime
+from uuid import UUID
 
 import pytest
+from pydantic import ValidationError
 
-from app.llm import ModelReply, ModelReplyError, ReplyStatus
-from app.schemas.qa import AnswerStatus, RefusalReason
+from app.schemas.qa import AnswerStatus, RefusalReason, ToolStep
 from app.services.qa.answer import (
     INSUFFICIENT_EVIDENCE_MESSAGE,
     MAX_CITATIONS,
     MAX_REFUSAL_CHARACTERS,
     MAX_SUGGESTIONS,
     OUT_OF_SCOPE_MESSAGE,
+    LoopRecord,
+    SubmitAnswer,
     build_answer,
     no_reviews_answer,
+    submit_answer_spec,
 )
 from app.services.qa.context import build_bundle
+from app.services.qa.tools.guard import ToolScopeError
+from app.services.qa.tools.labels import LabelBook
+from tests.unit.qa.conftest import TARGET_A, TARGET_B, FakeSearch, rows_of
 
-TARGET = {"id": "10000000-0000-0000-0000-000000000001", "name": "Luigi's",
-          "platform": "google_maps"}  # fmt: skip
-
-
-def review_id(n: int) -> str:
-    return f"a0000000-0000-0000-0000-{n:012d}"
-
-
-def bundle(count=3, total=None):
-    rows = [
-        {
-            "id": review_id(n),
-            "target_id": TARGET["id"],
-            "rating": 1 + n % 5,
-            "review_text": f"Review number {n}.",
-            "reviewed_at": datetime(2026, 10, 1, tzinfo=UTC),
-        }
-        for n in range(1, count + 1)
-    ]
-    return build_bundle(TARGET, rows, total if total is not None else count)
+TARGET = {"id": TARGET_A, "name": "Luigi's", "platform": "google_maps"}
+A_ROWS = rows_of(TARGET_A)  # newest first: LEAK special, slow service, great food
+ADDRESS = "12 Mulberry St, New York, NY 10013"
 
 
-def reply(status, answer="Some text.", *ids):
-    return ModelReply(status, answer, tuple(ids))
-
-
-def test_answered_returns_cited_reviews_in_citation_order_from_the_context():
-    result = build_answer(
-        reply(ReplyStatus.ANSWERED, "Mixed views.", review_id(3), review_id(1)),
-        bundle(),
+def answer(submitted, *, labelled=A_ROWS, steps=(), total=3, address=None, search=None):
+    """build_answer after a question whose tools showed `labelled` (R1, R2, ...)."""
+    labels = LabelBook()
+    for row in labelled:
+        labels.source_for(row["id"], "detail")
+    return build_answer(
+        submitted,
+        bundle=build_bundle(TARGET, {"review_count": total}, address=address),
+        labels=labels,
+        search=search or FakeSearch(TARGET_A),
+        record=LoopRecord(
+            steps=tuple(steps),
+            shown_review_ids=frozenset(row["id"] for row in labelled),
+        ),
     )
+
+
+def reply(status, text="Mixed views.", cited=(), **extra):
+    return SubmitAnswer(status=status, answer=text, cited=list(cited), **extra)
+
+
+def refusal(status, reason=None, suggestions=()):
+    return reply(
+        status,
+        "I can't answer that.",
+        refusal_reason=reason,
+        suggestions=list(suggestions),
+    )
+
+
+class _Search:
+    """A search whose get_many returns the given rows, whatever was asked."""
+
+    target_id = TARGET_A
+
+    def __init__(self, rows):
+        self.rows = rows
+
+    def get_many(self, review_ids):
+        wanted = set(review_ids)
+        return [row for row in self.rows if row["id"] in wanted] or self.rows
+
+
+# --- Evidence: cited labels -> stored reviews (S2-BR-010) ---
+
+
+def test_answered_returns_the_cited_reviews_in_citation_order():
+    result = answer(reply("ANSWERED", cited=["R3", "R1"]))
 
     assert result.status is AnswerStatus.ANSWERED
     assert result.answer == "Mixed views."
-    assert [str(e.id) for e in result.evidence] == [review_id(3), review_id(1)]
-    # Text comes from the stored review, not from the model.
-    assert result.evidence[0].review_text == "Review number 3."
+    assert [e.id for e in result.evidence] == [A_ROWS[2]["id"], A_ROWS[0]["id"]]
+    # The text is the stored review, not anything the model wrote.
+    assert result.evidence[0].review_text == "Great food, a bit loud on weekends."
     assert result.evidence[0].rating == 4
 
 
-def test_cited_id_not_in_the_context_is_dropped():
-    made_up = "ffffffff-ffff-ffff-ffff-ffffffffffff"
-    result = build_answer(
-        reply(ReplyStatus.ANSWERED, "Ok.", made_up, review_id(2)), bundle()
-    )
+def test_a_label_no_tool_returned_is_dropped():
+    result = answer(reply("ANSWERED", cited=["R9", "R2"]))
 
-    assert [str(e.id) for e in result.evidence] == [review_id(2)]
+    assert [e.id for e in result.evidence] == [A_ROWS[1]["id"]]
 
 
-def test_duplicate_citations_appear_once():
-    result = build_answer(
-        reply(ReplyStatus.ANSWERED, "Ok.", review_id(1), review_id(1)), bundle()
-    )
+def test_a_label_cited_twice_appears_once():
+    result = answer(reply("ANSWERED", cited=["R1", " R1 "]))
 
     assert len(result.evidence) == 1
 
 
 def test_evidence_is_capped():
-    ids = [review_id(n) for n in range(1, MAX_CITATIONS + 6)]
-    result = build_answer(
-        reply(ReplyStatus.ANSWERED, "Many.", *ids), bundle(count=MAX_CITATIONS + 5)
+    many = [dict(A_ROWS[0], id=UUID(int=n)) for n in range(1, MAX_CITATIONS + 4)]
+    labels = [f"R{n}" for n in range(1, len(many) + 1)]
+
+    result = answer(
+        reply("ANSWERED", cited=labels),
+        labelled=many,
+        total=len(many),
+        search=_Search(many),
     )
 
-    assert [str(e.id) for e in result.evidence] == ids[:MAX_CITATIONS]
+    assert [e.id for e in result.evidence] == [r["id"] for r in many[:MAX_CITATIONS]]
+
+
+def test_a_cited_review_of_another_target_stops_the_answer():
+    with pytest.raises(ToolScopeError):
+        answer(reply("ANSWERED", cited=["R1"]), search=_Search(rows_of(TARGET_B)))
 
 
 @pytest.mark.parametrize(
-    ("answer", "ids"),
+    ("text", "cited"),
     [
-        ("Customers love it.", ()),  # no citation at all
-        (
-            "Customers love it.",
-            ("ffffffff-ffff-ffff-ffff-ffffffffffff",),
-        ),  # only made up
-        ("   ", (review_id(1),)),  # no text
+        ("Customers love it.", []),  # no citation
+        ("Customers love it.", ["R9"]),  # only a label no tool returned
+        ("   ", ["R1"]),  # no text
     ],
-    ids=["no-citations", "only-unknown-citations", "blank-answer"],
+    ids=["no-citation", "only-unknown-labels", "blank-answer"],
 )
-def test_ungrounded_answer_becomes_insufficient_evidence(answer, ids):
-    result = build_answer(reply(ReplyStatus.ANSWERED, answer, *ids), bundle())
+def test_an_ungrounded_answer_becomes_insufficient_evidence(text, cited):
+    result = answer(reply("ANSWERED", text, cited))
 
     assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
     assert result.answer == INSUFFICIENT_EVIDENCE_MESSAGE
     assert result.evidence == []
+    assert result.refusal_reason is RefusalReason.NO_EVIDENCE
+
+
+def test_a_downgraded_answer_gets_the_no_evidence_suggestion():
+    result = answer(reply("ANSWERED", "Customers love it."))
+
+    assert result.suggestions == ["What do reviewers mention most often?"]
+
+
+def test_no_reply_from_the_loop_is_insufficient_evidence():
+    result = answer(None)
+
+    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert result.answer == INSUFFICIENT_EVIDENCE_MESSAGE
+    assert result.refusal_reason is RefusalReason.NO_EVIDENCE
+
+
+# --- Context and steps ---
+
+
+def test_context_counts_come_from_the_question_not_the_reply():
+    result = answer(
+        reply("ANSWERED", "There are 999 reviews.", ["R1"]),
+        labelled=A_ROWS[:1],
+        total=40,
+    )
+
+    assert result.context.target_id == TARGET_A
+    assert result.context.target_name == "Luigi's"
+    assert result.context.reviews_considered == 1  # the reviews the model saw
+    assert result.context.reviews_total == 40
+    assert result.context.is_subset is True
+
+
+def test_the_tool_steps_are_returned_for_the_ui():
+    steps = [ToolStep(tool="count_reviews", summary="1 of 3 reviews")]
+    result = answer(reply("ANSWERED", cited=["R1"]), steps=steps)
+
+    assert result.steps == steps
+
+
+def test_a_target_without_reviews_gets_no_reviews_and_nothing_else():
+    result = no_reviews_answer(build_bundle(TARGET, {"review_count": 0}))
+
+    assert result.status is AnswerStatus.NO_REVIEWS
+    assert result.evidence == [] and result.steps == []
+    assert result.refusal_reason is None
+    assert result.suggestions == []
+    assert result.context.reviews_total == 0
+
+
+# --- Refusals: reasons and suggestions (S2-012, S2-014, S2-015, S2-BR-021) ---
 
 
 @pytest.mark.parametrize(
     ("status", "expected"),
     [
-        (ReplyStatus.INSUFFICIENT_EVIDENCE, AnswerStatus.INSUFFICIENT_EVIDENCE),
-        (ReplyStatus.OUT_OF_SCOPE, AnswerStatus.OUT_OF_SCOPE),
+        ("INSUFFICIENT_EVIDENCE", AnswerStatus.INSUFFICIENT_EVIDENCE),
+        ("OUT_OF_SCOPE", AnswerStatus.OUT_OF_SCOPE),
     ],
 )
-def test_refusal_keeps_the_explanation_and_never_carries_evidence(status, expected):
-    result = build_answer(
-        reply(status, "  I can only discuss these reviews.  ", review_id(1)), bundle()
-    )
+def test_a_refusal_keeps_the_explanation_and_never_carries_evidence(status, expected):
+    result = answer(reply(status, "  I can only discuss these reviews.  ", ["R1"]))
 
     assert result.status is expected
     assert result.answer == "I can only discuss these reviews."
@@ -128,49 +209,23 @@ def test_refusal_keeps_the_explanation_and_never_carries_evidence(status, expect
 @pytest.mark.parametrize(
     ("status", "fallback"),
     [
-        (ReplyStatus.INSUFFICIENT_EVIDENCE, INSUFFICIENT_EVIDENCE_MESSAGE),
-        (ReplyStatus.OUT_OF_SCOPE, OUT_OF_SCOPE_MESSAGE),
+        ("INSUFFICIENT_EVIDENCE", INSUFFICIENT_EVIDENCE_MESSAGE),
+        ("OUT_OF_SCOPE", OUT_OF_SCOPE_MESSAGE),
     ],
 )
-def test_refusal_without_text_gets_a_fixed_message(status, fallback):
-    result = build_answer(reply(status, ""), bundle())
-
-    assert result.answer == fallback
-
-
-def test_unknown_status_is_a_reply_error():
-    with pytest.raises(ModelReplyError):
-        build_answer(ModelReply("MAYBE", "Hmm."), bundle())  # type: ignore[arg-type]
-
-
-def test_context_counts_come_from_the_bundle_not_the_reply():
-    result = build_answer(
-        reply(ReplyStatus.ANSWERED, "There are 999 reviews.", review_id(1)),
-        bundle(count=3, total=40),
-    )
-
-    assert result.context.reviews_considered == 3
-    assert result.context.reviews_total == 40
-    assert result.context.is_subset is True
-
-
-# --- Refusal reasons and suggestions (S2-012, S2-014, S2-015, S2-BR-021) ---
-
-
-def refusal(status, reason=None, suggestions=()):
-    return ModelReply(status, "I can't answer that.", (), reason, tuple(suggestions))
+def test_a_refusal_without_text_gets_a_fixed_message(status, fallback):
+    assert answer(reply(status, "")).answer == fallback
 
 
 def test_an_answer_has_no_refusal_reason_or_suggestions():
-    result = build_answer(
-        ModelReply(
-            ReplyStatus.ANSWERED,
-            "People like the fries.",
-            (review_id(1),),
-            RefusalReason.OTHER_ENTITY,
-            ("Ask about the fries?",),
-        ),
-        bundle(),
+    result = answer(
+        reply(
+            "ANSWERED",
+            "People like the food.",
+            ["R1"],
+            refusal_reason="OTHER_ENTITY",
+            suggestions=["Ask about the fries?"],
+        )
     )
 
     assert result.status is AnswerStatus.ANSWERED
@@ -188,20 +243,18 @@ def test_an_answer_has_no_refusal_reason_or_suggestions():
     ],
 )
 def test_out_of_scope_keeps_the_model_reason(reason):
-    result = build_answer(refusal(ReplyStatus.OUT_OF_SCOPE, reason), bundle())
+    result = answer(refusal("OUT_OF_SCOPE", reason))
 
     assert result.status is AnswerStatus.OUT_OF_SCOPE
     assert result.refusal_reason is reason
 
 
 @pytest.mark.parametrize(
-    "reason",
-    [None, RefusalReason.NO_EVIDENCE, "RUDE"],
-    ids=["no-reason", "evidence-reason", "unknown-reason"],
+    "reason", [None, RefusalReason.NO_EVIDENCE], ids=["no-reason", "evidence-reason"]
 )
 def test_out_of_scope_without_a_matching_reason_still_refuses(reason):
     # The refusal stands; only the reason is left out (no crash, no answer).
-    result = build_answer(refusal(ReplyStatus.OUT_OF_SCOPE, reason), bundle())
+    result = answer(refusal("OUT_OF_SCOPE", reason))
 
     assert result.status is AnswerStatus.OUT_OF_SCOPE
     assert result.refusal_reason is None
@@ -209,114 +262,74 @@ def test_out_of_scope_without_a_matching_reason_still_refuses(reason):
 
 @pytest.mark.parametrize("reason", [None, RefusalReason.OTHER_ENTITY])
 def test_insufficient_evidence_always_has_reason_no_evidence(reason):
-    result = build_answer(refusal(ReplyStatus.INSUFFICIENT_EVIDENCE, reason), bundle())
-
-    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
-    assert result.refusal_reason is RefusalReason.NO_EVIDENCE
-
-
-def test_an_ungrounded_answer_is_reported_as_no_evidence():
-    result = build_answer(reply(ReplyStatus.ANSWERED, "Customers love it."), bundle())
+    result = answer(refusal("INSUFFICIENT_EVIDENCE", reason))
 
     assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
     assert result.refusal_reason is RefusalReason.NO_EVIDENCE
 
 
 def test_suggestions_are_trimmed_deduplicated_and_capped():
-    result = build_answer(
+    result = answer(
         refusal(
-            ReplyStatus.OUT_OF_SCOPE,
+            "OUT_OF_SCOPE",
             RefusalReason.OTHER_PLATFORM,
             ["  What's the rating?  ", "", "What's the rating?", "Fries?", "Staff?"],
-        ),
-        bundle(),
+        )
     )
 
     assert result.suggestions == ["What's the rating?", "Fries?"]
     assert len(result.suggestions) == MAX_SUGGESTIONS
 
 
-def test_a_target_without_reviews_has_no_refusal_reason():
-    result = no_reviews_answer(bundle(count=0))
-
-    assert result.status is AnswerStatus.NO_REVIEWS
-    assert result.refusal_reason is None
-    assert result.suggestions == []
-
-
-# --- Refusal templates and the refusal check (S2-013, S2-BR-021) ---
-
-ADDRESS = "12 Mulberry St, New York, NY 10013"
-
-
-def placed_bundle(address=ADDRESS):
-    rows = [
-        {
-            "id": review_id(1),
-            "target_id": TARGET["id"],
-            "rating": 4,
-            "review_text": "Good.",
-            "reviewed_at": None,
-        }
-    ]
-    return build_bundle(TARGET, rows, 1, address=address)
-
-
 @pytest.mark.parametrize(
     ("status", "reason", "expected"),
     [
         (
-            ReplyStatus.OUT_OF_SCOPE,
+            "OUT_OF_SCOPE",
             RefusalReason.GENERAL_KNOWLEDGE,
             "I can only answer questions about the Google Maps reviews for "
             "Luigi's, so I can't help with that.",
         ),
         (
-            ReplyStatus.OUT_OF_SCOPE,
+            "OUT_OF_SCOPE",
             RefusalReason.OTHER_ENTITY,
             "I only have reviews for Luigi's, so I can't speak to other "
             "businesses, products or people.",
         ),
         (
-            ReplyStatus.OUT_OF_SCOPE,
+            "OUT_OF_SCOPE",
             RefusalReason.OTHER_LOCATION,
             f"These reviews are for Luigi's at {ADDRESS} only, not other locations.",
         ),
         (
-            ReplyStatus.OUT_OF_SCOPE,
+            "OUT_OF_SCOPE",
             RefusalReason.OTHER_PLATFORM,
             "I only have Google Maps reviews for Luigi's, not reviews from other "
             "sites.",
         ),
         (
-            ReplyStatus.INSUFFICIENT_EVIDENCE,
+            "INSUFFICIENT_EVIDENCE",
             RefusalReason.NO_EVIDENCE,
             INSUFFICIENT_EVIDENCE_MESSAGE,
         ),
     ],
 )
 def test_a_blank_refusal_gets_the_template_for_its_reason(status, reason, expected):
-    result = build_answer(ModelReply(status, "", (), reason), placed_bundle())
+    result = answer(reply(status, "", refusal_reason=reason), address=ADDRESS)
 
     assert result.answer == expected
     assert result.refusal_reason is reason
 
 
 def test_the_location_template_works_without_an_address():
-    result = build_answer(
-        ModelReply(ReplyStatus.OUT_OF_SCOPE, "", (), RefusalReason.OTHER_LOCATION),
-        placed_bundle(address=None),
-    )
+    result = answer(reply("OUT_OF_SCOPE", "", refusal_reason="OTHER_LOCATION"))
 
     assert result.answer == "These reviews are for Luigi's only, not other locations."
 
 
 def test_a_brief_refusal_from_the_model_is_kept():
     text = "I only have Google Maps reviews for Luigi's, not Yelp."
-    result = build_answer(
-        ModelReply(ReplyStatus.OUT_OF_SCOPE, text, (), RefusalReason.OTHER_PLATFORM),
-        placed_bundle(),
-    )
+    result = answer(reply("OUT_OF_SCOPE", text, refusal_reason="OTHER_PLATFORM"))
 
     assert result.answer == text
 
@@ -326,12 +339,7 @@ def test_a_refusal_that_runs_long_is_replaced_by_the_template():
     leaky = (
         "I can't say from the reviews, but generally " + "x" * MAX_REFUSAL_CHARACTERS
     )
-    result = build_answer(
-        ModelReply(
-            ReplyStatus.OUT_OF_SCOPE, leaky, (), RefusalReason.GENERAL_KNOWLEDGE
-        ),
-        placed_bundle(),
-    )
+    result = answer(reply("OUT_OF_SCOPE", leaky, refusal_reason="GENERAL_KNOWLEDGE"))
 
     assert result.answer.startswith("I can only answer questions about")
     assert "generally" not in result.answer
@@ -339,10 +347,7 @@ def test_a_refusal_that_runs_long_is_replaced_by_the_template():
 
 def test_a_refusal_at_the_length_limit_is_kept():
     text = "x" * MAX_REFUSAL_CHARACTERS
-    result = build_answer(
-        ModelReply(ReplyStatus.OUT_OF_SCOPE, text, (), RefusalReason.OTHER_ENTITY),
-        placed_bundle(),
-    )
+    result = answer(reply("OUT_OF_SCOPE", text, refusal_reason="OTHER_ENTITY"))
 
     assert result.answer == text
 
@@ -350,36 +355,28 @@ def test_a_refusal_at_the_length_limit_is_kept():
 @pytest.mark.parametrize(
     ("status", "reason", "suggestion"),
     [
-        (ReplyStatus.OUT_OF_SCOPE, RefusalReason.GENERAL_KNOWLEDGE,
+        ("OUT_OF_SCOPE", RefusalReason.GENERAL_KNOWLEDGE,
          "What do reviewers like most?"),
-        (ReplyStatus.OUT_OF_SCOPE, RefusalReason.OTHER_ENTITY,
+        ("OUT_OF_SCOPE", RefusalReason.OTHER_ENTITY,
          "What do reviewers like most here?"),
-        (ReplyStatus.OUT_OF_SCOPE, RefusalReason.OTHER_LOCATION,
+        ("OUT_OF_SCOPE", RefusalReason.OTHER_LOCATION,
          "What do reviewers say about the service here?"),
-        (ReplyStatus.OUT_OF_SCOPE, RefusalReason.OTHER_PLATFORM,
+        ("OUT_OF_SCOPE", RefusalReason.OTHER_PLATFORM,
          "What's the overall rating on Google Maps?"),
-        (ReplyStatus.INSUFFICIENT_EVIDENCE, None,
-         "What do reviewers mention most often?"),
+        ("INSUFFICIENT_EVIDENCE", None, "What do reviewers mention most often?"),
     ],
 )  # fmt: skip
 def test_a_refusal_without_suggestions_gets_one_for_its_reason(
     status, reason, suggestion
 ):
-    result = build_answer(ModelReply(status, "No.", (), reason), placed_bundle())
+    result = answer(reply(status, "No.", refusal_reason=reason))
 
     assert result.suggestions == [suggestion]
 
 
 def test_the_models_own_suggestions_win_over_the_fallback():
-    result = build_answer(
-        ModelReply(
-            ReplyStatus.OUT_OF_SCOPE,
-            "No.",
-            (),
-            RefusalReason.OTHER_PLATFORM,
-            ("How is the pasta?",),
-        ),
-        placed_bundle(),
+    result = answer(
+        refusal("OUT_OF_SCOPE", RefusalReason.OTHER_PLATFORM, ["How is the pasta?"])
     )
 
     assert result.suggestions == ["How is the pasta?"]
@@ -387,13 +384,34 @@ def test_the_models_own_suggestions_win_over_the_fallback():
 
 def test_an_out_of_scope_refusal_without_a_reason_gets_no_fallback_suggestion():
     # Without a reason there is no safe suggestion to make; the general message stays.
-    result = build_answer(ModelReply(ReplyStatus.OUT_OF_SCOPE, ""), placed_bundle())
+    result = answer(reply("OUT_OF_SCOPE", ""))
 
     assert result.answer == OUT_OF_SCOPE_MESSAGE
     assert result.suggestions == []
 
 
-def test_a_downgraded_answer_gets_the_no_evidence_suggestion():
-    result = build_answer(reply(ReplyStatus.ANSWERED, "Customers love it."), bundle())
+# --- The submit_answer tool the model is offered ---
 
-    assert result.suggestions == ["What do reviewers mention most often?"]
+
+def test_submit_answer_spec_sends_one_line_and_every_field():
+    spec = submit_answer_spec()
+
+    assert spec["name"] == "submit_answer"
+    assert spec["description"] == (
+        "Finish the question: give your answer, or say why you cannot answer it."
+    )
+    assert set(spec["parameters"]["properties"]) == {
+        "status",
+        "answer",
+        "cited",
+        "refusal_reason",
+        "suggestions",
+    }
+    # The developer notes in SubmitAnswer's docstring are not sent to the model.
+    assert "description" not in spec["parameters"]
+
+
+def test_the_model_cannot_choose_no_reviews():
+    # NO_REVIEWS is decided by the app before any model call (S2-BR-025).
+    with pytest.raises(ValidationError):
+        SubmitAnswer.model_validate({"status": "NO_REVIEWS", "answer": "None."})
