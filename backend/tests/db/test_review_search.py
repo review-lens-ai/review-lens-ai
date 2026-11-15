@@ -34,8 +34,8 @@ def _target_with_reviews(conn, owner_id, texts_and_ratings):
     return target["id"]
 
 
-def _texts(conn, target_id, flt):
-    sql, params = where_clause(target_id, flt)
+def _texts(conn, target_id, review_filter):
+    sql, params = where_clause(target_id, review_filter)
     rows = conn.execute(
         f"select review_text from public.reviews where {sql} order by review_text",
         params,
@@ -54,7 +54,7 @@ def test_a_word_search_matches_other_forms_of_the_verb(conn, make_user):
         ],
     )
 
-    found = _texts(conn, target_id, ReviewFilter(words="slow"))
+    found = _texts(conn, target_id, ReviewFilter(keywords="slow"))
 
     assert found == ["Service slows down at lunch", "The service was slow"]
 
@@ -64,7 +64,7 @@ def test_rating_and_word_conditions_combine(conn, make_user):
         conn, make_user(), [("The service was slow", 2), ("Slow but worth it", 5)]
     )
 
-    found = _texts(conn, target_id, ReviewFilter(words="slow", max_rating=3))
+    found = _texts(conn, target_id, ReviewFilter(keywords="slow", max_rating=3))
 
     assert found == ["The service was slow"]
 
@@ -73,11 +73,11 @@ def test_the_filter_never_reaches_another_targets_reviews(conn, make_user):
     mine = _target_with_reviews(conn, make_user(), [("slow service", 2)])
     other = _target_with_reviews(conn, make_user(), [("slow pizza", 2)])
 
-    assert _texts(conn, mine, ReviewFilter(words="slow")) == ["slow service"]
-    assert _texts(conn, other, ReviewFilter(words="slow")) == ["slow pizza"]
+    assert _texts(conn, mine, ReviewFilter(keywords="slow")) == ["slow service"]
+    assert _texts(conn, other, ReviewFilter(keywords="slow")) == ["slow pizza"]
 
 
 def test_odd_search_text_does_not_raise(conn, make_user):
     target_id = _target_with_reviews(conn, make_user(), [("great", 5)])
 
-    assert _texts(conn, target_id, ReviewFilter(words='"unclosed & | ! ( ')) == []
+    assert _texts(conn, target_id, ReviewFilter(keywords='"unclosed & | ! ( ')) == []
