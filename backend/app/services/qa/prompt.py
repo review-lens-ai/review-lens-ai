@@ -97,6 +97,15 @@ How to read the reviews:
 - Finish by calling {submit}.
 """
 
+# Shared by both modes, after the mode part: the answer is shown to the user as plain
+# text, and the cited reviews are shown under it, so labels in the text mean nothing.
+ANSWER_STYLE_PROMPT = """
+How to write the answer:
+- Write plain text for the user: no Markdown (no asterisks, no # headings, no bullet lists) and no em dashes.
+- Keep it to two to four short sentences. Use numbers only when they help answer the question.
+- Never mention review labels (R1, R2, ...) in the answer. Put them only in cited; ReviewLens shows the cited reviews under the answer.
+"""
+
 # Line breaks that json.dumps leaves alone once it stops escaping non-ASCII text.
 _UNICODE_LINE_BREAKS = ("\u0085", " ", " ")
 
@@ -145,9 +154,9 @@ def build_system_prompt(
     max_tool_calls: int = 0,
     full_mode_reviews: int | None = None,
 ) -> str:
-    """The shared scope prompt, then the part for the mode: tools mode with a budget
-    of max_tool_calls, or full mode when full_mode_reviews (how many reviews are
-    listed in the user message) is given."""
+    """The shared scope prompt, then the part for the mode (tools mode with a budget
+    of max_tool_calls, or full mode when full_mode_reviews, how many reviews are
+    listed in the user message, is given), then how to write the answer."""
     if full_mode_reviews is not None:
         mode = FULL_MODE_PROMPT.format(
             count=full_mode_reviews, max_citations=MAX_CITATIONS, submit=SUBMIT_ANSWER
@@ -158,7 +167,7 @@ def build_system_prompt(
             max_citations=MAX_CITATIONS,
             submit=SUBMIT_ANSWER,
         )
-    return scope_prompt(bundle) + mode
+    return scope_prompt(bundle) + mode + ANSWER_STYLE_PROMPT
 
 
 def format_all_reviews(labels: LabelBook, rows: list[dict]) -> str:

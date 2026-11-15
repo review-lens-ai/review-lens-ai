@@ -52,6 +52,7 @@ model ──submit_answer(status, answer, cited, refusal_reason, suggestions)─
 - **The model decides when it has enough**, within a budget: 6 tool calls and 30 seconds (`QA_MAX_TOOL_CALLS`, `QA_TIMEOUT_SECONDS`). Every tool result ends with the calls left. Once the budget or the time is used up, only `submit_answer` is offered (`tool_choice`); a tool asked for after that is not run. The loop always ends after `max_tool_calls + 2` model calls.
 - **Tool errors go back to the model** (an unknown tool, bad arguments), so it can retry. A failed call may be repeated; a successful one is not run again with the same arguments.
 - **`ToolScopeError` is not caught**: a review from outside the active target is a bug, so it stops the question before anything more is sent.
+- **Timing in the log**: each model call is logged at INFO with its time and the tools it asked for, and each question with its model calls, tool calls and total time. A model failure logs its cause by type (e.g. `RateLimitError`), never the provider's text. Use these to see where a slow answer spends its time.
 - **No tool call**: one reminder, then the loop ends. **Invalid `submit_answer`** (including an unknown field): one chance to fix it. Either way, giving up returns `None`, which becomes `INSUFFICIENT_EVIDENCE`.
 
 ## Contracts
@@ -74,6 +75,7 @@ model ──submit_answer(status, answer, cited, refusal_reason, suggestions)─
 - **Evidence is read back from the database.** The model cites labels (R1, R2, …); each is mapped through the question's `LabelBook` and the reviews are loaded with `get_many` from the owner-checked search. A label no tool handed out is dropped, duplicates are removed, and evidence is capped at 10 (S2-BR-010).
 - **No ungrounded answers.** `ANSWERED` with no valid citation, or no text, becomes `INSUFFICIENT_EVIDENCE` with a fixed message and `refusal_reason` `NO_EVIDENCE`.
 - **Refusals** never carry evidence (S2-BR-021). `INSUFFICIENT_EVIDENCE` always has reason `NO_EVIDENCE`; `OUT_OF_SCOPE` keeps the model's reason only when it is one of the four out-of-scope reasons. A refusal that is blank or longer than `MAX_REFUSAL_CHARACTERS` (500; it has probably answered anyway) is replaced by the fixed template for its reason. Suggestions are trimmed, deduplicated and capped at 2, with one fallback suggestion when the model gave none. These checks read the model's output only, never the user's question, so they are not a blocklist (S2-BR-020).
+- **Plain text for the user.** The prompt asks for two to four plain sentences, without Markdown or review labels (labels go only in `cited`; the UI shows the cited reviews under the answer). `tidy_answer` backs it up: it removes bracketed label lists like "(R4, R16)" and `**` markers from the model's text.
 - **Counts come from the database**, never from the model: the facts and `context` use the summary and the tools' SQL (techspecs 7.3). `context.reviews_considered` is how many reviews the model was shown.
 
 ## Context and its limits (S2-010)

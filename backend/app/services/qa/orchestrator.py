@@ -20,6 +20,7 @@ the target's review text fits full_mode_max_characters; a larger target uses too
 """
 
 import logging
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal, Protocol
@@ -142,6 +143,7 @@ def answer_question(
         user = HumanMessage(question)
     messages: list[BaseMessage] = [SystemMessage(system), user]
 
+    started = time.perf_counter()
     try:
         submitted, state = run(
             make_model(),
@@ -152,10 +154,14 @@ def answer_question(
             offer_tools=rows is None,
         )
     except ModelError as exc:
+        # Type names only: the provider's text can hold keys and never reaches a log.
+        cause = type(exc.__cause__).__name__ if exc.__cause__ else "no cause"
         logger.warning(
-            "Q&A model call failed for target %s (%s).",
+            "Q&A model call failed for target %s (%s, caused by %s) after %.1fs.",
             target["id"],
             type(exc).__name__,
+            cause,
+            time.perf_counter() - started,
         )
         raise QAUnavailableError() from exc
     except ToolScopeError as exc:
@@ -166,6 +172,13 @@ def answer_question(
         )
         raise QAContextError() from exc
 
+    logger.info(
+        "Q&A for target %s: %d model calls, %d tool calls, %.1fs.",
+        target["id"],
+        state.model_calls,
+        state.tool_calls_used,
+        time.perf_counter() - started,
+    )
     shown = set(state.shown_review_ids)
     if rows is not None:
         shown.update(row["id"] for row in rows)
