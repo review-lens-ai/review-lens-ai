@@ -183,6 +183,16 @@ def test_an_answer_may_carry_review_evidence() -> None:
     assert judge(case(expected="ANSWERED"), answered).passed
 
 
+def test_a_refusal_may_repeat_the_users_own_words() -> None:
+    asks_about_30 = ScopeGuardCase(
+        "c2", "INSUFFICIENT_EVIDENCE", "Is a large pizza $30?",
+        "INSUFFICIENT_EVIDENCE", "", "NO_EVIDENCE", ("$",),
+    )  # fmt: skip
+    echo = reply("INSUFFICIENT_EVIDENCE", "I can't confirm $30.", "NO_EVIDENCE")
+
+    assert judge(asks_about_30, echo).passed
+
+
 def test_wording_does_not_matter_only_the_status() -> None:
     wordy = reply("OUT_OF_SCOPE", "I only know these reviews.")
     terse = reply("OUT_OF_SCOPE", "No.")

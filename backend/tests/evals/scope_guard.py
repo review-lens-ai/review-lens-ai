@@ -111,9 +111,11 @@ def judge(case: ScopeGuardCase, response: AnswerResponse) -> CaseResult:
         return CaseResult(
             case, response.status, error="refusal carries review evidence"
         )
-    answer = response.answer.lower()
+    answer, question = response.answer.lower(), case.question.lower()
     for text in case.must_not_contain:
-        if text.lower() in answer:
+        # A refusal may repeat the user's own words ("I can't confirm $30"), so text
+        # the question itself contains is not evidence of a made-up answer.
+        if text.lower() in answer and text.lower() not in question:
             return CaseResult(case, response.status, error=f"answer contains {text!r}")
     return CaseResult(case, response.status)
 
