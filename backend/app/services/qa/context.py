@@ -21,15 +21,18 @@ Rules:
 
 import logging
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from functools import cached_property
 from typing import Protocol
 from uuid import UUID
 
 from app.core.errors import AppError
+from app.platforms import PLATFORM_LABEL, SUPPORTED_PLATFORM
 
 logger = logging.getLogger(__name__)
+
+PLATFORM_LABELS = {SUPPORTED_PLATFORM: PLATFORM_LABEL}
 
 
 class ContextIsolationError(AppError):
@@ -53,6 +56,10 @@ class ReviewSource(Protocol):
     ) -> list[dict]: ...
 
     def count_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> int: ...
+
+    def summary_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> dict:
+        """Count, average, stars and dates of all saved reviews (S2-008)."""
+        ...
 
 
 ReviewSelector = Callable[[ReviewSource, dict, UUID | str, str], list[dict]]
@@ -99,17 +106,36 @@ class ContextBundle:
     platform: str
     reviews: tuple[ContextReview, ...]
     reviews_total: int
+    # The place's address from the provider, to tell this location from others
+    # (S2-BR-017); None before the first ingestion or when the provider has none.
+    address: str | None = None
+    # summary_for_target of all saved reviews (S2-008), for the prompt's briefing;
+    # the same numbers the Summary card shows (S2-BR-007). None in tests that
+    # don't need it.
+    summary: dict | None = field(default=None, hash=False, compare=False)
 
     @property
     def is_subset(self) -> bool:
         return len(self.reviews) < self.reviews_total
+
+    @property
+    def platform_label(self) -> str:
+        """The platform as users see it, e.g. "Google Maps"."""
+        return PLATFORM_LABELS.get(self.platform, self.platform)
 
     @cached_property
     def by_id(self) -> dict[str, ContextReview]:
         return {review.id: review for review in self.reviews}
 
 
-def build_bundle(target: dict, rows: list[dict], reviews_total: int) -> ContextBundle:
+def build_bundle(
+    target: dict,
+    rows: list[dict],
+    reviews_total: int,
+    *,
+    address: str | None = None,
+    summary: dict | None = None,
+) -> ContextBundle:
     target_id = str(target["id"])
     reviews = []
     for row in rows:
@@ -135,4 +161,6 @@ def build_bundle(target: dict, rows: list[dict], reviews_total: int) -> ContextB
         platform=target["platform"],
         reviews=tuple(reviews),
         reviews_total=reviews_total,
+        address=address,
+        summary=summary,
     )
