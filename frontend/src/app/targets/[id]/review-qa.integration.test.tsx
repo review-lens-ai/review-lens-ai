@@ -1,7 +1,7 @@
 // Integration tests for the Review Q&A panel (S2-009). The whole workspace page is
 // rendered, and MSW plays the backend, including the questions endpoint.
 import { describe, expect, it, vi } from "vitest";
-import type { AnswerResponse } from "@/lib/questions";
+import type { AnswerResponse } from "@/lib/generated/api";
 import {
   act,
   API,

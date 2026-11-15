@@ -15,7 +15,7 @@ vi.mock("@/lib/api", () => {
 });
 
 import { ApiError } from "@/lib/api";
-import { askFailureMessage } from "./questions";
+import { askFailureMessage, noReviewsNotice } from "./questions";
 
 describe("askFailureMessage", () => {
   it("passes on the backend's user-facing message", () => {
@@ -33,5 +33,19 @@ describe("askFailureMessage", () => {
     expect(askFailureMessage(new TypeError("Failed to fetch"))).toBe(
       "We couldn't reach ReviewLens. Check your connection.",
     );
+  });
+});
+
+describe("noReviewsNotice", () => {
+  it("says the last ingestion failed, so it is not mistaken for never ingested", () => {
+    expect(noReviewsNotice("FAILED").title).toBe("The last ingestion failed");
+  });
+
+  it.each(["QUEUED", "RUNNING"] as const)("says reviews are still coming while %s", (status) => {
+    expect(noReviewsNotice(status).title).toBe("Reviews are still being collected");
+  });
+
+  it.each([null, undefined, "COMPLETED"] as const)("points to ingestion for %s", (status) => {
+    expect(noReviewsNotice(status).title).toBe("No reviews to ask about yet");
   });
 });

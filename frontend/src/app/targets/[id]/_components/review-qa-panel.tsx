@@ -24,6 +24,7 @@ import {
   BanIcon,
   CircleAlertIcon,
   CircleCheckIcon,
+  ExternalLinkIcon,
   InboxIcon,
   Loader2Icon,
   RotateCcwIcon,
@@ -31,19 +32,16 @@ import {
   SparklesIcon,
   XIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { EmptyState } from "@/app/_components/empty-state";
 import { ReviewCard } from "@/app/_components/review-card";
-import { FollowUpSuggestions } from "./follow-up-suggestions";
+import { AskQuestionContext, FollowUpSuggestions } from "./follow-up-suggestions";
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
+import type { AnswerResponse, AnswerStatus } from "@/lib/generated/api";
 import { type QaTurn, useAskQuestion } from "@/lib/hooks/use-ask-question";
 import { reviewCount } from "@/lib/ingestion-runs";
-import {
-  type AnswerResponse,
-  type AnswerStatus,
-  QUESTION_MAX_LENGTH,
-  SUGGESTED_QUESTIONS,
-} from "@/lib/questions";
+import { noReviewsNotice, QUESTION_MAX_LENGTH, SUGGESTED_QUESTIONS } from "@/lib/questions";
 import { platformLabel, type Target } from "@/lib/targets";
 
 // What assistant-ui is given: each turn becomes the user's question and ReviewLens's reply.
@@ -127,11 +125,7 @@ export function ReviewQaPanel({
 
       {reviewTotal === 0 ? (
         <div className="flex-1 overflow-y-auto p-5">
-          <EmptyState
-            icon={<InboxIcon />}
-            title="No reviews to ask about yet"
-            message="ReviewLens answers only from this target's saved reviews. Use Ingest reviews above to collect them, then ask your question here."
-          />
+          <EmptyState icon={<InboxIcon />} {...noReviewsNotice(target.ingestion_status)} />
         </div>
       ) : (
         <AssistantRuntimeProvider runtime={runtime}>
@@ -166,6 +160,15 @@ function QaThread({
     [aui, inputId],
   );
 
+  // Asks a follow-up chip's question, unless an answer is still on its way.
+  const ask = useCallback(
+    (question: string) => {
+      if (asking) return;
+      aui.thread.append({ content: [{ type: "text", text: question }] });
+    },
+    [aui, asking],
+  );
+
   return (
     <ThreadPrimitive.Root className="flex min-h-0 flex-1 flex-col">
       {/* Announces each new reply to screen readers (§10). */}
@@ -176,14 +179,16 @@ function QaThread({
         <ThreadPrimitive.Empty>
           <Suggestions />
         </ThreadPrimitive.Empty>
-        <ThreadPrimitive.Messages>
-          {({ message }) => {
-            const turn = turnOf(message.id);
-            if (!turn) return null;
-            if (message.role === "user") return <AskedQuestion question={turn.question} />;
-            return <Reply turn={turn} targetName={target.name} onRetry={onRetry} onEdit={edit} />;
-          }}
-        </ThreadPrimitive.Messages>
+        <AskQuestionContext.Provider value={ask}>
+          <ThreadPrimitive.Messages>
+            {({ message }) => {
+              const turn = turnOf(message.id);
+              if (!turn) return null;
+              if (message.role === "user") return <AskedQuestion question={turn.question} />;
+              return <Reply turn={turn} targetName={target.name} onRetry={onRetry} onEdit={edit} />;
+            }}
+          </ThreadPrimitive.Messages>
+        </AskQuestionContext.Provider>
       </ThreadPrimitive.Viewport>
 
       <ComposerPrimitive.Root className="flex flex-col gap-3 border-t p-4">
@@ -397,8 +402,18 @@ function Answer({ response }: { response: AnswerResponse }) {
           </summary>
           <ul className="mt-3 flex flex-col gap-3">
             {response.evidence.map((review) => (
-              <li key={review.id}>
+              <li key={review.id} className="flex flex-col gap-1">
                 <ReviewCard review={review} anchor={false} />
+                {/* Opens the review in the Reviews tab, on its page, highlighted. */}
+                <Link
+                  href={`/targets/${response.context.target_id}?review=${review.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex w-fit items-center gap-1 text-xs font-medium text-primary hover:underline"
+                >
+                  Open in Reviews
+                  <ExternalLinkIcon className="size-3" aria-hidden="true" />
+                </Link>
               </li>
             ))}
           </ul>

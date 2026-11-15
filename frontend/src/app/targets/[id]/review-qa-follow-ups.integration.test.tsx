@@ -1,9 +1,11 @@
-// Integration tests for what the Q&A panel shows under a refusal (S2-014, S2-015): which
-// kind of refusal it was, and questions to ask instead. The whole workspace page is
-// rendered, and MSW plays the backend. The panel's other behavior is in
-// review-qa.integration.test.tsx.
+// Integration tests for what the Q&A panel shows under a refusal (S2-014, S2-015: which
+// kind of refusal it was, and questions to ask instead), the link from an answer's
+// evidence to the Reviews tab, and the empty-target message by ingestion state (S2-020).
+// The whole workspace page is rendered, and MSW plays the backend. The panel's other
+// behavior is in review-qa.integration.test.tsx.
 import { describe, expect, it, vi } from "vitest";
 import type { AnswerResponse, RefusalReason } from "@/lib/generated/api";
+import type { IngestionRun } from "@/lib/ingestion-runs";
 import { REFUSAL_REASON_TEXT } from "@/lib/refusal-reasons";
 import {
   act,
@@ -89,6 +91,29 @@ function backendHasFiveReviews() {
   );
 }
 
+// A target with no saved reviews whose latest run ended in `status` (null: never ingested).
+function backendHasNoReviews(status: IngestionRun["status"] | null) {
+  server.use(
+    http.get(TARGET_URL, () =>
+      jsonResponse(target({ id: TARGET_ID, name: "Joe's Pizza", ingestion_status: status })),
+    ),
+    http.get(`${TARGET_URL}/ingestion-runs/latest`, () =>
+      jsonResponse({
+        run: status ? ingestionRun({ target_id: TARGET_ID, status, finished_at: null }) : null,
+        skipped_reasons: [],
+      }),
+    ),
+    http.get(`${TARGET_URL}/reviews`, () => jsonResponse(reviewPage([], { total: 0 }))),
+    http.get(`${TARGET_URL}/summary`, () =>
+      jsonResponse({
+        review_count: 0,
+        average_rating: null,
+        rating_counts: [1, 2, 3, 4, 5].map((rating) => ({ rating, count: 0 })),
+      }),
+    ),
+  );
+}
+
 // The backend answers every question with `reply`; returns the questions it received.
 function questionsAnswer(reply: AnswerResponse) {
   const asked: { question: string }[] = [];
@@ -101,13 +126,17 @@ function questionsAnswer(reply: AnswerResponse) {
   return asked;
 }
 
-async function askAbout(question: string) {
+async function openPanel() {
   render(<TargetWorkspacePage />, { wrapper: queryWrapper() });
   await screen.findByRole("heading", { name: "Joe's Pizza" });
   await act(async () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
   fireEvent.click(screen.getByRole("button", { name: "Ask about reviews" }));
+}
+
+async function askAbout(question: string) {
+  await openPanel();
   fireEvent.change(screen.getByRole("textbox", { name: "Your question" }), {
     target: { value: question },
   });
@@ -166,5 +195,41 @@ describe("under a refusal", () => {
 
     expect(reply.textContent).toContain("I only have Google Maps reviews for Joe's Pizza.");
     expect(reply.textContent).not.toContain("You could ask instead");
+  });
+});
+
+describe("under an answer's evidence", () => {
+  it("links each review to the Reviews tab, in a new tab", async () => {
+    backendHasFiveReviews();
+    questionsAnswer(
+      refusal({
+        status: "ANSWERED",
+        refusal_reason: null,
+        suggestions: [],
+        evidence: [{ id: "e1", rating: 1, review_text: "Waited an hour.", reviewed_at: null }],
+      }),
+    );
+    const reply = await askAbout("What are the most common complaints?");
+
+    fireEvent.click(reply.querySelector("summary") as HTMLElement);
+
+    const link = screen.getByRole("link", { name: /Open in Reviews/ });
+    expect(link.getAttribute("href")).toBe(`/targets/${TARGET_ID}?review=e1`);
+    expect(link.getAttribute("target")).toBe("_blank");
+  });
+});
+
+describe("for a target with no reviews", () => {
+  it.each([
+    ["FAILED", "The last ingestion failed"],
+    ["RUNNING", "Reviews are still being collected"],
+    [null, "No reviews to ask about yet"],
+  ] as const)("says so for a latest run of %s", async (status, title) => {
+    backendHasNoReviews(status);
+
+    await openPanel();
+
+    const panel = screen.getByRole("region", { name: "Ask Joe's Pizza" });
+    await waitFor(() => expect(panel.textContent).toContain(title));
   });
 });

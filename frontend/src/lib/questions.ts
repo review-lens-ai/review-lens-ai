@@ -1,53 +1,15 @@
-// S2-009: asking ReviewLens a question about the active target's reviews.
+// S2-009: what the Q&A panel needs besides the request itself.
 //
-// Contract (backend/app/schemas/qa.py, S2-003; the endpoint is built in S2-010/S2-011):
-//   POST /api/v1/targets/{id}/questions  { "question": "..." }  ->  AnswerResponse
-// Only the question is sent. Earlier turns, once they exist, are loaded by the backend
-// from its own storage, never sent by the browser.
-// Errors use the standard { error: { code, message } } body, so ApiError carries them.
-//
-// The types below copy qa.py by hand until the endpoint is in openapi.json; then they
-// are replaced by the generated ones (src/lib/generated/api.ts).
-import { apiFetch, ApiError } from "@/lib/api";
+// The request and the answer types come from the generated client
+// (src/lib/generated/api.ts: useAskQuestion, AnswerResponse). Only the question is sent;
+// the backend never receives earlier turns. Errors use the standard
+// { error: { code, message } } body, so ApiError carries them.
+import { ApiError } from "@/lib/api";
+import { type IngestionStatus, isActive } from "@/lib/ingestion-runs";
 
 // Longest question ReviewLens accepts. Long enough for a specific question,
 // short enough that the question never crowds the reviews out of the AI context.
 export const QUESTION_MAX_LENGTH = 1000;
-
-export type AnswerStatus = "ANSWERED" | "INSUFFICIENT_EVIDENCE" | "OUT_OF_SCOPE" | "NO_REVIEWS";
-
-// A review the answer is based on, copied from the dataset (never from model text).
-export type EvidenceReview = {
-  id: string;
-  rating: number;
-  review_text: string;
-  reviewed_at: string | null;
-};
-
-// Which dataset answered, with counts from the database.
-export type AnswerContext = {
-  target_id: string;
-  target_name: string;
-  platform: string;
-  reviews_considered: number;
-  reviews_total: number;
-  is_subset: boolean;
-};
-
-export type AnswerResponse = {
-  status: AnswerStatus;
-  answer: string;
-  evidence: EvidenceReview[];
-  context: AnswerContext;
-};
-
-export async function askQuestion(targetId: string, question: string): Promise<AnswerResponse> {
-  return apiFetch<AnswerResponse>(`/api/v1/targets/${targetId}/questions`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
-  });
-}
 
 // Why the question went unanswered, in words for the user (§6.3). The backend's messages
 // are already written for users; anything else (network down, no response) gets our own.
@@ -66,3 +28,29 @@ export const SUGGESTED_QUESTIONS = [
   "What are the most common complaints?",
   "What do reviewers mention most often?",
 ];
+
+// What to tell the user when the target has no reviews to ask about (S2-020): the state of
+// its latest ingestion run, so a failed or unfinished run is not mistaken for "never ingested".
+export function noReviewsNotice(ingestionStatus: IngestionStatus | null | undefined): {
+  title: string;
+  message: string;
+} {
+  if (ingestionStatus === "FAILED") {
+    return {
+      title: "The last ingestion failed",
+      message:
+        "No reviews were saved, so there is nothing to ask about yet. Use Ingest reviews above to try again.",
+    };
+  }
+  if (isActive(ingestionStatus)) {
+    return {
+      title: "Reviews are still being collected",
+      message: "Ask your question here once ingestion has finished.",
+    };
+  }
+  return {
+    title: "No reviews to ask about yet",
+    message:
+      "ReviewLens answers only from this target's saved reviews. Use Ingest reviews above to collect them, then ask your question here.",
+  };
+}
