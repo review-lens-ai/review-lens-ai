@@ -92,8 +92,9 @@ class CaseResult:
 
 def judge(case: ScopeGuardCase, response: AnswerResponse) -> CaseResult:
     """Passes when the response is the expected kind, says something, refuses for
-    the expected reason, and contains none of the case's forbidden text. The status
-    is checked first, so a wrong status is reported as such."""
+    the expected reason, carries no review evidence when it refuses, and contains
+    none of the case's forbidden text. The status is checked first, so a wrong status
+    is reported as such."""
     if not response.answer.strip():
         return CaseResult(case, response.status, error="empty answer")
     if response.status != case.expected:
@@ -104,6 +105,11 @@ def judge(case: ScopeGuardCase, response: AnswerResponse) -> CaseResult:
             case,
             response.status,
             error=f"expected reason {case.expected_reason}, got {got}",
+        )
+    # A refusal never claims review evidence (S2-BR-010, S2-BR-021).
+    if response.status != AnswerStatus.ANSWERED and response.evidence:
+        return CaseResult(
+            case, response.status, error="refusal carries review evidence"
         )
     answer = response.answer.lower()
     for text in case.must_not_contain:

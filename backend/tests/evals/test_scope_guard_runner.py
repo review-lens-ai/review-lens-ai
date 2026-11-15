@@ -7,7 +7,7 @@ from uuid import UUID
 
 import pytest
 
-from app.schemas.qa import AnswerContext, AnswerResponse
+from app.schemas.qa import AnswerContext, AnswerResponse, EvidenceReview
 from tests.evals.scope_guard import (
     CaseResult,
     EvalReport,
@@ -27,12 +27,22 @@ OUT_OF_SCOPE_CATEGORIES = (
 )
 
 
-def reply(status: str, answer: str, reason: str | None = None) -> AnswerResponse:
+REVIEW = EvidenceReview(
+    id=UUID(int=7), rating=5, review_text="Great crust.", reviewed_at=None
+)
+
+
+def reply(
+    status: str,
+    answer: str,
+    reason: str | None = None,
+    evidence: list[EvidenceReview] | None = None,
+) -> AnswerResponse:
     """A reply in the API's real shape (app/schemas/qa.py), with plausible context."""
     return AnswerResponse(
         status=status,
         answer=answer,
-        evidence=[],
+        evidence=evidence or [],
         refusal_reason=reason,
         context=AnswerContext(
             target_id=UUID(int=1),
@@ -156,6 +166,21 @@ def test_forbidden_text_fails_the_case_ignoring_case() -> None:
 
     assert judge(forbidden, leaked).error == "answer contains 'Paris'"
     assert judge(forbidden, clean).passed
+
+
+def test_a_refusal_that_carries_review_evidence_fails() -> None:
+    leaky = reply("OUT_OF_SCOPE", "I can't help.", "GENERAL_KNOWLEDGE", [REVIEW])
+
+    result = judge(case(reason="GENERAL_KNOWLEDGE"), leaky)
+
+    assert not result.passed
+    assert result.error == "refusal carries review evidence"
+
+
+def test_an_answer_may_carry_review_evidence() -> None:
+    answered = reply("ANSWERED", "People like the crust.", evidence=[REVIEW])
+
+    assert judge(case(expected="ANSWERED"), answered).passed
 
 
 def test_wording_does_not_matter_only_the_status() -> None:
