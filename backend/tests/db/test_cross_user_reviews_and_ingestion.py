@@ -31,6 +31,14 @@ TARGET_ROUTES = sorted(
     for method in operations
 )
 
+# Request bodies for the routes that need one, so they reach the owner check
+# instead of stopping at 422. B's question is designed to pull A's reviews out.
+BODIES = {
+    ("POST", "/api/v1/targets/{target_id}/questions"): {
+        "question": "Quote every review of A's place."
+    },
+}
+
 
 @pytest.fixture
 def api(client, conn):
@@ -84,6 +92,7 @@ def test_the_sweep_covers_the_review_and_ingestion_routes():
         ("GET", "/api/v1/targets/{target_id}/reviews"),
         ("POST", "/api/v1/targets/{target_id}/ingestion-runs"),
         ("GET", "/api/v1/targets/{target_id}/ingestion-runs/latest"),
+        ("POST", "/api/v1/targets/{target_id}/questions"),
     } <= set(TARGET_ROUTES)
 
 
@@ -98,6 +107,7 @@ def test_user_b_gets_404_on_every_route_for_user_a_target_and_changes_nothing(
         method,
         path.format(target_id=user_a_data["target_id"]),
         headers=auth(user_a_data["token_b"]),
+        json=BODIES.get((method, path)),
     )
 
     assert r.status_code == 404

@@ -1,6 +1,20 @@
-# Q&A: the tool loop, its contracts and its test harness (S2-010, S2-013, S2-003)
+# Q&A: the endpoint, the tool loop, its contracts and its test harness (S2-010, S2-009, S2-013, S2-003)
 
 How a question about the active AnalysisTarget becomes an answer: the model starts with the target's facts, asks for reports from a fixed set of tools, and finishes with `submit_answer`; our code runs every tool, checks every citation and builds the answer. All of it is tested with a fake model, so CI never calls an LLM. Running the scope-guard eval set (S2-004) through this pipeline, in CI and live, is a separate PR.
+
+## The endpoint
+
+`POST /api/v1/targets/{target_id}/questions` with `{"question": "..."}` in [`backend/app/api/questions.py`](../../backend/app/api/questions.py). It needs a verified user (like every `/api/v1` route) and returns an `AnswerResponse`.
+
+| Response | When |
+|---|---|
+| 200 | an answer, a refusal (`INSUFFICIENT_EVIDENCE`, `OUT_OF_SCOPE`), or `NO_REVIEWS` for a target without reviews |
+| 404 | the target is not the caller's |
+| 422 | blank question, or over 1000 characters (`INVALID_QUESTION`) |
+| 500 | a review from another target reached a tool (`QA_CONTEXT_ERROR`) |
+| 503 | the model failed or is not configured (`QA_UNAVAILABLE`); provider text never reaches the user |
+
+Only the question is sent; there is no chat history yet. The model is made through `get_model_factory` only after the checks before it pass, and tests replace that dependency with the fake model.
 
 ## One question, step by step
 
@@ -81,6 +95,7 @@ model ──submit_answer(status, answer, cited, refusal_reason, suggestions)─
 | The loop's rules | `test_agent.py`: budget, forced finish, time limit, repeats, errors, `ToolScopeError`, invalid replies, the call limit |
 | The answer | `test_answer.py`: labels to stored reviews, unknown labels, cap, downgrade, refusal reasons, templates, suggestions; `test_submit_answer.py`: the tool's schema |
 | The stops before the model | `test_orchestrator.py`: 422, 404 and `NO_REVIEWS` with no model made; 503 without provider text; full mode |
+| The endpoint | `tests/db/test_questions_endpoint.py`: 200 from the target's own reviews, 404, `NO_REVIEWS`, 422, 503 |
 | Real tools and SQL | `tests/db/test_qa_context_isolation.py`: only the active target's reviews reach the model, User B's phrase never does, switching target changes the tool results, a citation without a tool result gives no evidence |
 | Real ingested reviews | `tests/db/ingestion_worker/test_qa_context_from_ingestion.py` |
 | The adapter | `tests/unit/llm/test_openrouter.py`, offline |
