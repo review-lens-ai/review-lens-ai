@@ -10,7 +10,7 @@ target's reviews and declines everything else.
 | File | What it is |
 |---|---|
 | `scope_guard_cases.json` | The questions. Each has a category, the expected behavior and a `why`; refusals also have an `expected_reason`, and a few have `must_not_contain`. |
-| `joes_pizza_reviews.json` | The reviews every question is asked about: 16 Google Maps reviews of "Joe's Pizza". |
+| `joes_pizza_reviews.json` | The reviews every question is asked about: 17 Google Maps reviews of "Joe's Pizza". |
 | `scope_guard.py` | Loads both files, runs the questions through any `ask` function and scores the responses. |
 | `test_*.py` | Keep the files complete and consistent, and test the scorer with fake pipelines. |
 
