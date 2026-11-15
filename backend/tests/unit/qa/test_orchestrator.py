@@ -7,6 +7,7 @@ cross-user reviews, correct handling of each reply) and the stops before the mod
 """
 
 import logging
+from functools import partial
 from types import SimpleNamespace
 
 import pytest
@@ -17,7 +18,6 @@ from app.llm import ModelUnavailableError
 from app.schemas.qa import AnswerStatus
 from app.services.qa import (
     InvalidQuestionError,
-    NoReviewsError,
     QAConfig,
     QAContextError,
     QAUnavailableError,
@@ -50,18 +50,49 @@ class CountingFactory:
         return self.model
 
 
+def ask_with(repos, make_model, *, owner_id=OWNER_A, target_id=TARGET_A):
+    targets, reviews, open_search = repos
+    return answer_question(
+        owner_id=owner_id,
+        target_id=target_id,
+        question="What is good here?",
+        targets=targets,
+        reviews=reviews,
+        open_search=open_search,
+        make_model=make_model,
+        make_toolset=fake_toolset,
+    )
+
+
 # --- What the model is sent -------------------------------------------------------
 
 
-def test_the_model_gets_the_rules_and_briefing_then_the_question(ask):
+def test_the_model_gets_the_scope_prompt_and_facts_then_the_question(ask):
     model = FakeChatModel(submit("OUT_OF_SCOPE", "No."))
     ask(model, question="  What do people say about the food?  ")
 
     system, human = model.calls[0]["messages"]
     assert isinstance(system, SystemMessage)
-    assert '"Luigi\'s Trattoria"' in system.content
-    assert "Saved reviews: 3." in system.content
-    assert human == HumanMessage("What do people say about the food?")
+    assert '- Target: "Luigi\'s Trattoria"' in system.content
+    assert "Saved reviews: 3." in system.content  # from summary_for_target
+    assert "at most 6 tool calls" in system.content
+    assert human == HumanMessage("What do people say about the food?")  # trimmed
+
+
+def test_the_prompt_carries_the_targets_address(ask):
+    model = FakeChatModel(submit("OUT_OF_SCOPE", "No."))
+    ask(model)
+
+    assert '- Address: "12 Mulberry St, New York, NY 10013"' in (
+        model.calls[0]["messages"][0].content
+    )
+
+
+def test_a_target_without_an_address_says_so(ask):
+    model = FakeChatModel(submit("OUT_OF_SCOPE", "No."))
+    ask(model, target_id=TARGET_A2)
+
+    assert "- Address: not known" in model.calls[0]["messages"][0].content
 
 
 def test_the_model_is_offered_the_tool_set_and_submit_answer(ask):
@@ -94,7 +125,15 @@ def test_a_grounded_answer_returns_the_cited_stored_reviews(ask):
     ]
     assert [s.tool for s in result.steps] == ["find_reviews"]
     assert result.context.target_id == TARGET_A
+    assert result.context.reviews_considered == 1
     assert result.context.reviews_total == 3
+
+
+def test_owner_and_target_ids_may_be_given_as_strings(ask):
+    model = FakeChatModel(call("find_reviews"), submit("ANSWERED", cited=["R1"]))
+    result = ask(model, owner_id=str(OWNER_A), target_id=str(TARGET_A))
+
+    assert result.status is AnswerStatus.ANSWERED
 
 
 # --- Wrong-target and cross-user reviews (S2-BR-022 to S2-BR-024) ------------------
@@ -129,30 +168,29 @@ def test_user_a_phrase_never_reaches_user_b(ask):
     assert "No reviews match." in model.sent_text()
 
 
+def test_user_b_cannot_get_a_review_back_through_a_citation(ask):
+    # User B's model cites R1 without any tool having shown a review: no evidence.
+    model = FakeChatModel(submit("ANSWERED", "It is great.", cited=["R1"]))
+    result = ask(model, owner_id=OWNER_B, target_id=TARGET_B)
+
+    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
+    assert result.evidence == []
+
+
 def test_user_b_asking_about_user_a_target_is_not_found_and_no_model_is_made(repos):
-    model = FakeChatModel()
-    factory = CountingFactory(model)
-    targets, reviews, search = repos
+    factory = CountingFactory(FakeChatModel())
+
     with pytest.raises(NotFoundError):
-        answer_question(
-            owner_id=OWNER_B,
-            target_id=TARGET_A,
-            question="What is good here?",
-            targets=targets,
-            reviews=reviews,
-            search=search,
-            make_model=factory,
-            make_toolset=fake_toolset,
-        )
+        ask_with(repos, factory, owner_id=OWNER_B, target_id=TARGET_A)
+
     assert factory.made == 0
-    assert model.calls == []
+    assert factory.model.calls == []
 
 
 def test_a_review_of_another_target_stops_the_question_before_more_is_sent(ask, caplog):
-    def leaky(search, owner_id, target_id):
-        return fake_toolset(search, owner_id, target_id, leak_from=TARGET_B)
-
+    leaky = partial(fake_toolset, leak_from=TARGET_B)
     model = FakeChatModel(call("find_reviews"), submit("ANSWERED", cited=["R1"]))
+
     with caplog.at_level(logging.ERROR), pytest.raises(QAContextError):
         ask(model, make_toolset=leaky)
 
@@ -163,22 +201,15 @@ def test_a_review_of_another_target_stops_the_question_before_more_is_sent(ask, 
 # --- Stops before the model ---------------------------------------------------------
 
 
-def test_a_target_without_reviews_is_409_and_no_model_is_made(repos):
-    targets, reviews, search = repos
+def test_a_target_without_reviews_answers_no_reviews_and_no_model_is_made(repos):
     factory = CountingFactory(FakeChatModel())
-    with pytest.raises(NoReviewsError) as exc:
-        answer_question(
-            owner_id=OWNER_A,
-            target_id=TARGET_EMPTY,
-            question="What is good here?",
-            targets=targets,
-            reviews=reviews,
-            search=search,
-            make_model=factory,
-        )
 
-    assert exc.value.status_code == 409
-    assert exc.value.code == "QA_NO_REVIEWS"
+    result = ask_with(repos, factory, target_id=TARGET_EMPTY)
+
+    assert result.status is AnswerStatus.NO_REVIEWS
+    assert result.evidence == []
+    assert result.context.target_name == "Not Ingested Yet"
+    assert result.context.reviews_total == 0
     assert factory.made == 0
 
 
@@ -214,22 +245,11 @@ def test_a_model_failure_is_503_without_provider_text(ask, error, caplog):
 
 
 def test_a_model_that_is_not_configured_is_503(repos):
-    targets, reviews, search = repos
-
     def not_configured():
         raise ModelUnavailableError("OPENROUTER_API_KEY and QA_MODEL must be set")
 
     with pytest.raises(QAUnavailableError):
-        answer_question(
-            owner_id=OWNER_A,
-            target_id=TARGET_A,
-            question="What is good here?",
-            targets=targets,
-            reviews=reviews,
-            search=search,
-            make_model=not_configured,
-            make_toolset=fake_toolset,
-        )
+        ask_with(repos, not_configured)
 
 
 def test_an_unexpected_error_is_not_hidden(ask):
@@ -246,7 +266,7 @@ def test_full_mode_sends_every_review_and_only_submit_answer(ask):
     result = ask(model, config=QAConfig(mode="full"))
 
     system, human = model.calls[0]["messages"]
-    assert "listed in the user message" in system.content
+    assert "All 3 reviews are listed in the user message" in system.content
     assert human.content.startswith("All 3 reviews:")
     assert human.content.endswith("Question: What do people say about the food?")
     assert model.last["tools"] == ["submit_answer"]
@@ -262,7 +282,7 @@ def test_full_mode_uses_tools_for_a_target_too_big_for_one_request(ask):
     ask(model, config=QAConfig(mode="full", full_mode_max_characters=200))
 
     system, human = model.calls[0]["messages"]
-    assert "through the tools" in system.content
+    assert "Read them through the tools" in system.content
     assert human.content == "What do people say about the food?"
     assert model.last["tools"] == ["find_reviews", "count_reviews", "submit_answer"]
 

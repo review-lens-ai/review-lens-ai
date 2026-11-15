@@ -21,9 +21,19 @@ Tests use FakeChatModel (tests/unit/qa/conftest.py), which records every call.
 """
 
 from collections.abc import Sequence
+from enum import StrEnum
 from typing import Protocol
 
 from langchain_core.messages import AIMessage, BaseMessage
+
+
+class ReplyStatus(StrEnum):
+    """The statuses the model may choose in submit_answer. NO_REVIEWS is not one:
+    the app decides it before any model call (S2-BR-025)."""
+
+    ANSWERED = "ANSWERED"
+    INSUFFICIENT_EVIDENCE = "INSUFFICIENT_EVIDENCE"
+    OUT_OF_SCOPE = "OUT_OF_SCOPE"
 
 
 class ModelError(Exception):

@@ -25,3 +25,6 @@ productreqs.md
 .coverage
 htmlcov/
 coverage.xml
+
+# Downloaded models (backend/app/services/embed_reviews.py: MODEL_CACHE)
+**/.cache/

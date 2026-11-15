@@ -13,6 +13,7 @@ it. Skipped without TEST_DATABASE_URL.
 
 import json
 import re
+from functools import partial
 
 import pytest
 from langchain_core.messages import ToolMessage
@@ -21,7 +22,8 @@ from app.core.errors import NotFoundError
 from app.repositories.review_search import ReviewSearchRepository
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
-from app.services.qa import NoReviewsError, QAConfig, answer_question
+from app.schemas.qa import AnswerStatus
+from app.services.qa import QAConfig, answer_question
 from app.services.qa.tools.guard import FLAG
 from app.worker import process_next_run
 from tests.db.ingestion_worker.conftest import make_pipeline, serpapi
@@ -49,7 +51,7 @@ def ask(conn, model, owner_id, target_id, *, config=None):
         question="What do people like here?",
         targets=TargetRepository(conn),
         reviews=ReviewRepository(conn),
-        search=ReviewSearchRepository(conn),
+        open_search=partial(ReviewSearchRepository.for_owner, conn),
         make_model=lambda: model,
         config=config,
     )
@@ -97,7 +99,7 @@ def test_a_real_search_returns_only_ingested_text(conn, target, ingested):
     stored = [r["review_text"] for r in ingested]
     for text in sent:
         assert any(full.startswith(text.removesuffix("…")) for full in stored)
-    assert tool_result.startswith("10 of 18 matching reviews:")
+    assert tool_result.startswith("10 of 18 matching reviews, newest first:")
 
 
 def test_another_user_never_gets_the_ingested_reviews(
@@ -112,7 +114,8 @@ def test_another_user_never_gets_the_ingested_reviews(
     # Against the Smashburger target: not found, nothing sent.
     with pytest.raises(NotFoundError):
         ask(conn, model, other, target["id"])
-    # Against their own (empty) target: no reviews, nothing sent.
-    with pytest.raises(NoReviewsError):
-        ask(conn, model, other, other_target["id"])
+    # Against their own (empty) target: NO_REVIEWS, nothing sent.
+    result = ask(conn, model, other, other_target["id"])
+    assert result.status is AnswerStatus.NO_REVIEWS
+    assert result.evidence == []
     assert model.calls == []

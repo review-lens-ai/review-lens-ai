@@ -9,7 +9,7 @@ import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
 import app.services.qa as qa
-from app.schemas.qa import AnswerStatus
+from app.llm import ReplyStatus
 from app.services.qa.agent import (
     MALFORMED_CALL,
     NO_CALLS_LEFT,
@@ -21,10 +21,10 @@ from app.services.qa.agent import (
 from app.services.qa.tools.guard import ToolScopeError
 from app.services.qa.tools.types import ToolResult
 from tests.unit.qa.conftest import (
-    OWNER_A,
     TARGET_A,
     TARGET_B,
     FakeChatModel,
+    FakeSearch,
     call,
     fake_toolset,
     submit,
@@ -34,7 +34,7 @@ QUESTION = [SystemMessage("rules"), HumanMessage("What do people say?")]
 
 
 def loop(model, *, max_tool_calls=6, timeout_s=30, toolset=None, **kwargs):
-    toolset = toolset or fake_toolset(None, OWNER_A, TARGET_A)
+    toolset = toolset or fake_toolset(FakeSearch(TARGET_A))
     return run(
         model,
         toolset,
@@ -54,7 +54,7 @@ def test_a_tool_result_goes_back_to_the_model_with_the_calls_left():
     model = FakeChatModel(call("count_reviews", words="slow"), submit("ANSWERED"))
     submitted, state = loop(model)
 
-    assert submitted.status is AnswerStatus.ANSWERED
+    assert submitted.status is ReplyStatus.ANSWERED
     assert tool_replies(model) == ["1 of 3 reviews\n(5 tool calls left)"]
     assert state.tool_calls_used == 1
     assert state.model_calls == 2
@@ -108,7 +108,7 @@ def test_bad_arguments_are_an_error_the_model_can_read():
 
 
 def test_the_same_call_twice_runs_once():
-    toolset = fake_toolset(None, OWNER_A, TARGET_A)
+    toolset = fake_toolset(FakeSearch(TARGET_A))
     model = FakeChatModel(
         call("count_reviews", words="slow"),
         call("count_reviews", words="slow"),
@@ -154,7 +154,7 @@ def test_one_call_left_is_singular():
 
 
 def test_a_tool_asked_for_after_the_budget_is_not_run():
-    toolset = fake_toolset(None, OWNER_A, TARGET_A)
+    toolset = fake_toolset(FakeSearch(TARGET_A))
     model = FakeChatModel(
         call("count_reviews", words="a"),
         call("count_reviews", words="b"),  # ignores the forced submit_answer
@@ -183,7 +183,7 @@ def test_the_loop_always_ends_after_the_model_call_limit():
 
 
 def test_a_review_from_another_target_stops_the_question():
-    toolset = fake_toolset(None, OWNER_A, TARGET_A, leak_from=TARGET_B)
+    toolset = fake_toolset(FakeSearch(TARGET_A), leak_from=TARGET_B)
     model = FakeChatModel(call("find_reviews"), submit("ANSWERED"))
 
     with pytest.raises(ToolScopeError):
@@ -198,7 +198,7 @@ def test_an_invalid_submit_answer_gets_one_chance():
     )
     submitted, _ = loop(model)
 
-    assert submitted.status is AnswerStatus.OUT_OF_SCOPE
+    assert submitted.status is ReplyStatus.OUT_OF_SCOPE
     assert tool_replies(model)[0].startswith("submit_answer was not valid: status")
 
 
@@ -250,7 +250,7 @@ def test_without_tools_only_submit_answer_is_offered_and_required():
 
 
 def test_nothing_is_kept_between_questions():
-    toolset = fake_toolset(None, OWNER_A, TARGET_A)
+    toolset = fake_toolset(FakeSearch(TARGET_A))
     first = FakeChatModel(call("count_reviews"), submit("ANSWERED"))
     loop(first, toolset=toolset)
     second = FakeChatModel(submit("ANSWERED"))

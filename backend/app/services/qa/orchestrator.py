@@ -2,16 +2,17 @@
 
     1. clean the question              blank or too long -> InvalidQuestionError (422)
     2. load the target the caller owns another user's     -> NotFoundError (404)
-    3. read the summary (S2-008)       no reviews         -> NoReviewsError (409)
-    4. build the messages              rules + briefing, then the question
+    3. read the summary (S2-008)       no reviews         -> NO_REVIEWS answer
+    4. build the messages              scope prompt + mode, then the question
     5. make the model, run the loop    provider failure   -> QAUnavailableError (503)
                                        wrong-target row   -> QAContextError (500)
     6. build the answer                cited labels -> reviews from the database
 
-Steps 1 to 3 run before the model is made or called; when one stops the request,
-nothing is sent to the model. Every call makes a new ToolSet and LoopState and
-reads the reviews again, so changing the active target changes the context and
-nothing carries over (S2-BR-023, S2-BR-024).
+Steps 1 to 3 run before the model is made or called; when one ends the request,
+nothing is sent to the model. Every call opens a new owner-checked search
+(ReviewSearchRepository.for_owner), ToolSet and LoopState and reads the reviews
+again, so changing the active target changes the context and nothing carries over
+(S2-BR-023, S2-BR-024).
 
 Full mode (QAConfig.mode = "full") is the fallback: every review is sent in the
 user message and the model is offered only submit_answer. It is used only while
@@ -26,12 +27,13 @@ from uuid import UUID
 
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 
-from app.core.errors import AppError, ConflictError
+from app.core.errors import AppError
 from app.llm import ChatModel, ModelError
 from app.repositories.review_search import ReviewSearchRepository
 from app.schemas.qa import AnswerResponse
 from app.services.qa.agent import run
-from app.services.qa.answer import build_answer
+from app.services.qa.answer import LoopRecord, build_answer, no_reviews_answer
+from app.services.qa.context import build_bundle
 from app.services.qa.prompt import (
     build_system_prompt,
     clean_question,
@@ -44,16 +46,6 @@ logger = logging.getLogger(__name__)
 
 # Full mode: each review also costs a few tokens of label and markup.
 REVIEW_MARKUP_CHARACTERS = 100
-
-
-class NoReviewsError(ConflictError):
-    """The target has no saved reviews, so there is nothing to answer from."""
-
-    code = "QA_NO_REVIEWS"
-    message = (
-        "This target has no ingested reviews yet. "
-        "Run an ingestion before asking questions about it."
-    )
 
 
 class QAUnavailableError(AppError):
@@ -93,6 +85,10 @@ class QAConfig:
 class TargetSource(Protocol):
     def get_owned(self, target_id: UUID | str, owner_id: UUID | str) -> dict: ...
 
+    def place_address(
+        self, target_id: UUID | str, owner_id: UUID | str
+    ) -> str | None: ...
+
 
 class ReviewSource(Protocol):
     """The ReviewRepository methods Q&A uses."""
@@ -106,6 +102,11 @@ class ReviewSource(Protocol):
     ) -> list[dict]: ...
 
 
+# (target_id, owner_id) -> the owner-checked search for that target, usually
+# functools.partial(ReviewSearchRepository.for_owner, conn).
+SearchFactory = Callable[[UUID | str, UUID | str], ReviewSearchRepository]
+
+
 def answer_question(
     *,
     owner_id: UUID | str,
@@ -113,33 +114,33 @@ def answer_question(
     question: str,
     targets: TargetSource,
     reviews: ReviewSource,
-    search: ReviewSearchRepository,
+    open_search: SearchFactory,
     make_model: Callable[[], ChatModel],
     config: QAConfig | None = None,
-    make_toolset: Callable[..., ToolSet] = ToolSet,
+    make_toolset: Callable[[ReviewSearchRepository], ToolSet] = ToolSet,
 ) -> AnswerResponse:
     config = config or QAConfig()
     question = clean_question(question)
+
     target = targets.get_owned(target_id, owner_id)
     summary = reviews.summary_for_target(target["id"], owner_id)
-    total = summary["review_count"]
-    if total == 0:
-        raise NoReviewsError()
-
-    toolset = make_toolset(search, owner_id, target["id"])
-    rows = _full_mode_rows(reviews, target, owner_id, config)
-    system = build_system_prompt(
-        target,
-        summary,
-        max_tool_calls=config.max_tool_calls,
-        full_mode=rows is not None,
+    if summary["review_count"] == 0:
+        return no_reviews_answer(build_bundle(target, summary))
+    bundle = build_bundle(
+        target, summary, address=targets.place_address(target["id"], owner_id)
     )
-    messages: list[BaseMessage] = [SystemMessage(system)]
+
+    search = open_search(target["id"], owner_id)
+    toolset = make_toolset(search)
+    rows = _full_mode_rows(reviews, target, owner_id, config)
     if rows is not None:
+        system = build_system_prompt(bundle, full_mode_reviews=len(rows))
         listing = format_all_reviews(toolset.labels, rows)
-        messages.append(HumanMessage(f"{listing}\n\nQuestion: {question}"))
+        user = HumanMessage(f"{listing}\n\nQuestion: {question}")
     else:
-        messages.append(HumanMessage(question))
+        system = build_system_prompt(bundle, max_tool_calls=config.max_tool_calls)
+        user = HumanMessage(question)
+    messages: list[BaseMessage] = [SystemMessage(system), user]
 
     try:
         submitted, state = run(
@@ -165,17 +166,15 @@ def answer_question(
         )
         raise QAContextError() from exc
 
+    shown = set(state.shown_review_ids)
     if rows is not None:
-        state.shown_review_ids.update(row["id"] for row in rows)
+        shown.update(row["id"] for row in rows)
     return build_answer(
         submitted,
-        target=target,
-        owner_id=owner_id,
-        reviews_total=total,
+        bundle=bundle,
         labels=toolset.labels,
         search=search,
-        shown_review_ids=state.shown_review_ids,
-        steps=state.steps,
+        record=LoopRecord(steps=tuple(state.steps), shown_review_ids=frozenset(shown)),
     )
 
 

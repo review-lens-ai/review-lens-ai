@@ -18,6 +18,7 @@ model received. Run them with -s to show it:
 
 import json
 import re
+from functools import partial
 
 import pytest
 from langchain_core.messages import AIMessage, ToolMessage
@@ -29,7 +30,7 @@ from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
 from app.schemas.qa import AnswerStatus
 from app.schemas.reviews import ReviewCreate
-from app.services.qa import NoReviewsError, answer_question
+from app.services.qa import answer_question
 from app.services.qa.tools.guard import FLAG
 from tests.unit.qa.conftest import LEAK_PHRASE, FakeChatModel, call, submit
 
@@ -97,7 +98,7 @@ def ask(data, model, owner, target, question="What do people say?"):
         question=question,
         targets=TargetRepository(conn),
         reviews=ReviewRepository(conn),
-        search=ReviewSearchRepository(conn),
+        open_search=partial(ReviewSearchRepository.for_owner, conn),
         make_model=lambda: model,
     )
 
@@ -213,7 +214,7 @@ def test_demo_user_b_phrase_never_reaches_user_a_context(data):
     conn = data["conn"]
     question = f"What do reviewers say about the {B_PHRASE} brunch?"
     model = FakeChatModel(
-        call("search_reviews", words=B_PHRASE),
+        call("search_reviews", keywords=B_PHRASE),
         call("search_reviews", **READ_ALL),
         submit("INSUFFICIENT_EVIDENCE", "These reviews don't mention that brunch."),
     )
@@ -333,7 +334,7 @@ def test_context_holds_exactly_the_active_targets_stored_reviews(data):
 
 def test_user_b_context_never_contains_user_a_reviews(data):
     model = FakeChatModel(
-        call("search_reviews", words=LEAK_PHRASE),
+        call("search_reviews", keywords=LEAK_PHRASE),
         call("search_reviews", **READ_ALL),
         submit("INSUFFICIENT_EVIDENCE", "Not in these reviews."),
     )
@@ -372,11 +373,12 @@ def test_a_citation_without_a_tool_result_returns_no_evidence(data):
     assert result.evidence == []
 
 
-def test_a_target_without_reviews_is_409_and_never_reaches_the_model(data):
+def test_a_target_without_reviews_answers_no_reviews_without_the_model(data):
     model = FakeChatModel()
-    with pytest.raises(NoReviewsError):
-        ask(data, model, "user_a", "target_empty")
+    result = ask(data, model, "user_a", "target_empty")
 
+    assert result.status is AnswerStatus.NO_REVIEWS
+    assert result.evidence == []
     assert model.calls == []
 
 

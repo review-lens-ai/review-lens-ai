@@ -45,6 +45,53 @@ from app.services.normalize_reviews import RejectedRecord
 NEWEST_FIRST = "reviewed_at desc nulls last, created_at desc, id"
 
 
+def aggregate(conn: psycopg.Connection, where: str, params: list | tuple) -> dict:
+    """Count, average, per-star counts and date range of the reviews `where` selects.
+
+    The one place these numbers are calculated. The summary card and the briefing
+    call it for a whole target (summary_for_target); the Q&A tools call it for a
+    filtered subset (review_search.where_clause). So a tool's numbers for "every
+    review" always match the screen.
+
+    `where` is SQL written by our code, never by a user or the model; values go in
+    `params`. It must start with "target_id = %s".
+
+    Returns {"review_count": int, "average_rating": float | None,
+    "rating_counts": [{"rating": 1, "count": n}, ... up to 5],
+    "first_reviewed_at": datetime | None, "last_reviewed_at": datetime | None}.
+    Every rating from 1 to 5 is listed, with 0 when no review has it.
+    average_rating is None when no review matches, and is rounded to 2 decimal
+    places. The dates are the oldest and newest review dates; reviews without a
+    date are left out of them, and both are None when no review has a date.
+    """
+    row = conn.execute(
+        f"""
+        select count(*) as review_count,
+               round(avg(rating), 2) as average_rating,
+               count(*) filter (where rating = 1) as r1,
+               count(*) filter (where rating = 2) as r2,
+               count(*) filter (where rating = 3) as r3,
+               count(*) filter (where rating = 4) as r4,
+               count(*) filter (where rating = 5) as r5,
+               min(reviewed_at) as first_reviewed_at,
+               max(reviewed_at) as last_reviewed_at
+          from public.reviews
+         where {where}
+        """,
+        params,
+    ).fetchone()
+    average = row["average_rating"]
+    return {
+        "review_count": row["review_count"],
+        "average_rating": None if average is None else float(average),
+        "rating_counts": [
+            {"rating": rating, "count": row[f"r{rating}"]} for rating in range(1, 6)
+        ],
+        "first_reviewed_at": row["first_reviewed_at"],
+        "last_reviewed_at": row["last_reviewed_at"],
+    }
+
+
 class ReviewRepository:
     def __init__(self, conn: psycopg.Connection):
         self._conn = conn
@@ -165,44 +212,51 @@ class ReviewRepository:
         ).fetchone()["total"]
 
     def summary_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> dict:
-        """S2-008: the summary of a target's active dataset, calculated in one query
-        from the saved reviews; otherwise NotFoundError.
-
-        Returns {"review_count": int, "average_rating": float | None,
-        "rating_counts": [{"rating": 1, "count": n}, ... up to 5],
-        "first_reviewed_at": datetime | None, "last_reviewed_at": datetime | None}.
-        Every rating from 1 to 5 is listed, with 0 when no review has it.
-        average_rating is None when there are no reviews, and is rounded to 2 decimal
-        places. The dates are the oldest and newest review dates; reviews without a
-        date are left out of them, and both are None when no review has a date.
-        """
+        """S2-008: the summary of a target's active dataset (every saved review), in
+        the shape `aggregate` returns; otherwise NotFoundError."""
         self._targets.get_owned(target_id, owner_id)
-        row = self._conn.execute(
+        return aggregate(self._conn, "target_id = %s", (target_id,))
+
+    def without_embedding(
+        self,
+        *,
+        limit: int,
+        target_id: UUID | str | None = None,
+        after: UUID | None = None,
+    ) -> list[dict]:
+        """Up to `limit` reviews with no embedding yet ({id, review_text}), of one
+        target or of every target, in id order and after the id `after` if given
+        (so a caller can move past a batch it skipped). Only the ingestion worker and the backfill call
+        this; neither acts for a user, so there is no owner check (like
+        TargetRepository.get_for_run)."""
+        return self._conn.execute(
             """
-            select count(*) as review_count,
-                   round(avg(rating), 2) as average_rating,
-                   count(*) filter (where rating = 1) as r1,
-                   count(*) filter (where rating = 2) as r2,
-                   count(*) filter (where rating = 3) as r3,
-                   count(*) filter (where rating = 4) as r4,
-                   count(*) filter (where rating = 5) as r5,
-                   min(reviewed_at) as first_reviewed_at,
-                   max(reviewed_at) as last_reviewed_at
+            select id, review_text
               from public.reviews
-             where target_id = %s
+             where embedding is null
+               and (%(target_id)s::uuid is null or target_id = %(target_id)s::uuid)
+               and (%(after)s::uuid is null or id > %(after)s::uuid)
+             order by id
+             limit %(limit)s
             """,
-            (target_id,),
-        ).fetchone()
-        average = row["average_rating"]
-        return {
-            "review_count": row["review_count"],
-            "average_rating": None if average is None else float(average),
-            "rating_counts": [
-                {"rating": rating, "count": row[f"r{rating}"]} for rating in range(1, 6)
-            ],
-            "first_reviewed_at": row["first_reviewed_at"],
-            "last_reviewed_at": row["last_reviewed_at"],
-        }
+            {"target_id": target_id, "after": after, "limit": limit},
+        ).fetchall()
+
+    def save_embeddings(self, embeddings: list[tuple[UUID, list[float]]]) -> None:
+        """Store each review's embedding. A review that already has one is left
+        as it is, so saving twice changes nothing."""
+        with self._conn.cursor() as cur:
+            cur.executemany(
+                """
+                update public.reviews
+                   set embedding = %s::vector
+                 where id = %s and embedding is null
+                """,
+                [
+                    (_vector_literal(vector), review_id)
+                    for review_id, vector in embeddings
+                ],
+            )
 
     def _require_owned_run(
         self, run_id: UUID | str, target_id: UUID | str, owner_id: UUID | str
@@ -226,3 +280,8 @@ class ReviewRepository:
             raise InvalidRunTransitionError(
                 "Reviews can only be saved while the ingestion run is running."
             )
+
+
+def _vector_literal(vector: list[float]) -> str:
+    """pgvector's text form, "[0.1,0.2,...]", so no extra driver package is needed."""
+    return "[" + ",".join(str(float(value)) for value in vector) + "]"

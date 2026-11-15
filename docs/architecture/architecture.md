@@ -250,7 +250,7 @@ review-lens-ai/
 ├── docs/
 │   ├── architecture/         # This folder
 │   └── standards/            # Coding, philosophy, AI-assisted development, guardrails, UI/UX
-├── scripts/                  # setup.sh, dev.sh, check.sh, migrate.sh, setup-branch-protection.sh
+├── scripts/                  # setup.sh, dev.sh, check.sh, migrate.sh, embed-reviews.sh, setup-branch-protection.sh
 ├── .github/                  # CI workflow, PR template
 └── README.md
 ```

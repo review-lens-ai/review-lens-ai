@@ -6,6 +6,18 @@ call. openrouter is not imported here, so importing app.llm never loads a
 provider SDK.
 """
 
-from app.llm.client import BoundChatModel, ChatModel, ModelError, ModelUnavailableError
+from app.llm.client import (
+    BoundChatModel,
+    ChatModel,
+    ModelError,
+    ModelUnavailableError,
+    ReplyStatus,
+)
 
-__all__ = ["BoundChatModel", "ChatModel", "ModelError", "ModelUnavailableError"]
+__all__ = [
+    "BoundChatModel",
+    "ChatModel",
+    "ModelError",
+    "ModelUnavailableError",
+    "ReplyStatus",
+]

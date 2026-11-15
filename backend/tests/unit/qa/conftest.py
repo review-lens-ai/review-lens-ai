@@ -9,7 +9,8 @@ calls a real model.
 The tool set is built from the real ToolRegistry and LabelBook (app/services/qa/
 tools/) with two small in-memory tools, find_reviews and count_reviews, over the
 reviews below. The targets, reviews and search fakes keep the real ownership rule:
-another user's target is NotFoundError. The same checks with the real tools and SQL
+another user's target is NotFoundError, and a search is opened for one target only
+after its owner is checked, like ReviewSearchRepository.for_owner. The same checks with the real tools and SQL
 are in tests/db/test_qa_context_isolation.py.
 
 Data: user A owns TARGET_A (one review holds LEAK_PHRASE), TARGET_A2 and
@@ -43,7 +44,11 @@ TARGET_B = UUID("10000000-0000-0000-0000-00000000000b")
 LEAK_PHRASE = "ZEBRA-PASTA-7"
 
 TARGETS = {
-    TARGET_A: {"owner_id": OWNER_A, "name": "Luigi's Trattoria"},
+    TARGET_A: {
+        "owner_id": OWNER_A,
+        "name": "Luigi's Trattoria",
+        "address": "12 Mulberry St, New York, NY 10013",
+    },
     TARGET_A2: {"owner_id": OWNER_A, "name": "Harbor Coffee"},
     TARGET_EMPTY: {"owner_id": OWNER_A, "name": "Not Ingested Yet"},
     TARGET_B: {"owner_id": OWNER_B, "name": "Bella's Diner"},
@@ -99,6 +104,10 @@ class FakeTargets:
             "platform": "google_maps",
         }
 
+    def place_address(self, target_id, owner_id):
+        self.get_owned(target_id, owner_id)
+        return TARGETS[UUID(str(target_id))].get("address")
+
 
 class FakeReviews:
     """The ReviewRepository methods Q&A uses."""
@@ -125,15 +134,26 @@ class FakeReviews:
 
 
 class FakeSearch:
-    """The ReviewSearchRepository method the answer builder uses."""
+    """A ReviewSearchRepository for one target whose owner was already checked: the
+    get_many the answer builder uses, and target_id, which the tool set reads."""
 
-    def __init__(self, targets: FakeTargets):
-        self.targets = targets
+    def __init__(self, target_id: UUID):
+        self.target_id = target_id
 
-    def get_many(self, target_id, owner_id, review_ids):
-        self.targets.get_owned(target_id, owner_id)
+    def get_many(self, review_ids):
         wanted = set(review_ids)
-        return [r for r in rows_of(UUID(str(target_id))) if r["id"] in wanted]
+        return [r for r in rows_of(self.target_id) if r["id"] in wanted]
+
+
+def open_search_with(targets: FakeTargets):
+    """Like functools.partial(ReviewSearchRepository.for_owner, conn): checks the
+    owner, then opens a search bound to that one target."""
+
+    def open_search(target_id, owner_id):
+        target = targets.get_owned(target_id, owner_id)
+        return FakeSearch(target["id"])
+
+    return open_search
 
 
 # --- Tools ---------------------------------------------------------------------------
@@ -154,9 +174,11 @@ class FakeToolSet:
     runs: list
 
 
-def fake_toolset(search, owner_id, target_id, *, leak_from: UUID | None = None):
-    """A tool set for one question. leak_from adds another target's reviews to
-    find_reviews, like a query that forgot its target filter."""
+def fake_toolset(search: FakeSearch, *, leak_from: UUID | None = None):
+    """A tool set for one question, fixed to the search's target like ToolSet.
+    leak_from adds another target's reviews to find_reviews, like a query that
+    forgot its target filter."""
+    target_id = search.target_id
     labels, runs = LabelBook(), []
 
     def matching(words):
@@ -249,13 +271,13 @@ class FakeChatModel:
 @pytest.fixture
 def repos():
     targets = FakeTargets()
-    return targets, FakeReviews(targets), FakeSearch(targets)
+    return targets, FakeReviews(targets), open_search_with(targets)
 
 
 @pytest.fixture
 def ask(repos):
     """ask(model, owner, target, question) runs the real orchestrator on the fakes."""
-    targets, reviews, search = repos
+    targets, reviews, open_search = repos
 
     def _ask(
         model,
@@ -272,7 +294,7 @@ def ask(repos):
             question=question,
             targets=targets,
             reviews=reviews,
-            search=search,
+            open_search=open_search,
             make_model=lambda: model,
             config=config or QAConfig(),
             make_toolset=make_toolset,
