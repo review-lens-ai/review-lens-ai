@@ -281,3 +281,33 @@ def test_owner_and_target_ids_may_be_given_as_uuids(ask):
     ask(model, owner_id=UUID(OWNER_A), target_id=UUID(TARGET_A))
 
     assert sent_ids(model.last) == review_ids(TARGET_A)
+
+
+# --- S2-013: the prompt carries the address and the saved-review facts ---
+
+
+def test_prompt_carries_the_targets_address(ask):
+    model = FakeModel(answered(review_ids(TARGET_A)[0]))
+
+    ask(model)
+
+    assert '- Address: "12 Mulberry St, New York, NY 10013"' in model.last.system_prompt
+
+
+def test_prompt_facts_come_from_the_saved_review_summary(ask):
+    # Target A: three reviews rated 5, 2 and 4, dated 15 to 20 October 2026.
+    model = FakeModel(answered(review_ids(TARGET_A)[0]))
+
+    ask(model)
+
+    prompt = model.last.system_prompt
+    assert "Saved reviews: 3. Average rating: 3.67 out of 5." in prompt
+    assert "Reviewed between 2026-10-15 and 2026-10-20." in prompt
+
+
+def test_a_target_without_an_address_says_so(ask):
+    model = FakeModel(answered(review_ids(TARGET_A2)[0]))
+
+    ask(model, target_id=TARGET_A2)
+
+    assert "- Address: not known" in model.last.system_prompt
