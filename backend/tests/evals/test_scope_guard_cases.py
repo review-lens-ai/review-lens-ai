@@ -69,11 +69,29 @@ def test_every_case_has_exactly_the_expected_fields(cases: list[dict]) -> None:
             assert case[field].strip(), (case["id"], field)
 
 
-def test_every_refusal_case_expects_its_categorys_reason(cases: list[dict]) -> None:
+def accepted_reasons(case: dict) -> list[str]:
+    """expected_reason as a list: one reason, or several when each is correct."""
+    raw = case.get("expected_reason")
+    if raw is None:
+        return []
+    return [raw] if isinstance(raw, str) else raw
+
+
+def test_every_refusal_case_accepts_its_categorys_reason(cases: list[dict]) -> None:
     for case in cases:
-        assert case.get("expected_reason") == REASON_BY_CATEGORY.get(
-            case["category"]
-        ), case["id"]
+        reason = REASON_BY_CATEGORY.get(case["category"])
+        if reason is None:
+            assert "expected_reason" not in case, case["id"]
+        else:
+            assert reason in accepted_reasons(case), case["id"]
+
+
+def test_a_list_of_reasons_names_several_distinct_reasons(cases: list[dict]) -> None:
+    # A list is only for a question that breaks more than one rule.
+    for case in cases:
+        if isinstance(case.get("expected_reason"), list):
+            reasons = case["expected_reason"]
+            assert len(reasons) == len(set(reasons)) >= 2, case["id"]
 
 
 def test_the_reasons_are_the_ones_the_app_returns() -> None:
@@ -142,8 +160,8 @@ def test_runner_loads_every_case(cases: list[dict]) -> None:
     loaded = load_cases()
 
     assert [case.id for case in loaded] == [case["id"] for case in cases]
-    assert [case.expected_reason for case in loaded] == [
-        case.get("expected_reason") for case in cases
+    assert [list(case.expected_reasons) for case in loaded] == [
+        accepted_reasons(case) for case in cases
     ]
     assert [list(case.must_not_contain) for case in loaded] == [
         case.get("must_not_contain", []) for case in cases
