@@ -25,9 +25,13 @@ Rules:
 
 No reply, a second invalid submit_answer, or the model-call limit returns None,
 which build_answer turns into INSUFFICIENT_EVIDENCE.
+
+Each model call is logged at INFO with how long it took and which tools it asked
+for, so a slow question shows where the time went. Tool names only, no text.
 """
 
 import json
+import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -41,6 +45,8 @@ from app.llm import ChatModel
 from app.schemas.qa import ToolStep
 from app.services.qa.answer import SUBMIT_ANSWER, SubmitAnswer, submit_answer_spec
 from app.services.qa.tools.registry import ToolRegistry
+
+logger = logging.getLogger(__name__)
 
 NUDGE = f"Reply by calling a tool. When you are done, call {SUBMIT_ANSWER}."
 NO_CALLS_LEFT = f"No tool calls left. Call {SUBMIT_ANSWER} now with what you have."
@@ -85,8 +91,15 @@ def run(
         out_of_budget = state.tool_calls_used >= budget
         out_of_time = clock() - state.started_at >= timeout_s
         choice = SUBMIT_ANSWER if out_of_budget or out_of_time else None
+        call_started = time.perf_counter()
         reply = model.bind_tools(specs, tool_choice=choice).invoke(state.messages)
         state.model_calls += 1
+        logger.info(
+            "Q&A model call %d took %.1fs and asked for %s.",
+            state.model_calls,
+            time.perf_counter() - call_started,
+            ", ".join(call["name"] for call in reply.tool_calls) or "no tool",
+        )
         state.messages.append(reply)
 
         if not reply.tool_calls:

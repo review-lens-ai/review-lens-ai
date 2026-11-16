@@ -22,9 +22,14 @@ Rules:
   gave none; an answer has neither.
 - NO REPLY: when the loop ends without a valid submit_answer, the answer is
   INSUFFICIENT_EVIDENCE.
+- PLAIN TEXT: the prompt asks for plain text without review labels. tidy_answer
+  backs that up on the model's text: it removes bracketed label lists like
+  "(R4, R16)" and Markdown bold markers, since the UI shows the text as-is and
+  shows the cited reviews under it. It reads the model's output only.
 """
 
 import logging
+import re
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -87,9 +92,10 @@ class SubmitAnswer(BaseModel):
     )
     answer: str = Field(
         description=(
-            "What the user reads. When you decline, say briefly why and what you "
-            "can help with instead. Never pretend you analyzed information you "
-            "were not given."
+            "What the user reads, in plain text: no Markdown, and no review labels "
+            "(R1, R2, ...); put those in cited. When you decline, say briefly why "
+            "and what you can help with instead. Never pretend you analyzed "
+            "information you were not given."
         )
     )
     cited: list[str] = Field(
@@ -177,6 +183,21 @@ FALLBACK_SUGGESTIONS = {
     RefusalReason.OTHER_PLATFORM: "What's the overall rating on {platform}?",
     RefusalReason.NO_EVIDENCE: "What do reviewers mention most often?",
 }
+
+
+# "(R4)", "(R4, R16, R19)", "(R1 and R2)", "(e.g. R3)": a bracketed list of review
+# labels, with the space before it.
+_LABEL_LIST = re.compile(
+    r"\s*\((?:e\.g\.,?\s*)?R\d+(?:\s*(?:,|and|&)\s*R\d+)*\)", re.IGNORECASE
+)
+_BOLD = re.compile(r"\*\*|__")
+
+
+def tidy_answer(text: str) -> str:
+    """The model's text as the user should read it: bracketed review labels and
+    Markdown bold markers removed, surrounding whitespace trimmed. Labels belong in
+    cited, where the app turns them into the evidence shown under the answer."""
+    return _BOLD.sub("", _LABEL_LIST.sub("", text)).strip()
 
 
 @dataclass(frozen=True)
@@ -368,7 +389,7 @@ def build_answer(
 ) -> AnswerResponse:
     if submitted is None:
         return insufficient_answer(bundle, record)
-    text = submitted.answer.strip()
+    text = tidy_answer(submitted.answer)
 
     if submitted.status is ReplyStatus.ANSWERED:
         evidence = cited_evidence(submitted.cited, bundle, labels, search)

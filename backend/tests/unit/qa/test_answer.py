@@ -23,6 +23,7 @@ from app.services.qa.answer import (
     build_answer,
     no_reviews_answer,
     submit_answer_spec,
+    tidy_answer,
 )
 from app.services.qa.context import build_bundle
 from app.services.qa.tools.guard import ToolScopeError
@@ -415,3 +416,50 @@ def test_the_model_cannot_choose_no_reviews():
     # NO_REVIEWS is decided by the app before any model call (S2-BR-025).
     with pytest.raises(ValidationError):
         SubmitAnswer.model_validate({"status": "NO_REVIEWS", "answer": "None."})
+
+
+# --- The answer text the user reads (plain, without labels) ---
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("Prices are good (R4, R16, R19).", "Prices are good."),
+        (
+            "Service (R8, R12 and R13) is the top complaint.",
+            "Service is the top complaint.",
+        ),
+        ("One reviewer (e.g. R3) liked it.", "One reviewer liked it."),
+        ("Staff are friendly (r2).", "Staff are friendly."),
+        ("**What people like:** the crust.", "What people like: the crust."),
+        ("Rated 4 stars (out of 5).", "Rated 4 stars (out of 5)."),  # not labels
+        ("  Plain already.  ", "Plain already."),
+    ],
+)
+def test_tidy_answer_removes_label_lists_and_bold_markers(text, expected):
+    assert tidy_answer(text) == expected
+
+
+def test_an_answer_reaches_the_user_without_labels_but_keeps_its_evidence():
+    result = answer(reply("ANSWERED", "**Mixed views** (R1, R3).", cited=["R1", "R3"]))
+
+    assert result.answer == "Mixed views."
+    assert [e.id for e in result.evidence] == [A_ROWS[0]["id"], A_ROWS[2]["id"]]
+
+
+def test_a_refusal_is_tidied_too():
+    result = answer(
+        reply(
+            "OUT_OF_SCOPE",
+            "Only Google Maps reviews (R2).",
+            refusal_reason="OTHER_PLATFORM",
+        )
+    )
+
+    assert result.answer == "Only Google Maps reviews."
+
+
+def test_an_answer_that_was_only_labels_becomes_insufficient_evidence():
+    result = answer(reply("ANSWERED", "(R1, R2)", cited=["R1"]))
+
+    assert result.status is AnswerStatus.INSUFFICIENT_EVIDENCE
