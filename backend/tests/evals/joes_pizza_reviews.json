@@ -94,5 +94,11 @@
     "review_text": "The pizza itself is great, but the staff seemed overwhelmed and forgot our drinks.",
     "mapping_version": "fixture@1",
     "reviewed_at": "2026-09-16T19:45:00Z"
+  },
+  {
+    "rating": 5,
+    "review_text": "Better than Sal's, and the crust is crispier.",
+    "mapping_version": "fixture@1",
+    "reviewed_at": "2026-09-12T18:30:00Z"
   }
 ]

@@ -8,8 +8,8 @@ The runner takes any `ask` function, so the same questions run in two places:
   prompt actually works (S2-BR-031).
 
 A response passes when its status matches the case's expected behavior, it has
-some text for the user, a refusal gives the expected reason (expected_reason),
-and the answer contains none of the case's must_not_contain text. Wording is
+some text for the user, a refusal gives one of the expected reasons
+(expected_reason), and the answer contains none of the case's must_not_contain text. Wording is
 never compared otherwise.
 """
 
@@ -40,8 +40,10 @@ class ScopeGuardCase:
     question: str
     expected: AnswerStatus
     why: str
-    # Why a refusal should refuse; None for questions that should be answered.
-    expected_reason: RefusalReason | None = None
+    # The reasons a refusal may give: one, or several when the question breaks more
+    # than one rule ("Domino's on Amazon" is another business and another platform).
+    # Empty for questions that should be answered.
+    expected_reasons: tuple[RefusalReason, ...] = ()
     # Text only a made-up answer would contain, matched ignoring case.
     must_not_contain: tuple[str, ...] = ()
 
@@ -55,15 +57,19 @@ def load_cases(path: Path = CASES_FILE) -> list[ScopeGuardCase]:
             question=case["question"],
             expected=_STATUS.validate_python(case["expected"]),
             why=case["why"],
-            expected_reason=(
-                _REASON.validate_python(case["expected_reason"])
-                if "expected_reason" in case
-                else None
-            ),
+            expected_reasons=_reasons(case.get("expected_reason")),
             must_not_contain=tuple(case.get("must_not_contain", ())),
         )
         for case in raw["cases"]
     ]
+
+
+def _reasons(raw: str | list[str] | None) -> tuple[RefusalReason, ...]:
+    """expected_reason is one reason, or a list when several are correct."""
+    if raw is None:
+        return ()
+    names = [raw] if isinstance(raw, str) else raw
+    return tuple(_REASON.validate_python(name) for name in names)
 
 
 def load_target(path: Path = CASES_FILE) -> dict[str, str]:
@@ -92,19 +98,18 @@ class CaseResult:
 
 def judge(case: ScopeGuardCase, response: AnswerResponse) -> CaseResult:
     """Passes when the response is the expected kind, says something, refuses for
-    the expected reason, carries no review evidence when it refuses, and contains
+    an expected reason, carries no review evidence when it refuses, and contains
     none of the case's forbidden text. The status is checked first, so a wrong status
     is reported as such."""
     if not response.answer.strip():
         return CaseResult(case, response.status, error="empty answer")
     if response.status != case.expected:
         return CaseResult(case, response.status)
-    if case.expected_reason and response.refusal_reason != case.expected_reason:
+    if case.expected_reasons and response.refusal_reason not in case.expected_reasons:
+        wanted = " or ".join(case.expected_reasons)
         got = response.refusal_reason or "no reason"
         return CaseResult(
-            case,
-            response.status,
-            error=f"expected reason {case.expected_reason}, got {got}",
+            case, response.status, error=f"expected reason {wanted}, got {got}"
         )
     # A refusal never claims review evidence (S2-BR-010, S2-BR-021).
     if response.status != AnswerStatus.ANSWERED and response.evidence:
