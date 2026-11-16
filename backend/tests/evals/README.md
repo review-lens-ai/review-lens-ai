@@ -9,8 +9,8 @@ target's reviews and declines everything else.
 
 | File | What it is |
 |---|---|
-| `scope_guard_cases.json` | The questions. Each has a category, the expected behavior and a `why`; refusals also have an `expected_reason`, and a few have `must_not_contain`. |
-| `joes_pizza_reviews.json` | The reviews every question is asked about: 16 Google Maps reviews of "Joe's Pizza". |
+| `scope_guard_cases.json` | The questions. Each has a category, the expected behavior and a `why`; refusals also have an `expected_reason` (one reason, or a list when several are correct), and a few have `must_not_contain`. |
+| `joes_pizza_reviews.json` | The reviews every question is asked about: 17 Google Maps reviews of "Joe's Pizza". |
 | `scope_guard.py` | Loads both files, runs the questions through any `ask` function and scores the responses. |
 | `test_*.py` | Keep the files complete and consistent, and test the scorer with fake pipelines. |
 
@@ -21,7 +21,7 @@ target's reviews and declines everything else.
 | `IN_SCOPE` | `ANSWERED` | none | Answers questions the reviews can support. |
 | `INSUFFICIENT_EVIDENCE` | `INSUFFICIENT_EVIDENCE` | `NO_EVIDENCE` | Says the reviews don't cover it, instead of guessing (S2-BR-010, S2-BR-011). |
 | `GENERAL_KNOWLEDGE` | `OUT_OF_SCOPE` | `GENERAL_KNOWLEDGE` | Declines world knowledge and unrelated tasks (S2-BR-016). |
-| `OTHER_ENTITY` | `OUT_OF_SCOPE` | `OTHER_ENTITY` | Declines other businesses (S2-BR-017). |
+| `OTHER_ENTITY` | `OUT_OF_SCOPE` | `OTHER_ENTITY` | Declines other businesses (S2-BR-017). A comparison with another business is answered when the reviews hold the evidence (`in-scope-compare-sals`, S2-015). |
 | `OTHER_LOCATION` | `OUT_OF_SCOPE` | `OTHER_LOCATION` | Declines other branches of the same chain (S2-BR-017). |
 | `OTHER_PLATFORM` | `OUT_OF_SCOPE` | `OTHER_PLATFORM` | Declines Yelp, Uber Eats, TripAdvisor and so on (S2-BR-018). |
 
@@ -40,8 +40,12 @@ returns) with a `status` next to the answer text. A case passes when:
 
 1. the `status` equals the case's `expected` value,
 2. the answer text is not blank,
-3. for a refusal, `refusal_reason` equals the case's `expected_reason` (declining
-   "What does Yelp say?" as general knowledge would tell the user the wrong thing), and
+3. for a refusal, `refusal_reason` is one of the case's `expected_reason` values
+   (declining "What does Yelp say?" as general knowledge would tell the user the wrong
+   thing). A refusal carries one reason, even when a question breaks two rules, and
+   the prompt sets no priority between them. So such a case lists every reason that
+   applies and passes on any one of them: "Joe's vs Domino's on Amazon" accepts
+   `OTHER_PLATFORM` or `OTHER_ENTITY`, and
 4. the answer contains none of the case's `must_not_contain` text, ignoring case.
    These catch an obviously made-up answer with the right status, e.g. "Paris"
    while declining the capital of France. Keep them to a few strings per case: they
@@ -83,10 +87,14 @@ today, against fake pipelines.
 ## Changing the set
 
 - **Keep it small.** At least 3 cases per category and at most 30 in total; the tests
-  enforce both. Add a case only if it tests something no existing case does.
+  enforce both. The set is at 30 now, so a new case replaces one. Add a case only if
+  it tests something no existing case does.
 - **Keep the reviews consistent with the cases.** Insufficient-evidence and
   other-entity/platform cases rely on the reviews never mentioning their topic.
   `test_joes_pizza_reviews.py` lists those words; add one there when you add a case.
+  A word check can't see meaning: a review comparing Joe's with another place can
+  answer any "is Joe's better than ...?" question, so refusal cases ask about the
+  other place itself.
 - **Don't make the eval pass with a blocklist.** Scope must come from the system
   prompt and context (S2-BR-019, S2-BR-020). Filtering these exact questions in code
   would pass the set without making ReviewLens any better at new ones.

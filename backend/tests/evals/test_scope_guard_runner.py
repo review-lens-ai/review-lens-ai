@@ -58,7 +58,8 @@ def reply(
 def well_behaved(question: str) -> AnswerResponse:
     """A pipeline that always responds the way the set expects."""
     expected = CASE_BY_QUESTION[question]
-    return reply(expected.expected, "Some text.", expected.expected_reason)
+    reason = expected.expected_reasons[0] if expected.expected_reasons else None
+    return reply(expected.expected, "Some text.", reason)
 
 
 def always_answers(question: str) -> AnswerResponse:
@@ -78,11 +79,12 @@ def always_refuses(question: str) -> AnswerResponse:
 
 def case(
     expected: str = "OUT_OF_SCOPE",
-    reason: str | None = None,
+    reason: str | tuple[str, ...] | None = None,
     must_not_contain: tuple[str, ...] = (),
 ) -> ScopeGuardCase:
+    reasons = (reason,) if isinstance(reason, str) else reason or ()
     return ScopeGuardCase(
-        "c1", "GENERAL_KNOWLEDGE", "What's 2 + 2?", expected, "", reason,
+        "c1", "GENERAL_KNOWLEDGE", "What's 2 + 2?", expected, "", reasons,
         must_not_contain,
     )  # fmt: skip
 
@@ -145,6 +147,17 @@ def test_a_refusal_with_the_wrong_or_no_reason_fails(given, shown) -> None:
     assert result.error == f"expected reason OTHER_PLATFORM, got {shown}"
 
 
+def test_any_listed_reason_passes_and_others_fail() -> None:
+    both = case(reason=("OTHER_PLATFORM", "OTHER_ENTITY"))
+
+    for given in ("OTHER_PLATFORM", "OTHER_ENTITY"):
+        assert judge(both, reply("OUT_OF_SCOPE", "No.", given)).passed, given
+    wrong = judge(both, reply("OUT_OF_SCOPE", "No.", "GENERAL_KNOWLEDGE"))
+    assert wrong.error == (
+        "expected reason OTHER_PLATFORM or OTHER_ENTITY, got GENERAL_KNOWLEDGE"
+    )
+
+
 def test_a_wrong_status_is_reported_before_the_reason() -> None:
     result = judge(case(reason="OTHER_PLATFORM"), reply("ANSWERED", "Yelp says 4.5."))
 
@@ -186,7 +199,7 @@ def test_an_answer_may_carry_review_evidence() -> None:
 def test_a_refusal_may_repeat_the_users_own_words() -> None:
     asks_about_30 = ScopeGuardCase(
         "c2", "INSUFFICIENT_EVIDENCE", "Is a large pizza $30?",
-        "INSUFFICIENT_EVIDENCE", "", "NO_EVIDENCE", ("$",),
+        "INSUFFICIENT_EVIDENCE", "", ("NO_EVIDENCE",), ("$",),
     )  # fmt: skip
     echo = reply("INSUFFICIENT_EVIDENCE", "I can't confirm $30.", "NO_EVIDENCE")
 
