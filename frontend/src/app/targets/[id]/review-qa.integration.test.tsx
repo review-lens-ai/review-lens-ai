@@ -1,6 +1,6 @@
 // Integration tests for the Review Q&A panel (S2-009). The whole workspace page is
 // rendered, and MSW plays the backend, including the questions endpoint.
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AnswerResponse } from "@/lib/generated/api";
 import {
   act,
@@ -541,5 +541,102 @@ describe("Review Q&A when the user switches targets", () => {
     expect(screen.queryByRole("status", { name: "ReviewLens is reading the reviews" })).toBeNull();
     typeQuestion(QUESTION);
     expect(askButton().disabled).toBe(false);
+  });
+
+  // S2-017: the workspace header, the ingestion summary and the Q&A panel all name the
+  // same active target after a switch, and nothing on the page still names the old one.
+  describe("the active target is clear everywhere (S2-017)", () => {
+    beforeEach(() => {
+      document.title = "ReviewLens";
+    });
+
+    it("the header, summary, Q&A panel and tab title all name the new target", async () => {
+      backendHas(5);
+      backendHas(7, OTHER_ID, OTHER_NAME);
+      questionsAnswer(answered());
+      const page = await openQaPanel();
+      askQuestion();
+      await response();
+      expect(document.title).toBe("Joe's Pizza · ReviewLens");
+
+      await switchTo(page, OTHER_ID, OTHER_NAME);
+      fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+      expect(screen.getByRole("heading", { level: 1, name: OTHER_NAME })).toBeTruthy();
+      await screen.findByRole("heading", {
+        name: `Review summary for ${OTHER_NAME} · Google Maps`,
+      });
+      await waitFor(() => expect(qaPanel(OTHER_NAME).textContent).toContain("7 reviews"));
+      expect(document.title).toBe(`${OTHER_NAME} · ReviewLens`);
+      expect(document.body.textContent).not.toContain("Joe's Pizza");
+    });
+
+    it("switching to a target with no reviews shows that target can't be asked yet", async () => {
+      backendHas(5);
+      backendHas(0, OTHER_ID, OTHER_NAME);
+      questionsAnswer(answered());
+      const page = await openQaPanel();
+      askQuestion();
+      await response();
+
+      await switchTo(page, OTHER_ID, OTHER_NAME);
+
+      expect(qaPanel(OTHER_NAME)).toBeTruthy();
+      await screen.findByRole("heading", { name: "No reviews to ask about yet" });
+      expect(screen.queryByRole("textbox", { name: "Your question" })).toBeNull();
+      expect(screen.queryByText(ANSWER)).toBeNull();
+      expect(document.body.textContent).not.toContain("Joe's Pizza");
+    });
+
+    it("switching to another user's target shows not found and nothing of the last target", async () => {
+      backendHas(5);
+      const foreignUrl = `${API}/api/v1/targets/${OTHER_ID}`;
+      const notFound = () => apiErrorResponse(404, "NOT_FOUND", "Target not found.");
+      server.use(
+        http.get(foreignUrl, notFound),
+        http.get(`${foreignUrl}/ingestion-runs/latest`, notFound),
+        http.get(`${foreignUrl}/reviews`, notFound),
+        http.get(`${foreignUrl}/summary`, notFound),
+      );
+      const page = await openQaPanel();
+
+      await switchTo(page, OTHER_ID, "Target not found");
+
+      expect(screen.queryByRole("region", { name: "Ask Joe's Pizza" })).toBeNull();
+      expect(document.body.textContent).not.toContain("Joe's Pizza");
+      expect(document.title).toBe("ReviewLens");
+    });
+
+    it("leaving the workspace puts the app's own tab title back", async () => {
+      backendHas(5);
+      const page = await openQaPanel();
+      expect(document.title).toBe("Joe's Pizza · ReviewLens");
+
+      page.unmount();
+
+      expect(document.title).toBe("ReviewLens");
+    });
+
+    it("going back to a loaded target keeps its tab title when the layout's title lands late", async () => {
+      backendHas(5);
+      backendHas(7, OTHER_ID, OTHER_NAME);
+      const page = await openQaPanel();
+      await switchTo(page, OTHER_ID, OTHER_NAME);
+
+      await switchTo(page, TARGET_ID, "Joe's Pizza");
+      // Next.js writes the layout's title after a client-side navigation, which can come
+      // after the workspace has already set its own.
+      document.title = "ReviewLens";
+
+      await waitFor(() => expect(document.title).toBe("Joe's Pizza · ReviewLens"));
+    });
+
+    it("the header links to the target list for switching on small screens", async () => {
+      backendHas(5);
+      await openQaPanel();
+
+      const link = screen.getByRole("link", { name: "Switch target" });
+      expect(link.getAttribute("href")).toBe("/targets");
+    });
   });
 });
