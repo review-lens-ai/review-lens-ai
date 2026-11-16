@@ -87,3 +87,11 @@ def test_the_tool_schema_tells_the_model_every_reason_and_field():
         assert field.get("description")
     assert str(MAX_CITATIONS) in schema["properties"]["cited"]["description"]
     assert str(MAX_SUGGESTIONS) in schema["properties"]["suggestions"]["description"]
+
+
+def test_cited_says_an_answer_about_numbers_still_needs_a_review():
+    # The model reads this at the moment it submits. An answer from the facts or
+    # review_stats alone had no citation and was shown as not enough evidence.
+    cited = SubmitAnswer.model_json_schema()["properties"]["cited"]["description"]
+
+    assert "At least one when ANSWERED, even for an answer about numbers" in cited

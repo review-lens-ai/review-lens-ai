@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/app/_components/query-provider";
 import { Toaster } from "@/app/_components/ui/sonner";
+import { APP_TITLE } from "@/lib/app-title";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReviewLens",
+  title: APP_TITLE,
   description: "Understand what customers say in their reviews.",
 };
 

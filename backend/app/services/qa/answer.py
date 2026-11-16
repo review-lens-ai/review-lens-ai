@@ -102,7 +102,9 @@ class SubmitAnswer(BaseModel):
         default_factory=list,
         description=(
             "Labels (R1, R2, ...) of the reviews your answer relies on, only labels "
-            f"you were shown, at most {MAX_CITATIONS}. Empty unless ANSWERED."
+            f"you were shown, at most {MAX_CITATIONS}. At least one when ANSWERED, "
+            "even for an answer about numbers: an answer citing none is shown as "
+            "not enough evidence. Empty unless ANSWERED."
         ),
     )
     refusal_reason: RefusalReason | None = Field(
