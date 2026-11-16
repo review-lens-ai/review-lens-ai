@@ -2,7 +2,8 @@
   "description": "S2-004 scope-guard evaluation set. Each case is judged by the kind of response (expected) and, for a refusal, why it refused (expected_reason); never by exact wording (S2-BR-029). must_not_contain lists text only a made-up answer would contain. Every question is asked about the target below; the review fixture for that target must contain the evidence in-scope cases need and none of the topics the other cases rely on being absent.",
   "target": {
     "name": "Joe's Pizza",
-    "platform": "google_maps"
+    "platform": "google_maps",
+    "address": "48 Sample Street, Newark, NJ 07102"
   },
   "cases": [
     {

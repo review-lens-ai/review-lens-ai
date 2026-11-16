@@ -12,6 +12,7 @@ target's reviews and declines everything else.
 | `scope_guard_cases.json` | The questions. Each has a category, the expected behavior and a `why`; refusals also have an `expected_reason` (one reason, or a list when several are correct), and a few have `must_not_contain`. |
 | `joes_pizza_reviews.json` | The reviews every question is asked about: 17 Google Maps reviews of "Joe's Pizza". |
 | `scope_guard.py` | Loads both files, runs the questions through any `ask` function and scores the responses. |
+| `live.py` | Runs the questions through the real pipeline and model, by hand (see "Running it live"). |
 | `test_*.py` | Keep the files complete and consistent, and test the scorer with fake pipelines. |
 
 ## Categories
@@ -54,9 +55,6 @@ returns) with a `status` next to the answer text. A case passes when:
 The scorecard says which check failed, e.g.
 `FAILED other-platform-yelp: expected reason OTHER_PLATFORM, got GENERAL_KNOWLEDGE`.
 
-With the real model, the reason check fails until the system prompt asks the model
-for a reason (S2-013); that is expected, not a broken eval.
-
 ## Running it
 
 The runner takes any function from a question to an `AnswerResponse`:
@@ -80,9 +78,44 @@ Two kinds of `ask`, two places to run it:
   costs money and varies between runs, so it stays out of CI. Read the scorecard
   and look at any failures, rather than expecting 100% every time.
 
-Neither is wired up yet. The Q&A pipeline and fake model exist (S2-003); the CI
-`ask` (S2-004) and the live script (S2-013) are still to come. Only the scorer runs
-today, against fake pipelines.
+The live run is `live.py` (below). The CI `ask` through the pipeline is still to
+come; today CI runs the scorer against fake pipelines.
+
+## Running it live (by hand)
+
+`live.py` asks the cases through `answer_question` (the code behind the Q&A panel:
+system prompt, tool loop, answer builder) with the real model from `backend/.env`,
+and prints each answer and a scorecard. It never runs in CI or `pytest`.
+
+**Needs:** `OPENROUTER_API_KEY` and `QA_MODEL` in `backend/.env`, and the throwaway
+test Postgres the database tests use (Docker, pgvector image; see the main README).
+It saves the Joe's Pizza reviews there for a throwaway user and rolls everything
+back at the end. It refuses a Supabase URL.
+
+```powershell
+cd backend
+$env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
+uv run python -m tests.evals.live                       # one case per category (6)
+uv run python -m tests.evals.live --category OTHER_PLATFORM
+uv run python -m tests.evals.live --case general-weather --case no-evidence-kids
+uv run python -m tests.evals.live --all                 # all cases
+uv run python -m tests.evals.live --list                # list cases, ask nothing
+```
+
+**Requests:** each case uses one model request per tool call plus the final answer,
+up to `QA_MAX_TOOL_CALLS + 2` (a refusal is often 1, an answer 2 to 4). They come from
+your own key, and the run prints how many it used. Free models cost nothing but have
+a daily request limit, so the default asks one case per category; use `--all` only
+with credits. When the model is busy or rate limited, the case shows as `SKIPPED`,
+not `FAILED`, and after 2 in a row the run stops.
+
+To run every case on a free key, set `$env:QA_MODE="full"` for the run: all 17
+reviews go in one message instead of through the tools, so a case is about one
+request. The scope rules are the same in both modes (`scope_prompt`); only how the
+model reads the reviews differs, and the scorecard's first line says which mode ran.
+
+Expect some variation between runs. Read the failures: a wrong status or reason
+points at the system prompt (`app/services/qa/prompt.py`), not at the code.
 
 ## Changing the set
 
