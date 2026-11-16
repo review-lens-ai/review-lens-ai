@@ -281,3 +281,25 @@ def test_a_question_is_trimmed():
 def test_a_blank_or_too_long_question_is_rejected(question):
     with pytest.raises(InvalidQuestionError):
         clean_question(question)
+
+
+# --- How the answer is written ---
+
+
+@BOTH_MODES
+@pytest.mark.parametrize(
+    "rule",
+    [
+        "Write plain text for the user: no Markdown",
+        "no em dashes",
+        "two to four short sentences",
+        "Never mention review labels (R1, R2, ...) in the answer",
+    ],
+)
+def test_prompt_asks_for_a_short_plain_answer_without_labels(make, rule):
+    assert rule in make()
+
+
+@BOTH_MODES
+def test_the_answer_style_comes_last(make):
+    assert make().rstrip().endswith("shows the cited reviews under the answer.")

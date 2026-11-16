@@ -61,6 +61,21 @@ def test_eval_set_names_one_google_maps_target(eval_set: dict) -> None:
     assert eval_set["target"]["platform"] == "google_maps"
 
 
+def test_target_address_is_not_a_location_the_cases_call_another_branch(
+    eval_set: dict, cases: list[dict]
+) -> None:
+    # The address tells the model which Joe's Pizza these reviews are for, as a real
+    # target's address from Google Maps does (S2-BR-017). A location case asking
+    # about the target's own city would have no right answer.
+    address = eval_set["target"]["address"].lower()
+    assert address.strip()
+    for case in cases:
+        if case["category"] == "OTHER_LOCATION":
+            for city in ("hoboken", "brooklyn"):
+                if city in case["question"].lower():
+                    assert city not in address, case["id"]
+
+
 def test_every_case_has_exactly_the_expected_fields(cases: list[dict]) -> None:
     for case in cases:
         assert CASE_FIELDS <= set(case) <= CASE_FIELDS | OPTIONAL_FIELDS, case.get("id")
@@ -69,11 +84,29 @@ def test_every_case_has_exactly_the_expected_fields(cases: list[dict]) -> None:
             assert case[field].strip(), (case["id"], field)
 
 
-def test_every_refusal_case_expects_its_categorys_reason(cases: list[dict]) -> None:
+def accepted_reasons(case: dict) -> list[str]:
+    """expected_reason as a list: one reason, or several when each is correct."""
+    raw = case.get("expected_reason")
+    if raw is None:
+        return []
+    return [raw] if isinstance(raw, str) else raw
+
+
+def test_every_refusal_case_accepts_its_categorys_reason(cases: list[dict]) -> None:
     for case in cases:
-        assert case.get("expected_reason") == REASON_BY_CATEGORY.get(
-            case["category"]
-        ), case["id"]
+        reason = REASON_BY_CATEGORY.get(case["category"])
+        if reason is None:
+            assert "expected_reason" not in case, case["id"]
+        else:
+            assert reason in accepted_reasons(case), case["id"]
+
+
+def test_a_list_of_reasons_names_several_distinct_reasons(cases: list[dict]) -> None:
+    # A list is only for a question that breaks more than one rule.
+    for case in cases:
+        if isinstance(case.get("expected_reason"), list):
+            reasons = case["expected_reason"]
+            assert len(reasons) == len(set(reasons)) >= 2, case["id"]
 
 
 def test_the_reasons_are_the_ones_the_app_returns() -> None:
@@ -142,8 +175,8 @@ def test_runner_loads_every_case(cases: list[dict]) -> None:
     loaded = load_cases()
 
     assert [case.id for case in loaded] == [case["id"] for case in cases]
-    assert [case.expected_reason for case in loaded] == [
-        case.get("expected_reason") for case in cases
+    assert [list(case.expected_reasons) for case in loaded] == [
+        accepted_reasons(case) for case in cases
     ]
     assert [list(case.must_not_contain) for case in loaded] == [
         case.get("must_not_contain", []) for case in cases

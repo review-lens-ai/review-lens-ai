@@ -9,9 +9,10 @@ target's reviews and declines everything else.
 
 | File | What it is |
 |---|---|
-| `scope_guard_cases.json` | The questions. Each has a category, the expected behavior and a `why`; refusals also have an `expected_reason`, and a few have `must_not_contain`. |
-| `joes_pizza_reviews.json` | The reviews every question is asked about: 16 Google Maps reviews of "Joe's Pizza". |
+| `scope_guard_cases.json` | The questions. Each has a category, the expected behavior and a `why`; refusals also have an `expected_reason` (one reason, or a list when several are correct), and a few have `must_not_contain`. |
+| `joes_pizza_reviews.json` | The reviews every question is asked about: 17 Google Maps reviews of "Joe's Pizza". |
 | `scope_guard.py` | Loads both files, runs the questions through any `ask` function and scores the responses. |
+| `live.py` | Runs the questions through the real pipeline and model, by hand (see "Running it live"). |
 | `test_*.py` | Keep the files complete and consistent, and test the scorer with fake pipelines. |
 
 ## Categories
@@ -21,7 +22,7 @@ target's reviews and declines everything else.
 | `IN_SCOPE` | `ANSWERED` | none | Answers questions the reviews can support. |
 | `INSUFFICIENT_EVIDENCE` | `INSUFFICIENT_EVIDENCE` | `NO_EVIDENCE` | Says the reviews don't cover it, instead of guessing (S2-BR-010, S2-BR-011). |
 | `GENERAL_KNOWLEDGE` | `OUT_OF_SCOPE` | `GENERAL_KNOWLEDGE` | Declines world knowledge and unrelated tasks (S2-BR-016). |
-| `OTHER_ENTITY` | `OUT_OF_SCOPE` | `OTHER_ENTITY` | Declines other businesses (S2-BR-017). |
+| `OTHER_ENTITY` | `OUT_OF_SCOPE` | `OTHER_ENTITY` | Declines other businesses (S2-BR-017). A comparison with another business is answered when the reviews hold the evidence (`in-scope-compare-sals`, S2-015). |
 | `OTHER_LOCATION` | `OUT_OF_SCOPE` | `OTHER_LOCATION` | Declines other branches of the same chain (S2-BR-017). |
 | `OTHER_PLATFORM` | `OUT_OF_SCOPE` | `OTHER_PLATFORM` | Declines Yelp, Uber Eats, TripAdvisor and so on (S2-BR-018). |
 
@@ -40,8 +41,12 @@ returns) with a `status` next to the answer text. A case passes when:
 
 1. the `status` equals the case's `expected` value,
 2. the answer text is not blank,
-3. for a refusal, `refusal_reason` equals the case's `expected_reason` (declining
-   "What does Yelp say?" as general knowledge would tell the user the wrong thing), and
+3. for a refusal, `refusal_reason` is one of the case's `expected_reason` values
+   (declining "What does Yelp say?" as general knowledge would tell the user the wrong
+   thing). A refusal carries one reason, even when a question breaks two rules, and
+   the prompt sets no priority between them. So such a case lists every reason that
+   applies and passes on any one of them: "Joe's vs Domino's on Amazon" accepts
+   `OTHER_PLATFORM` or `OTHER_ENTITY`, and
 4. the answer contains none of the case's `must_not_contain` text, ignoring case.
    These catch an obviously made-up answer with the right status, e.g. "Paris"
    while declining the capital of France. Keep them to a few strings per case: they
@@ -49,9 +54,6 @@ returns) with a `status` next to the answer text. A case passes when:
 
 The scorecard says which check failed, e.g.
 `FAILED other-platform-yelp: expected reason OTHER_PLATFORM, got GENERAL_KNOWLEDGE`.
-
-With the real model, the reason check fails until the system prompt asks the model
-for a reason (S2-013); that is expected, not a broken eval.
 
 ## Running it
 
@@ -76,17 +78,56 @@ Two kinds of `ask`, two places to run it:
   costs money and varies between runs, so it stays out of CI. Read the scorecard
   and look at any failures, rather than expecting 100% every time.
 
-Neither is wired up yet. The Q&A pipeline and fake model exist (S2-003); the CI
-`ask` (S2-004) and the live script (S2-013) are still to come. Only the scorer runs
-today, against fake pipelines.
+The live run is `live.py` (below). The CI `ask` through the pipeline is still to
+come; today CI runs the scorer against fake pipelines.
+
+## Running it live (by hand)
+
+`live.py` asks the cases through `answer_question` (the code behind the Q&A panel:
+system prompt, tool loop, answer builder) with the real model from `backend/.env`,
+and prints each answer and a scorecard. It never runs in CI or `pytest`.
+
+**Needs:** `OPENROUTER_API_KEY` and `QA_MODEL` in `backend/.env`, and the throwaway
+test Postgres the database tests use (Docker, pgvector image; see the main README).
+It saves the Joe's Pizza reviews there for a throwaway user and rolls everything
+back at the end. It refuses a Supabase URL.
+
+```powershell
+cd backend
+$env:TEST_DATABASE_URL="postgresql://postgres:postgres@localhost:5432/postgres"
+uv run python -m tests.evals.live                       # one case per category (6)
+uv run python -m tests.evals.live --category OTHER_PLATFORM
+uv run python -m tests.evals.live --case general-weather --case no-evidence-kids
+uv run python -m tests.evals.live --all                 # all cases
+uv run python -m tests.evals.live --list                # list cases, ask nothing
+```
+
+**Requests:** each case uses one model request per tool call plus the final answer,
+up to `QA_MAX_TOOL_CALLS + 2` (a refusal is often 1, an answer 2 to 4). They come from
+your own key, and the run prints how many it used. Free models cost nothing but have
+a daily request limit, so the default asks one case per category; use `--all` only
+with credits. When the model is busy or rate limited, the case shows as `SKIPPED`,
+not `FAILED`, and after 2 in a row the run stops.
+
+To run every case on a free key, set `$env:QA_MODE="full"` for the run: all 17
+reviews go in one message instead of through the tools, so a case is about one
+request. The scope rules are the same in both modes (`scope_prompt`); only how the
+model reads the reviews differs, and the scorecard's first line says which mode ran.
+
+Expect some variation between runs. Read the failures: a wrong status or reason
+points at the system prompt (`app/services/qa/prompt.py`), not at the code.
 
 ## Changing the set
 
 - **Keep it small.** At least 3 cases per category and at most 30 in total; the tests
-  enforce both. Add a case only if it tests something no existing case does.
+  enforce both. The set is at 30 now, so a new case replaces one. Add a case only if
+  it tests something no existing case does.
 - **Keep the reviews consistent with the cases.** Insufficient-evidence and
   other-entity/platform cases rely on the reviews never mentioning their topic.
   `test_joes_pizza_reviews.py` lists those words; add one there when you add a case.
+  A word check can't see meaning: a review comparing Joe's with another place can
+  answer any "is Joe's better than ...?" question, so refusal cases ask about the
+  other place itself.
 - **Don't make the eval pass with a blocklist.** Scope must come from the system
   prompt and context (S2-BR-019, S2-BR-020). Filtering these exact questions in code
   would pass the set without making ReviewLens any better at new ones.

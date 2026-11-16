@@ -301,3 +301,26 @@ def test_config_is_read_from_settings():
         mode="full",
         full_mode_max_characters=5000,
     )
+
+
+def test_each_question_logs_its_model_calls_tool_calls_and_time(ask, caplog):
+    model = FakeChatModel(call("find_reviews"), submit("ANSWERED", cited=["R1"]))
+    with caplog.at_level(logging.INFO, logger="app.services.qa.orchestrator"):
+        ask(model)
+
+    assert f"Q&A for target {TARGET_A}: 2 model calls, 1 tool calls," in caplog.text
+
+
+class RateLimitError(Exception):
+    """Stands in for openai.RateLimitError, whose text the log must never show."""
+
+
+def test_a_model_failure_log_names_its_cause_but_not_its_text(ask, caplog):
+    error = ModelUnavailableError("RateLimitError")
+    error.__cause__ = RateLimitError("429 upstream, key sk-secret-123")
+
+    with caplog.at_level(logging.WARNING), pytest.raises(QAUnavailableError):
+        ask(FakeChatModel(error))
+
+    assert "caused by RateLimitError" in caplog.text
+    assert "sk-secret-123" not in caplog.text

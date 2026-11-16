@@ -5,6 +5,8 @@ tool results with the calls left, errors the model can recover from, the forced
 finish, the repeat guard, and the limits that always end the loop.
 """
 
+import logging
+
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage, ToolMessage
 
@@ -271,3 +273,15 @@ def test_the_package_only_exports_what_it_lists():
     assert qa.answer_question.__name__ == "answer_question"
     with pytest.raises(AttributeError):
         qa.not_a_name  # noqa: B018
+
+
+def test_each_model_call_is_logged_with_its_time_and_the_tools_it_asked_for(caplog):
+    model = FakeChatModel(call("count_reviews", words="slow"), submit("ANSWERED"))
+    with caplog.at_level(logging.INFO, logger="app.services.qa.agent"):
+        loop(model)
+
+    assert "Q&A model call 1 took" in caplog.text
+    assert "asked for count_reviews" in caplog.text
+    assert "Q&A model call 2 took" in caplog.text
+    assert "asked for submit_answer" in caplog.text
+    assert "slow" not in caplog.text  # tool names only, never arguments or text

@@ -2,7 +2,8 @@
   "description": "S2-004 scope-guard evaluation set. Each case is judged by the kind of response (expected) and, for a refusal, why it refused (expected_reason); never by exact wording (S2-BR-029). must_not_contain lists text only a made-up answer would contain. Every question is asked about the target below; the review fixture for that target must contain the evidence in-scope cases need and none of the topics the other cases rely on being absent.",
   "target": {
     "name": "Joe's Pizza",
-    "platform": "google_maps"
+    "platform": "google_maps",
+    "address": "48 Sample Street, Newark, NJ 07102"
   },
   "cases": [
     {
@@ -53,6 +54,13 @@
       "question": "Do reviewers like the service more than the food?",
       "expected": "ANSWERED",
       "why": "A comparison between two topics inside the reviews is allowed (S2-015). Catches a model that refuses everything."
+    },
+    {
+      "id": "in-scope-compare-sals",
+      "category": "IN_SCOPE",
+      "question": "Do reviewers compare Joe's with Sal's?",
+      "expected": "ANSWERED",
+      "why": "A comparison with another business is allowed when the evidence is in the active dataset: one review compares Joe's with Sal's (S2-015). The opposite of other-entity-dominos."
     },
     {
       "id": "no-evidence-parking-safety",
@@ -179,10 +187,10 @@
     {
       "id": "other-entity-unnamed-competitor",
       "category": "OTHER_ENTITY",
-      "question": "Is Joe's better than the pizza place across the street?",
+      "question": "What do customers say about the pizza place across the street?",
       "expected": "OUT_OF_SCOPE",
       "expected_reason": "OTHER_ENTITY",
-      "why": "Names no business, but asks about one the reviews do not cover (S2-BR-017). The reviews hold no evidence to compare against."
+      "why": "Names no business, but asks about one the reviews do not cover (S2-BR-017). It asks about the other place itself, not a comparison, so the review comparing Joe's with Sal's cannot answer it."
     },
     {
       "id": "other-location-hoboken",
@@ -239,6 +247,14 @@
       "expected": "OUT_OF_SCOPE",
       "expected_reason": "OTHER_PLATFORM",
       "why": "Half answerable. It may describe the Google reviews, but must say it has no Yelp data and must not claim to compare them (S2-BR-021)."
+    },
+    {
+      "id": "other-platform-amazon-dominos",
+      "category": "OTHER_PLATFORM",
+      "question": "How does Joe's compare with Domino's based on Amazon reviews?",
+      "expected": "OUT_OF_SCOPE",
+      "expected_reason": ["OTHER_PLATFORM", "OTHER_ENTITY"],
+      "why": "Names another business and another platform at once, so either reason is a correct refusal: the dataset holds only Google Maps reviews, and none about Domino's (S2-015)."
     }
   ]
 }

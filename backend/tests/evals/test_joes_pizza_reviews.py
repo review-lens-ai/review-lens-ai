@@ -36,6 +36,7 @@ MUST_NOT_MENTION = {
     "yelp": "other-platform-yelp",
     "uber": "other-platform-uber-eats",
     "tripadvisor": "other-platform-tripadvisor-rating",
+    "amazon": "other-platform-amazon-dominos",
 }
 
 # Topics in-scope cases ask about: some review must mention one of the words.
@@ -46,6 +47,7 @@ MUST_MENTION = {
     # The comparison case needs both sides in the reviews: service and food.
     "in-scope-service-vs-food (service side)": ("service", "staff", "server"),
     "in-scope-service-vs-food (food side)": ("pizza", "slice", "crust"),
+    "in-scope-compare-sals": ("sal's",),
 }
 
 
