@@ -186,6 +186,33 @@ def test_full_mode_points_at_the_listing_and_has_no_tool_budget():
     assert "Cite the labels" in prompt
 
 
+# --- Answers about numbers still cite reviews (S2-BR-010) ---
+# The facts and review_stats give numbers, not reviews. Without these lines the model
+# answered "What is the average rating?" with no citation, and build_answer turned the
+# answer into INSUFFICIENT_EVIDENCE (found by the live eval).
+
+
+@BOTH_MODES
+def test_prompt_says_every_answer_cites_a_review_even_about_numbers(make):
+    prompt = make()
+
+    assert "5. Every answer cites at least one review." in prompt
+    assert "also read a few reviews that show it and cite them" in prompt
+    assert "shown to the user as not enough evidence" in prompt
+
+
+def test_tools_mode_says_where_to_find_reviews_to_cite_for_numbers():
+    prompt = tools_prompt()
+
+    assert "The facts and review_stats give numbers, not reviews" in prompt
+    assert "search_reviews (for example min_rating 4" in prompt
+
+
+def test_full_mode_does_not_point_at_a_search_tool():
+    # Every review is already in the message, so there is nothing to search.
+    assert "search_reviews" not in full_prompt()
+
+
 # --- Names and addresses are data, not rules ---
 
 
