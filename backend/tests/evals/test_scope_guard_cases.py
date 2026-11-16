@@ -61,6 +61,21 @@ def test_eval_set_names_one_google_maps_target(eval_set: dict) -> None:
     assert eval_set["target"]["platform"] == "google_maps"
 
 
+def test_target_address_is_not_a_location_the_cases_call_another_branch(
+    eval_set: dict, cases: list[dict]
+) -> None:
+    # The address tells the model which Joe's Pizza these reviews are for, as a real
+    # target's address from Google Maps does (S2-BR-017). A location case asking
+    # about the target's own city would have no right answer.
+    address = eval_set["target"]["address"].lower()
+    assert address.strip()
+    for case in cases:
+        if case["category"] == "OTHER_LOCATION":
+            for city in ("hoboken", "brooklyn"):
+                if city in case["question"].lower():
+                    assert city not in address, case["id"]
+
+
 def test_every_case_has_exactly_the_expected_fields(cases: list[dict]) -> None:
     for case in cases:
         assert CASE_FIELDS <= set(case) <= CASE_FIELDS | OPTIONAL_FIELDS, case.get("id")
