@@ -25,6 +25,7 @@ import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
 import { errorMessage, isNotFound, isUnauthorized } from "@/lib/api";
+import { APP_TITLE } from "@/lib/app-title";
 import { type SkippedReason, useGetTarget } from "@/lib/generated/api";
 import { useLatestRun } from "@/lib/hooks/use-latest-run";
 import { useReviews } from "@/lib/hooks/use-reviews";
@@ -137,6 +138,8 @@ function TargetWorkspace({
   useEffect(() => {
     if (qaOpen) document.getElementById(qaPanelId)?.querySelector("textarea")?.focus();
   }, [qaOpen, qaPanelId]);
+  // S2-017: the browser tab names the active target too, so a switch shows there as well.
+  useActiveTargetTitle(targetQuery.data?.name);
 
   // Another user's target looks exactly like a missing one.
   if (isNotFound(targetQuery.error) || isNotFound(latest.startError) || qaNotFound) {
@@ -336,6 +339,28 @@ function TargetWorkspace({
   );
 }
 
+// The browser tab reads "<target> · ReviewLens" while a target is open, and goes back
+// to the app's title when the workspace closes. Next.js writes the layout's title
+// (app/layout.tsx) into the head after a client-side navigation, which can land after
+// this effect, e.g. when going back to a target that is already loaded. So the title is
+// set again whenever the head changes, not only once.
+function useActiveTargetTitle(targetName: string | undefined) {
+  useEffect(() => {
+    if (!targetName) return;
+    const wanted = `${targetName} · ${APP_TITLE}`;
+    const apply = () => {
+      if (document.title !== wanted) document.title = wanted;
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.head, { subtree: true, childList: true, characterData: true });
+    return () => {
+      observer.disconnect();
+      document.title = APP_TITLE;
+    };
+  }, [targetName]);
+}
+
 // TargetContextHeader (ui-ux-standards.md §3.1): always above workspace content, so the
 // user knows which target is active.
 function TargetContextHeader({
@@ -357,7 +382,14 @@ function TargetContextHeader({
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="flex flex-wrap items-start justify-between gap-4 p-6">
         <div className="flex min-w-0 flex-col gap-2">
-          <p className="text-sm text-muted-foreground">Active target</p>
+          <div className="flex items-center gap-3 text-sm">
+            <p className="text-muted-foreground">Active target</p>
+            {/* S2-017: below lg the sidebar's target list is behind a menu button, so the
+                header links to the full list. At lg and up the sidebar is always shown. */}
+            <Link href="/targets" className="text-primary underline lg:hidden">
+              Switch target
+            </Link>
+          </div>
           <h1 className="text-3xl font-semibold tracking-tight">{target.name}</h1>
           <div className="flex flex-wrap items-center gap-3">
             <PlatformBadge platform={target.platform} />
