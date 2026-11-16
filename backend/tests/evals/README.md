@@ -13,7 +13,8 @@ target's reviews and declines everything else.
 | `joes_pizza_reviews.json` | The reviews every question is asked about: 17 Google Maps reviews of "Joe's Pizza". |
 | `scope_guard.py` | Loads both files, runs the questions through any `ask` function and scores the responses. |
 | `live.py` | Runs the questions through the real pipeline and model, by hand (see "Running it live"). |
-| `test_*.py` | Keep the files complete and consistent, and test the scorer with fake pipelines. |
+| `test_scope_guard_pipeline.py` | Runs every case through the real Q&A pipeline with a scripted model, in CI. |
+| `test_*.py` (the rest) | Keep the files complete and consistent, and test the scorer with fake pipelines. |
 
 ## Categories
 
@@ -78,8 +79,14 @@ Two kinds of `ask`, two places to run it:
   costs money and varies between runs, so it stays out of CI. Read the scorecard
   and look at any failures, rather than expecting 100% every time.
 
-The live run is `live.py` (below). The CI `ask` through the pipeline is still to
-come; today CI runs the scorer against fake pipelines.
+The CI run is `test_scope_guard_pipeline.py`: every case goes through the real
+orchestrator, tool loop, prompt and answer builder on the Joe's Pizza reviews, with a
+scripted model that replies the way a good model would. It checks that each reply
+reaches the response with the right status and reason, that a refusal carries no
+review evidence and still says something when the model's own text is blank, that an
+answer with no review behind it is not passed off as an answer, and that every
+question reaches the model with the scope prompt. It cannot show that a live model
+chooses the right reply; that is the live run, `live.py` (below).
 
 ## Running it live (by hand)
 
