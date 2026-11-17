@@ -37,8 +37,9 @@ Other rules this module enforces:
 - NO FAKE SUCCESS: only a RUNNING run can succeed. COMPLETED and PARTIAL are
   final; the only way out of FAILED is requeue().
 - STALE RUNS: a QUEUED or RUNNING run with no progress for STALE_RUN_AFTER (since
-  it was queued or started) is failed as TIMEOUT before a new run is created, so
-  a crash never blocks a target forever.
+  it was queued or started) is ended by the worker on every pass, and before a new
+  run is created, so a crash never blocks a target forever. If it had already saved
+  reviews it ends PARTIAL (they stay); if it saved nothing it is FAILED as TIMEOUT.
 - NO LEAKED INTERNALS: error_code is one of a fixed list. Technical detail is
   scrubbed (API keys, query strings) and logged; it is never stored or returned.
 """
@@ -352,20 +353,48 @@ class IngestionRunRepository:
             for code, count in sorted(totals.items(), key=lambda t: (-t[1], t[0]))
         ]
 
+    def finish_stale_runs(self) -> int:
+        """Finish every QUEUED or RUNNING run, on any target, that has made no
+        progress for STALE_RUN_AFTER. The worker calls this on every pass, so a
+        run that was cut off (worker stopped, laptop closed) never stays
+        "Ingesting" for ever. Returns how many runs it finished."""
+        return self._finish_stale(None)
+
     def _fail_stale_runs(self, target_id: UUID | str) -> None:
-        """Fail any QUEUED or RUNNING run that has made no progress for too long."""
-        self._conn.execute(
+        """The same, for one target, before a new run is queued for it."""
+        self._finish_stale(target_id)
+
+    def _finish_stale(self, target_id: UUID | str | None) -> int:
+        """A run that had already saved reviews ends PARTIAL (what it saved stays and
+        counts), never FAILED. A run that saved nothing ends FAILED as TIMEOUT."""
+        return self._conn.execute(
             """
-            update public.ingestion_runs
-               set status = 'FAILED',
+            with stale as (
+                select r.id,
+                       (select count(*) from public.reviews v where v.run_id = r.id) as saved
+                  from public.ingestion_runs r
+                 where r.status in ('QUEUED', 'RUNNING')
+                   and coalesce(r.started_at, r.queued_at) < now() - %(after)s
+                   and (%(target)s::uuid is null or r.target_id = %(target)s::uuid)
+            )
+            update public.ingestion_runs r
+               set status = (case when s.saved > 0 and r.started_at is not null
+                                  then 'PARTIAL' else 'FAILED' end
+                            )::public.ingestion_status,
                    finished_at = now(),
-                   error_code = %s
-             where target_id = %s
-               and status in ('QUEUED', 'RUNNING')
-               and coalesce(started_at, queued_at) < now() - %s
+                   reviews_ingested = case when s.saved > 0 and r.started_at is not null
+                                           then s.saved else r.reviews_ingested end,
+                   error_code = case when s.saved > 0 and r.started_at is not null
+                                     then null else %(code)s end
+              from stale s
+             where r.id = s.id
             """,
-            (ErrorCode.TIMEOUT.value, target_id, STALE_RUN_AFTER),
-        )
+            {
+                "after": STALE_RUN_AFTER,
+                "target": target_id,
+                "code": ErrorCode.TIMEOUT.value,
+            },
+        ).rowcount
 
     def _finish(
         self,

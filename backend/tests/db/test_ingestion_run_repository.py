@@ -325,6 +325,48 @@ def test_stale_active_run_is_failed_as_timeout_and_a_new_run_can_start(
     assert old["finished_at"] is not None
 
 
+def test_worker_sweep_ends_a_cut_off_run_without_a_new_run_being_queued(
+    conn, runs, running_run
+):
+    _age(conn, running_run["id"], STALE_RUN_AFTER * 2)
+
+    assert runs.finish_stale_runs() == 1
+
+    row = conn.execute(
+        "select status::text as status, error_code from public.ingestion_runs "
+        "where id = %s",
+        (running_run["id"],),
+    ).fetchone()
+    assert (row["status"], row["error_code"]) == ("FAILED", "TIMEOUT")
+
+
+def test_cut_off_run_that_had_saved_reviews_ends_partial_not_failed(
+    conn, runs, running_run, owned_target
+):
+    target_id, _ = owned_target
+    for n in range(3):
+        conn.execute(
+            "insert into public.reviews "
+            "(target_id, run_id, rating, review_text, source_review_id, mapping_version) "
+            "values (%s, %s, 5, 'Great', %s, 'serpapi@1')",
+            (target_id, running_run["id"], f"r{n}"),
+        )
+    _age(conn, running_run["id"], STALE_RUN_AFTER * 2)
+
+    runs.finish_stale_runs()
+
+    row = conn.execute(
+        "select status::text as status, error_code, reviews_ingested "
+        "from public.ingestion_runs where id = %s",
+        (running_run["id"],),
+    ).fetchone()
+    assert (row["status"], row["error_code"], row["reviews_ingested"]) == (
+        "PARTIAL",
+        None,
+        3,
+    )
+
+
 def test_recent_active_run_is_not_treated_as_stale(conn, runs, owned_target):
     target_id, owner = owned_target
     run = runs.create_run(target_id, owner)

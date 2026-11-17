@@ -76,6 +76,11 @@ class FakeRuns:
         self.queued = list(queued)
         self.metadata = None
         self.result = None
+        self.swept = 0
+
+    def finish_stale_runs(self):
+        self.swept += 1
+        return 0
 
     def claim_next_queued(self):
         self.log.append("claim")

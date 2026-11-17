@@ -165,6 +165,8 @@ class _StageFailedError(Exception):
 
 def process_next_run(pipeline: Pipeline) -> bool:
     """Claim and process the oldest QUEUED run. False if nothing was queued."""
+    # A run cut off earlier must not stay "Ingesting" for ever: end it first.
+    pipeline.runs.finish_stale_runs()
     run = pipeline.runs.claim_next_queued()
     pipeline.conn.commit()  # RUNNING is visible to the workspace page at once
     if run is None:

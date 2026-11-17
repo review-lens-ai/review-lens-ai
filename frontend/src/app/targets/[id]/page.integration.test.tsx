@@ -594,6 +594,22 @@ describe("reviews list", () => {
     expect(offsetsAsked).toEqual([0, 12]);
   });
 
+  it("scrolls to the first review of the new page when Next is pressed", async () => {
+    backendHas(completedRun);
+    backendHoldsReviews(30);
+    const scrolled = vi.fn();
+    Element.prototype.scrollIntoView = scrolled; // jsdom has none
+    await openWorkspace("Ingested");
+    await screen.findByText("Showing 1–12 of 30");
+    scrolled.mockClear();
+
+    fireEvent.click(button("Next"));
+
+    await screen.findByText("Showing 13–24 of 30");
+    await waitFor(() => expect(scrolled).toHaveBeenCalled());
+    expect(scrolled.mock.calls[0][0]).toMatchObject({ block: "start" });
+  });
+
   it("next is disabled on the last page", async () => {
     backendHas(completedRun);
     backendHoldsReviews(15);
