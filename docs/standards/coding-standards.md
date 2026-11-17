@@ -57,10 +57,10 @@ Use these terms everywhere. No synonyms.
 - Identifiers: camelCase; PascalCase for components and types; UPPER_CASE for constants.
   The exported component is PascalCase even though its file is kebab-case:
   `status-badge.tsx` exports `StatusBadge`.
-- TypeScript files: kebab-case (`status-badge.tsx`, `api-client.ts`), enforced by the
-  `check-file` lint rule. Shared components live in `src/app/_components/`
-  (shadcn primitives in `src/app/_components/ui/`). `src/components/` is not used:
-  the lint rule would require PascalCase file names there, and shadcn generates kebab-case.
+- TypeScript files: kebab-case everywhere (`status-badge.tsx`, `api-client.ts`),
+  enforced by the `check-file` lint rule with no exceptions. Shared components live in
+  `src/app/_components/` (shadcn primitives in `src/app/_components/ui/`). Use that
+  folder, not `src/components/`, so shadcn's generated kebab-case files fit.
 - Next.js routes: lowercase folders, private folders prefixed `_`, reserved file names only (`page.tsx`, `layout.tsx`).
 
 ### Database
@@ -77,6 +77,9 @@ Use these terms everywhere. No synonyms.
 - Query params and JSON fields: snake_case. Matches Python and the database, no conversion layer.
 - Mount every router on `api_router` (`app/api/router.py`). It adds the `/api/v1` prefix and requires a verified user (S1-BR-004).
 - Public endpoints (e.g. `/health`) live outside `api_router`.
+- Declare the errors a route returns with `error_responses(...)` (`app/core/errors.py`). The contract test (`tests/api/test_openapi_contract.py`) fails if one is missing.
+- The frontend's API types and hooks are generated from the backend's spec by Orval (`frontend/src/lib/generated/api.ts`). After changing a route or schema, run `npm run api:generate` in `frontend/` and commit `openapi.json` and `src/lib/generated/`. Never edit them by hand: `scripts/check.sh` (and CI) fails when they are out of date.
+- Components get server data from hooks, never by calling `apiFetch` or `fetch` themselves: a generated hook directly, or a hook in `frontend/src/lib/hooks/` when the page needs more (polling, paging, a shared list). A 401 is handled once, by `QueryProvider`; don't handle it per component.
 
 ### Environment variables
 
@@ -87,7 +90,7 @@ Use these terms everywhere. No synonyms.
 
 ### Tests
 
-- Files: `test_<module>.py`, `<Component>.test.tsx`.
+- Files: `test_<module>.py`, `<kebab-case-name>.test.tsx` (e.g. `status-badge.test.tsx`).
 - Names: `test_<subject>_<expected_result>`, e.g. `test_user_b_cannot_read_user_a_target`.
 - Fixtures: `<provider>_<scenario>.json`.
 
@@ -139,6 +142,30 @@ New dependencies must be approved by the team. In the PR, link the official sour
 - **Established:** widely adopted, well supported.
 
 ## 8. Testing
+
+### Changed-code coverage
+
+A pull request into `dev` fails CI if the lines it adds or changes are less than **80%**
+covered by tests. Old untested code does not block it; only the lines in the PR count.
+
+| | |
+|---|---|
+| Mechanism | `pytest-cov` (backend) and `@vitest/coverage-v8` (frontend) record which lines the tests run. `diff-cover` compares that with the PR's git diff. |
+| Policy | At least 80% of changed lines covered, checked **separately** for the backend and the frontend, so a large backend change cannot hide an untested frontend one. Line and branch coverage. |
+| Where it runs | The `Changed-code coverage` step of the required `check` job, on pull requests into `dev` only. A `dev` → `main` PR is a whole release, already checked on its way into `dev`. |
+| Run it locally | `TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres ./scripts/coverage.sh` (needs the test database; compares against `origin/dev`, or set `COVERAGE_BASE`) |
+
+Excluded, and why:
+
+- `frontend/src/app/_components/ui/`: shadcn components, generated and not written by us.
+- `frontend/src/lib/generated/`: the API client Orval generates from the backend's spec
+  (`npm run api:generate`). Not written by us, and checked by CI for being up to date instead.
+- Test code (`backend/tests/`, `frontend/src/test/`, `*.test.*`): it is the tests, not the
+  behavior under test.
+
+Every other source file counts, including pages no test loads yet: they show as 0%, not as
+missing. Coverage shows that a line ran, not that a test checked it, so reviewers still judge
+whether the tests assert the right behavior.
 
 ### Frontend
 

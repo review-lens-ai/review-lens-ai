@@ -290,6 +290,7 @@ Build these once in the shared folder `frontend/src/app/_components/` (shadcn pr
 | `Skeleton` | Loading placeholder | |
 | `ConfirmDialog` | Destructive-action confirmation | Focus trapped; Esc cancels |
 | `ReviewCard` | One review: rating, text, author/date if available | Long text truncates with "Show more" |
+| `ReviewSummaryCard` | Review count, average rating and count per rating for the active target (S2-006) | Names the target in its heading; numbers come only from the backend summary of saved reviews |
 
 ### Rules
 
@@ -335,6 +336,8 @@ Desktop-first, but nothing should break on smaller screens.
 | < 768px | Single column; context header stacks vertically; tables become stacked cards |
 
 The active target name and status must stay visible at every width.
+
+Below 1024px, where the sidebar's target list is behind the menu button, the workspace header shows a **Switch target** link to the target list (S2-017). While a target is open, the browser tab title is "*Target name* · ReviewLens".
 
 ---
 

@@ -35,7 +35,7 @@ sequenceDiagram
     API-->>FE: stored reviews
 ```
 
-The API never calls SerpApi. It only queues a run, and the worker does the fetching, so a slow or failing source never blocks a request. Sign-in is handled by Supabase Auth: the frontend gets a JWT from it, and the backend verifies that token against Supabase's public keys (JWKS). The LLM provider (Sprint 2) is not drawn because it is not decided.
+The API never calls SerpApi. It only queues a run, and the worker does the fetching, so a slow or failing source never blocks a request. Sign-in is handled by Supabase Auth: the frontend gets a JWT from it, and the backend verifies that token against Supabase's public keys (JWKS). The LLM provider (Sprint 2, OpenRouter) is not drawn yet; only the backend calls it, through `backend/app/llm/` (see [qa-harness.md](qa-harness.md)).
 
 ## 2. The eleven baseline items
 
@@ -46,7 +46,7 @@ The API never calls SerpApi. It only queues a run, and the worker does the fetch
 | 3 | Database | Supabase Postgres | Schema in `supabase/migrations/`. Row level security is on with no policies, and the Data API roles are revoked, so the database is only reachable through our backend. |
 | 4 | Identity provider | Supabase Auth | The frontend signs users in. The backend checks every token (RS256/ES256, audience, issuer, expiry) and takes the user id only from it. |
 | 5 | Review ingestion | SerpApi Google Maps reviews, run by a background worker | One run per target at a time. Stages: INGESTION, then NORMALIZATION. See [019-ingestion-pipeline.md](019-ingestion-pipeline.md) and [review-ingestion.md](review-ingestion.md). |
-| 6 | LLM provider | **Not decided** | Needed for Sprint 2. It will sit behind one backend boundary, and summary numbers will come from stored data, not from the model. |
+| 6 | LLM provider | OpenRouter, through LangChain (`langchain-openai`); the model is set by `QA_MODEL` | It sits behind one backend boundary (`backend/app/llm/`), and summary numbers come from stored data, not from the model. The Q&A tool loop, its contracts and its test harness are in [qa-harness.md](qa-harness.md). |
 | 7 | Deployment | **Not decided** (README mentions Vercel for the frontend and Render for the backend) | Sprint 3. CI today: GitHub Actions runs `scripts/check.sh` against a Postgres 17 service. |
 | 8 | Domain entities | See section 3 | |
 | 9 | API boundaries | See section 4 | |
@@ -170,8 +170,11 @@ Normalized reviews. No reviewer name is stored.
 | `source_metadata` | jsonb | Default `{}` |
 | `mapping_version` | text | Required. Which version of the field mapping produced the row |
 | `created_at` | timestamptz | |
+| `search_vector` | tsvector | Generated from `review_text`, with a GIN index. Keyword search for the Q&A tools (S2-010). Postgres keeps it up to date; nothing writes it |
 
 Rule: `(target_id, source_review_id)` is unique, so a second run over the same reviews adds none twice.
+
+The Q&A tools (S2-010) read `reviews` live and store nothing of their own: counts, averages and terms are calculated each time, so they always match the summary card.
 
 ### `ingestion_rejections`
 
@@ -237,7 +240,8 @@ review-lens-ai/
 │   │   ├── api/              # HTTP routes
 │   │   ├── schemas/          # Request and response shapes
 │   │   ├── repositories/     # All SQL, owner-filtered
-│   │   ├── services/         # Processing logic (normalizer)
+│   │   ├── services/         # Processing logic (normalizer); qa/orchestration and qa/tools/ is what the Q&A model can call
+│   │   ├── llm/              # The model boundary (ChatModel) and the OpenRouter adapter
 │   │   ├── adapters/serpapi/ # Talks to SerpApi
 │   │   ├── fixtures/         # Saved provider responses, so tests never call the live service
 │   │   └── db/               # Migration runner
@@ -246,7 +250,7 @@ review-lens-ai/
 ├── docs/
 │   ├── architecture/         # This folder
 │   └── standards/            # Coding, philosophy, AI-assisted development, guardrails, UI/UX
-├── scripts/                  # setup.sh, dev.sh, check.sh, migrate.sh, setup-branch-protection.sh
+├── scripts/                  # setup.sh, dev.sh, check.sh, migrate.sh, embed-reviews.sh, setup-branch-protection.sh
 ├── .github/                  # CI workflow, PR template
 └── README.md
 ```
@@ -260,6 +264,7 @@ The session transcripts live at the repository root in `ai-transcripts/` (added 
 | [012-cross-user-authorization.md](012-cross-user-authorization.md) | How a user is identified and why other users' data is invisible |
 | [019-ingestion-pipeline.md](019-ingestion-pipeline.md) | How a run moves from QUEUED to a result (still marked Draft) |
 | [review-ingestion.md](review-ingestion.md) | Why SerpApi, the worker's steps and rules, and the adapter that fetches Google Maps reviews |
+| [qa-harness.md](qa-harness.md) | How a question reaches the model, the answer contract, and the deterministic test harness (S2-003) |
 
 ## 8. Keeping this current
 

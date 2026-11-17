@@ -1,45 +1,50 @@
 "use client";
 
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   CircleAlertIcon,
   CircleCheckIcon,
   ExternalLinkIcon,
   InboxIcon,
   Loader2Icon,
+  MessageSquareTextIcon,
   RefreshCwIcon,
   SearchXIcon,
+  TriangleAlertIcon,
   XIcon,
 } from "lucide-react";
-import { useTargets } from "@/app/_components/app-shell";
 import { EmptyState } from "@/app/_components/empty-state";
 import { PlatformBadge } from "@/app/_components/platform-badge";
 import { ReviewCard } from "@/app/_components/review-card";
+import { ReviewSummaryCard } from "@/app/_components/review-summary-card";
 import { StatusBadge } from "@/app/_components/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/app/_components/ui/alert";
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/tabs";
-import { apiFetch, ApiError } from "@/lib/api";
+import { errorMessage, isNotFound, isUnauthorized } from "@/lib/api";
+import { APP_TITLE } from "@/lib/app-title";
+import { type SkippedReason, useGetTarget } from "@/lib/generated/api";
+import { useLatestRun } from "@/lib/hooks/use-latest-run";
+import { useReviews } from "@/lib/hooks/use-reviews";
 import {
-  failureMessage,
-  fetchLatestRun,
   formatRunTime,
   isActive,
   reviewCount,
   runDetail,
-  startIngestionRun,
+  runFailureMessage,
+  skippedSummary,
+  skipReasonLabel,
   type IngestionRun,
 } from "@/lib/ingestion-runs";
-import { fetchReviews, REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
+import { REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
+import { ReviewQaPanel } from "./_components/review-qa-panel";
 
-// S1-023: while a run is queued or running, check for updates this often,
-// and give up after this long (a stale run is failed by the backend anyway).
-const POLL_EVERY_MS = 3_000;
-const POLL_LIMIT_MS = 5 * 60_000;
+// S2-009: the header button that opens and closes the docked Q&A panel.
+type QaToggle = { open: boolean; panelId: string; buttonId: string; onToggle: () => void };
 
 // S1-019: what the ingest buttons need to start a run.
 type IngestAction = { onStart: () => void; starting: boolean; disabled: boolean };
@@ -81,168 +86,63 @@ export default function TargetWorkspacePage() {
 // target with empty state, so one target's reviews or status can never show on another.
 function WorkspaceForUrl() {
   const { id } = useParams<{ id: string }>();
-  return <TargetWorkspace key={id} id={id} />;
+  // ?review=<id> opens the Reviews tab on that review (e.g. a Q&A source link).
+  const focusReviewId = useSearchParams().get("review");
+  // S2-009: whether the Q&A panel is open. Kept outside the key, so the panel stays open
+  // on a switch while its conversation (inside the key) starts over for the new target.
+  const [qaOpen, setQaOpen] = useState(false);
+  return (
+    <TargetWorkspace
+      key={id}
+      id={id}
+      focusReviewId={focusReviewId}
+      qaOpen={qaOpen}
+      setQaOpen={setQaOpen}
+    />
+  );
 }
 
-function TargetWorkspace({ id }: { id: string }) {
-  const router = useRouter();
-  const { refresh: refreshTargets } = useTargets();
-  const [target, setTarget] = useState<Target | null>(null);
-  const [notFound, setNotFound] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  // S1-023: newest ingestion attempt (null = never ingested).
-  const [latestRun, setLatestRun] = useState<IngestionRun | null>(null);
-  // null while loading; reviewsFailed keeps a load failure from looking like "no reviews".
-  // reviews is the page on screen (reviewPage, 0 = first); reviewTotal is all of the
-  // target's reviews. pageFailed is a Next/Previous that failed while a page is shown.
-  const [reviews, setReviews] = useState<Review[] | null>(null);
-  const [reviewTotal, setReviewTotal] = useState(0);
-  const [reviewPage, setReviewPage] = useState(0);
-  const [reviewsFailed, setReviewsFailed] = useState(false);
-  const [pageLoading, setPageLoading] = useState(false);
-  const [pageFailed, setPageFailed] = useState(false);
-  // Counts review requests, so an older answer never replaces a newer page.
-  const reviewRequest = useRef(0);
+function TargetWorkspace({
+  id,
+  focusReviewId,
+  qaOpen,
+  setQaOpen,
+}: {
+  id: string;
+  focusReviewId: string | null;
+  qaOpen: boolean;
+  setQaOpen: (open: boolean) => void;
+}) {
+  // The data, each from its own hook. A 401 from any of them is handled once, by the
+  // QueryProvider (redirect to /login).
+  const targetQuery = useGetTarget(id);
+  const latest = useLatestRun(id);
+  const run = latest.run;
+  const skippedReasons = latest.skippedReasons;
+  // A never-ingested target has no reviews to load.
+  const everIngested = Boolean(run ?? targetQuery.data?.ingestion_status);
+  const reviews = useReviews(id, {
+    enabled: everIngested,
+    // Reviews belong to the latest run: a new or finished run reloads them from page 1.
+    latestRun: latest.loaded ? run : undefined,
+    focusReviewId,
+  });
   const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
-  // S1-019: a start request is on its way, and why the last one was refused.
-  const [starting, setStarting] = useState(false);
-  const [startError, setStartError] = useState<string | null>(null);
-
-  async function startIngestion() {
-    setStarting(true);
-    setStartError(null);
-    try {
-      // The QUEUED run is active, so the polling below takes over from here.
-      setLatestRun(await startIngestionRun(id));
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 401) {
-        router.replace("/login");
-      } else if (e instanceof ApiError && e.status === 404) {
-        setNotFound(true);
-      } else if (e instanceof ApiError && e.status === 409) {
-        // A run is already queued or running: show it instead of a second one.
-        setStartError(e.message);
-        fetchLatestRun(id)
-          .then(setLatestRun)
-          .catch(() => {});
-      } else {
-        setStartError(
-          e instanceof ApiError ? e.message : "Could not reach the server. Please try again.",
-        );
-      }
-    } finally {
-      setStarting(false);
-    }
-  }
-
+  // S2-009: a question came back NOT_FOUND, so the target is gone or not this user's.
+  const [qaNotFound, setQaNotFound] = useState(false);
+  // S2-009: the Q&A panel, docked beside the tabs. Closed until the user opens it; the
+  // conversation is kept while it is closed (it stays mounted, hidden).
+  const qaPanelId = useId();
+  const qaButtonId = useId();
+  // Opening the panel puts the cursor in the question box.
   useEffect(() => {
-    apiFetch<Target>(`/api/v1/targets/${id}`)
-      .then((t) => {
-        setTarget(t);
-        // Details for the status line. If this one call fails, the badge still
-        // shows the status from the target itself, so the page stays usable.
-        fetchLatestRun(id)
-          .then(setLatestRun)
-          .catch(() => setLatestRun(null));
-      })
-      .catch((e) => {
-        if (e instanceof ApiError && e.status === 401) {
-          router.replace("/login");
-        } else if (e instanceof ApiError && (e.status === 404 || e.status === 422)) {
-          // Another user's target looks exactly like a missing one.
-          setNotFound(true);
-        } else {
-          setError(
-            e instanceof ApiError ? e.message : "Could not reach the server. Please try again.",
-          );
-        }
-      });
-  }, [id, router]);
+    if (qaOpen) document.getElementById(qaPanelId)?.querySelector("textarea")?.focus();
+  }, [qaOpen, qaPanelId]);
+  // S2-017: the browser tab names the active target too, so a switch shows there as well.
+  useActiveTargetTitle(targetQuery.data?.name);
 
-  // The sidebar shows each target's status too, so reload it whenever this run's changes.
-  const runStatus = latestRun?.status ?? null;
-  useEffect(() => {
-    if (runStatus) void refreshTargets();
-  }, [runStatus, refreshTargets]);
-
-  // S1-023: keep the status fresh while a run is active, so it moves
-  // queued -> running -> finished without a manual refresh. Keyed on the run's
-  // id, so a status change within the same run doesn't restart the 5-minute limit.
-  const activeRunId = latestRun && isActive(latestRun.status) ? latestRun.id : null;
-  useEffect(() => {
-    if (!activeRunId) return;
-    const pollingSince = Date.now();
-    let stopped = false;
-    const timer = setInterval(() => {
-      if (Date.now() - pollingSince > POLL_LIMIT_MS) {
-        clearInterval(timer);
-        return;
-      }
-      fetchLatestRun(id)
-        .then((run) => {
-          if (!stopped) setLatestRun(run);
-        })
-        // A failed check keeps the last known status; the next tick tries again.
-        .catch(() => {});
-    }, POLL_EVERY_MS);
-    return () => {
-      // Stop when the run finishes or the user leaves the page.
-      stopped = true;
-      clearInterval(timer);
-    };
-  }, [id, activeRunId]);
-
-  // A never-ingested target has nothing to load. Otherwise load the reviews, and again
-  // whenever a run finishes. Keeps showing earlier reviews during a new run (§7.3).
-  const everIngested = Boolean(latestRun ?? target?.ingestion_status);
-  const finishedAt = latestRun?.finished_at ?? null;
-  useEffect(() => {
-    if (!everIngested) return;
-    let stopped = false;
-    const request = ++reviewRequest.current;
-    // Still the newest review request, and the target hasn't changed since.
-    const current = () => !stopped && request === reviewRequest.current;
-    // Back to page 1 whenever a run finishes: new reviews push older ones down (#68).
-    fetchReviews(id, 0)
-      .then((page) => {
-        if (!current()) return;
-        setReviews(page.items);
-        setReviewTotal(page.total);
-        setReviewPage(0);
-        setReviewsFailed(false);
-        setPageFailed(false);
-        // A Next/Previous still loading was overtaken by this reload.
-        setPageLoading(false);
-      })
-      .catch(() => {
-        if (!current()) return;
-        setReviewsFailed(true);
-        setPageLoading(false);
-      });
-    return () => {
-      stopped = true;
-    };
-  }, [id, everIngested, finishedAt]);
-
-  // Next/Previous. A failed request keeps the page on screen and says so.
-  async function showReviewPage(page: number) {
-    const request = ++reviewRequest.current;
-    setPageLoading(true);
-    setPageFailed(false);
-    try {
-      const result = await fetchReviews(id, page);
-      if (request !== reviewRequest.current) return;
-      setReviews(result.items);
-      setReviewTotal(result.total);
-      setReviewPage(page);
-    } catch {
-      if (request === reviewRequest.current) setPageFailed(true);
-    } finally {
-      if (request === reviewRequest.current) setPageLoading(false);
-    }
-  }
-
-  if (notFound) {
+  // Another user's target looks exactly like a missing one.
+  if (isNotFound(targetQuery.error) || isNotFound(latest.startError) || qaNotFound) {
     return (
       <EmptyState
         icon={<SearchXIcon />}
@@ -257,59 +157,114 @@ function TargetWorkspace({ id }: { id: string }) {
     );
   }
 
-  if (error) {
+  if (targetQuery.error && !isUnauthorized(targetQuery.error)) {
     return (
       <Alert variant="destructive">
         <CircleAlertIcon aria-hidden="true" />
         <AlertTitle>We couldn&apos;t load this target.</AlertTitle>
-        <AlertDescription>{error}</AlertDescription>
+        <AlertDescription>{errorMessage(targetQuery.error)}</AlertDescription>
       </Alert>
     );
   }
 
+  const target = targetQuery.data;
   if (!target) return <WorkspaceSkeleton />;
 
+  // Why the last start was refused. A 401 redirects and a 404 shows "not found" above.
+  const startError =
+    latest.startError && !isUnauthorized(latest.startError)
+      ? errorMessage(latest.startError)
+      : null;
+
   // One active run per target, so the buttons are off while one is queued or running.
+  // They are also off once a run found nothing new (see isUpToDate).
   const ingest: IngestAction = {
-    onStart: startIngestion,
-    starting,
-    disabled: starting || isActive(latestRun?.status ?? target.ingestion_status),
+    onStart: latest.start,
+    starting: latest.starting,
+    disabled:
+      latest.starting || isActive(run?.status ?? target.ingestion_status) || isUpToDate(run),
   };
 
   // A never-ingested target opens on Ingestion, the first step of the flow (§1);
   // a target with data opens on its Reviews.
-  const firstTab = target.ingestion_status ? "reviews" : "ingestion";
+  const firstTab = target.ingestion_status || focusReviewId ? "reviews" : "ingestion";
+
+  const qa: QaToggle = {
+    open: qaOpen,
+    panelId: qaPanelId,
+    buttonId: qaButtonId,
+    onToggle: () => setQaOpen(!qaOpen),
+  };
+  // Closing returns focus to the button that opened the panel.
+  function closeQa() {
+    setQaOpen(false);
+    document.getElementById(qaButtonId)?.focus();
+  }
 
   return (
     <Tabs defaultValue={firstTab} className="gap-6">
       <TargetContextHeader
         target={target}
-        run={latestRun}
-        reviewsKept={reviewTotal}
+        run={run}
+        reviewsKept={reviews.total}
         ingest={ingest}
+        qa={qa}
       />
 
-      {latestRun?.status === "FAILED" && (
-        <RunFailedBanner run={latestRun} reviewsKept={reviewTotal} ingest={ingest} />
+      {run?.status === "FAILED" && (
+        <RunFailedBanner
+          run={run}
+          reasons={skippedReasons}
+          reviewsKept={reviews.total}
+          ingest={ingest}
+        />
       )}
-      {latestRun?.status === "COMPLETED" && dismissedRunId !== latestRun.id && (
+      {run?.status === "COMPLETED" && dismissedRunId !== run.id && (
         <Alert className="border-success/30 bg-success/10">
           <CircleCheckIcon aria-hidden="true" className="text-success" />
           <AlertTitle className="flex items-center justify-between gap-2 font-normal">
             {completedMessage(
-              latestRun,
+              run,
               platformLabel(target.platform),
-              reviews === null ? null : reviewTotal,
+              reviews.reviews === null ? null : reviews.total,
             )}
             <button
               type="button"
               aria-label="Dismiss"
-              onClick={() => setDismissedRunId(latestRun.id)}
+              onClick={() => setDismissedRunId(run.id)}
               className="ml-auto"
             >
               <XIcon className="size-4" aria-hidden="true" />
             </button>
           </AlertTitle>
+        </Alert>
+      )}
+
+      {run?.status === "PARTIAL" && dismissedRunId !== run.id && (
+        <Alert className="border-warning/30 bg-warning/10">
+          <TriangleAlertIcon aria-hidden="true" className="text-warning" />
+          <AlertTitle className="flex items-center justify-between gap-2 font-normal">
+            {partialMessage(
+              run,
+              platformLabel(target.platform),
+              reviews.reviews === null ? null : reviews.total,
+            )}
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setDismissedRunId(run.id)}
+              className="ml-auto"
+            >
+              <XIcon className="size-4" aria-hidden="true" />
+            </button>
+          </AlertTitle>
+          {/* S2-007: why records were skipped, and that they are not in the dataset. */}
+          {skippedReasons.length > 0 && (
+            <AlertDescription>
+              Skipped: {skippedSummary(skippedReasons)}. These records were not added to your
+              reviews.
+            </AlertDescription>
+          )}
         </Alert>
       )}
 
@@ -320,23 +275,90 @@ function TargetWorkspace({ id }: { id: string }) {
         </Alert>
       )}
 
-      <TabsContent value="ingestion">
-        <IngestionPanel target={target} run={latestRun} />
-      </TabsContent>
-      <TabsContent value="reviews">
-        <ReviewsPanel
-          everIngested={everIngested}
-          reviews={reviews}
-          total={reviewTotal}
-          page={reviewPage}
-          failed={reviewsFailed}
-          pageLoading={pageLoading}
-          pageFailed={pageFailed}
-          onPage={showReviewPage}
-        />
-      </TabsContent>
+      {/* S2-009: with the Q&A panel open, it takes 65% and the tabs move to the other 35%,
+          each scrolling on its own. Below lg the panel takes the whole width instead. */}
+      <div
+        className={
+          qaOpen
+            ? "grid items-start gap-6 lg:grid-cols-[minmax(0,65fr)_minmax(0,35fr)]"
+            : "flex flex-col"
+        }
+      >
+        <div
+          id={qaPanelId}
+          hidden={!qaOpen}
+          className="h-[75dvh] min-h-[28rem] lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)]"
+        >
+          <ReviewQaPanel
+            target={target}
+            reviewTotal={everIngested && reviews.reviews === null ? null : reviews.total}
+            onNotFound={() => setQaNotFound(true)}
+            onClose={closeQa}
+          />
+        </div>
+        <div
+          className={
+            qaOpen
+              ? "hidden min-h-[28rem] flex-col overflow-hidden rounded-xl border bg-card lg:sticky lg:top-4 lg:flex lg:h-[calc(100dvh-8rem)]"
+              : "flex flex-col"
+          }
+        >
+          {qaOpen && <WorkspaceTabs className="shrink-0 border-b" />}
+          {/* Tab content lays itself out by the room it has (container queries). */}
+          <div className={qaOpen ? "@container min-h-0 flex-1 overflow-y-auto p-4" : "@container"}>
+            <TabsContent value="ingestion" className="flex flex-col gap-8">
+              {/* S2-006: the numbers behind the result below, from the saved reviews. Not shown
+                  for a never-ingested target, where the panel below already says so. */}
+              {everIngested && (
+                <ReviewSummaryCard
+                  targetId={id}
+                  targetName={target.name}
+                  platform={platformLabel(target.platform)}
+                  latestRun={latest.loaded ? run : undefined}
+                />
+              )}
+              <IngestionPanel target={target} run={run} reasons={skippedReasons} />
+            </TabsContent>
+            <TabsContent value="reviews">
+              <ReviewsPanel
+                everIngested={everIngested}
+                reviews={reviews.reviews}
+                total={reviews.total}
+                page={reviews.page}
+                failed={reviews.failed}
+                pageLoading={reviews.pageLoading}
+                pageFailed={reviews.pageFailed}
+                onPage={reviews.showPage}
+                highlightId={focusReviewId}
+              />
+            </TabsContent>
+          </div>
+        </div>
+      </div>
     </Tabs>
   );
+}
+
+// The browser tab reads "<target> · ReviewLens" while a target is open, and goes back
+// to the app's title when the workspace closes. Next.js writes the layout's title
+// (app/layout.tsx) into the head after a client-side navigation, which can land after
+// this effect, e.g. when going back to a target that is already loaded. So the title is
+// set again whenever the head changes, not only once.
+function useActiveTargetTitle(targetName: string | undefined) {
+  useEffect(() => {
+    if (!targetName) return;
+    const wanted = `${targetName} · ${APP_TITLE}`;
+    const apply = () => {
+      if (document.title !== wanted) document.title = wanted;
+    };
+    apply();
+    const observer = new MutationObserver(apply);
+    observer.observe(document.head, { subtree: true, childList: true, characterData: true });
+    return () => {
+      observer.disconnect();
+      document.title = APP_TITLE;
+    };
+  }, [targetName]);
 }
 
 // TargetContextHeader (ui-ux-standards.md §3.1): always above workspace content, so the
@@ -346,11 +368,13 @@ function TargetContextHeader({
   run,
   reviewsKept,
   ingest,
+  qa,
 }: {
   target: Target;
   run: IngestionRun | null;
   reviewsKept: number;
   ingest: IngestAction;
+  qa: QaToggle;
 }) {
   const status = run?.status ?? target.ingestion_status;
 
@@ -358,7 +382,14 @@ function TargetContextHeader({
     <div className="overflow-hidden rounded-xl border bg-card">
       <div className="flex flex-wrap items-start justify-between gap-4 p-6">
         <div className="flex min-w-0 flex-col gap-2">
-          <p className="text-sm text-muted-foreground">Active target</p>
+          <div className="flex items-center gap-3 text-sm">
+            <p className="text-muted-foreground">Active target</p>
+            {/* S2-017: below lg the sidebar's target list is behind a menu button, so the
+                header links to the full list. At lg and up the sidebar is always shown. */}
+            <Link href="/targets" className="text-primary underline lg:hidden">
+              Switch target
+            </Link>
+          </div>
           <h1 className="text-3xl font-semibold tracking-tight">{target.name}</h1>
           <div className="flex flex-wrap items-center gap-3">
             <PlatformBadge platform={target.platform} />
@@ -374,7 +405,20 @@ function TargetContextHeader({
             </a>
           </div>
         </div>
-        <IngestButton ingest={ingest} />
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            id={qa.buttonId}
+            variant="outline"
+            aria-expanded={qa.open}
+            aria-controls={qa.panelId}
+            onClick={qa.onToggle}
+            className="aria-expanded:border-primary aria-expanded:bg-primary/10 aria-expanded:text-primary"
+          >
+            <MessageSquareTextIcon aria-hidden="true" />
+            Ask about reviews
+          </Button>
+          <IngestButton ingest={ingest} />
+        </div>
       </div>
 
       {/* S1-023: status badge + detail line. aria-live announces status changes. */}
@@ -391,12 +435,18 @@ function TargetContextHeader({
         </span>
       </div>
 
-      <TabsList variant="line" className="h-11 px-4">
-        <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
-        <TabsTrigger value="reviews">Reviews</TabsTrigger>
-        {/* Summary and Q&A are Sprint 2; §3.1 says not to build them in Sprint 1. */}
-      </TabsList>
+      {/* With the Q&A panel open, the tabs sit above their own column instead. */}
+      {!qa.open && <WorkspaceTabs />}
     </div>
+  );
+}
+
+function WorkspaceTabs({ className = "" }: { className?: string }) {
+  return (
+    <TabsList variant="line" className={`h-11 px-4 ${className}`}>
+      <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
+      <TabsTrigger value="reviews">Reviews</TabsTrigger>
+    </TabsList>
   );
 }
 
@@ -406,24 +456,43 @@ function TargetContextHeader({
 function completedMessage(run: IngestionRun, platform: string, total: number | null): string {
   if (run.reviews_ingested === 0) {
     return run.reviews_duplicate > 0
-      ? `No reviews added: all ${reviewCount(run.reviews_duplicate)} from ${platform} were already saved.`
+      ? `Already up to date: all ${reviewCount(run.reviews_duplicate)} from ${platform} were already saved.`
       : "No reviews added.";
   }
   const added = `${reviewCount(run.reviews_ingested)} added from ${platform}`;
-  return total === null ? `${added}.` : `${added} · ${total} in total.`;
+  return total === null ? `${added}.` : `${added} · ${total} in total saved.`;
+}
+
+// S2-005: a run that found only reviews we already hold. Running it again would only spend
+// provider searches to learn the same thing, so the ingest buttons stay off.
+function isUpToDate(run: IngestionRun | null): boolean {
+  return run?.status === "COMPLETED" && run.reviews_ingested === 0 && run.reviews_duplicate > 0;
+}
+
+// S2-005: a partial run saved reviews but skipped some records. Say how many of each,
+// so the skipped ones are never mistaken for ingested reviews (S2-BR-006).
+function partialMessage(run: IngestionRun, platform: string, total: number | null): string {
+  const added = `${reviewCount(run.reviews_ingested)} added from ${platform}`;
+  const skipped = `${run.reviews_rejected} skipped as unusable`;
+  return total === null
+    ? `${added}, ${skipped}.`
+    : `${added}, ${skipped} · ${total} in total saved.`;
 }
 
 // S1-023: a failed run is always visible and never looks like a success (§7.3).
 function RunFailedBanner({
   run,
+  reasons,
   reviewsKept,
   ingest,
 }: {
   run: IngestionRun;
+  reasons: SkippedReason[];
   reviewsKept: number;
   ingest: IngestAction;
 }) {
-  const message = failureMessage(run.error_code);
+  // S2-007: when every record was skipped, say so (and why) instead of "no reviews".
+  const message = runFailureMessage(run, reasons);
   return (
     <Alert variant="destructive" className="border-destructive/30 bg-destructive/10">
       <CircleAlertIcon aria-hidden="true" />
@@ -460,7 +529,15 @@ function startedText(run: IngestionRun): string {
   return run.status === "FAILED" ? "Never started" : "Not started yet";
 }
 
-function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | null }) {
+function IngestionPanel({
+  target,
+  run,
+  reasons,
+}: {
+  target: Target;
+  run: IngestionRun | null;
+  reasons: SkippedReason[];
+}) {
   if (!run) {
     return (
       <EmptyState
@@ -494,6 +571,49 @@ function IngestionPanel({ target, run }: { target: Target; run: IngestionRun | n
           </div>
         ))}
       </dl>
+      {/* S2-007: why this run skipped records. Skipped records are not reviews. */}
+      {reasons.length > 0 && (
+        <div className="max-w-xl rounded-xl border bg-card p-6 text-sm">
+          <h3 className="font-semibold">Why records were skipped</h3>
+          <p className="mt-1 text-muted-foreground">
+            These records were not added to your reviews.
+          </p>
+          <table className="mt-4 w-full">
+            <thead>
+              <tr className="text-xs text-muted-foreground">
+                <th scope="col" className="pb-2 text-left font-medium">
+                  Reason
+                </th>
+                <th scope="col" className="pb-2 text-right font-medium">
+                  Records
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {reasons.map(({ reason, count }) => {
+                const label = skipReasonLabel(reason);
+                return (
+                  <tr key={reason}>
+                    <td className="py-2 pr-4">{label.charAt(0).toUpperCase() + label.slice(1)}</td>
+                    <td className="py-2 text-right font-medium tabular-nums">{count}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+            {/* With more than one reason, show the total so the numbers add up. */}
+            {reasons.length > 1 && (
+              <tfoot>
+                <tr className="border-t font-medium">
+                  <td className="pt-2 pr-4">Total skipped</td>
+                  <td className="pt-2 text-right tabular-nums">
+                    {reasons.reduce((sum, r) => sum + r.count, 0)}
+                  </td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+        </div>
+      )}
     </section>
   );
 }
@@ -507,6 +627,7 @@ function ReviewsPanel({
   pageLoading,
   pageFailed,
   onPage,
+  highlightId,
 }: {
   everIngested: boolean;
   reviews: Review[] | null;
@@ -516,7 +637,9 @@ function ReviewsPanel({
   pageLoading: boolean;
   pageFailed: boolean;
   onPage: (page: number) => void;
+  highlightId: string | null;
 }) {
+  const firstReviewRef = useRef<HTMLDivElement>(null);
   if (!everIngested || (reviews !== null && total === 0)) {
     return (
       // The one Ingest button lives in the header above, so this only points to it.
@@ -539,7 +662,7 @@ function ReviewsPanel({
 
   if (!reviews) {
     return (
-      <div role="status" aria-label="Loading reviews" className="grid gap-4 md:grid-cols-3">
+      <div role="status" aria-label="Loading reviews" className="grid gap-4 @xl:grid-cols-3">
         {[0, 1, 2].map((i) => (
           <Skeleton key={i} className="h-40 rounded-xl" />
         ))}
@@ -553,6 +676,17 @@ function ReviewsPanel({
   const hasPrevious = page > 0;
   const hasNext = last < total;
 
+  // Next/Previous: once the new page is on screen, jump to its first review so it is
+  // clear the page changed (the buttons sit far below the list).
+  async function goToPage(target: number) {
+    await onPage(target);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        firstReviewRef.current?.scrollIntoView?.({ block: "start", behavior: "smooth" }),
+      ),
+    );
+  }
+
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -561,9 +695,12 @@ function ReviewsPanel({
           Showing {first}–{last} of {total}
         </p>
       </div>
-      <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <div
+        ref={firstReviewRef}
+        className="grid scroll-mt-4 items-start gap-4 @xl:grid-cols-2 @4xl:grid-cols-3"
+      >
         {reviews.map((review) => (
-          <ReviewCard key={review.id} review={review} />
+          <ReviewCard key={review.id} review={review} highlighted={review.id === highlightId} />
         ))}
       </div>
       {pageFailed && (
@@ -575,14 +712,14 @@ function ReviewsPanel({
         <nav aria-label="Review pages" className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={() => onPage(page - 1)}
+            onClick={() => goToPage(page - 1)}
             disabled={!hasPrevious || pageLoading}
           >
             Previous
           </Button>
           <Button
             variant="outline"
-            onClick={() => onPage(page + 1)}
+            onClick={() => goToPage(page + 1)}
             disabled={!hasNext || pageLoading}
           >
             Next

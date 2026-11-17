@@ -17,6 +17,7 @@ from tests.conftest import auth
 
 UNKNOWN_ID = "00000000-0000-0000-0000-000000000000"
 TARGET_ID = str(uuid.uuid4())
+KNOWN_REVIEW_ID = str(uuid.uuid4())
 
 
 class FakeReviewRepository:
@@ -29,6 +30,12 @@ class FakeReviewRepository:
     def count_for_target(self, target_id, owner_id):
         self._require_owner(target_id, owner_id)
         return 1
+
+    def page_offset_of(self, target_id, owner_id, review_id, *, limit):
+        self._require_owner(target_id, owner_id)
+        if str(review_id) != KNOWN_REVIEW_ID:
+            raise NotFoundError("Review not found.")
+        return 0
 
     def list_for_target(self, target_id, owner_id, *, limit=None, offset=0):
         self._require_owner(target_id, owner_id)
@@ -111,3 +118,26 @@ def test_page_outside_the_allowed_range_is_rejected(client, make_token, query):
 
     assert r.status_code == 422
     assert r.json()["error"]["code"] == "VALIDATION_ERROR"
+
+
+def test_around_returns_the_page_with_that_review(client, make_token):
+    app.dependency_overrides[get_review_repository] = FakeReviewRepository
+
+    r = client.get(
+        f"/api/v1/targets/{TARGET_ID}/reviews?around={KNOWN_REVIEW_ID}",
+        headers=auth(make_token("user-a")),
+    )
+
+    assert r.status_code == 200
+    assert r.json()["offset"] == 0
+
+
+def test_around_a_review_that_is_not_in_the_target_is_not_found(client, make_token):
+    app.dependency_overrides[get_review_repository] = FakeReviewRepository
+
+    r = client.get(
+        f"/api/v1/targets/{TARGET_ID}/reviews?around={UNKNOWN_ID}",
+        headers=auth(make_token("user-a")),
+    )
+
+    assert r.status_code == 404

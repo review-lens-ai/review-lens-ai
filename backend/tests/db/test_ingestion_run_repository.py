@@ -20,7 +20,10 @@ from app.repositories.ingestion_runs import (
     InvalidRunTransitionError,
     scrub_detail,
 )
+from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
+from app.services.normalize_reviews import RejectedRecord, RejectionReason
+from tests.db.conftest import insert_run
 
 URL = "https://www.google.com/maps/place/Joes+Pizza"
 
@@ -115,6 +118,36 @@ def test_mark_partial_needs_saved_and_skipped_reviews(runs, running_run):
 
 def test_zero_saved_reviews_is_a_failure_not_a_success(runs, running_run):
     done = runs.mark_succeeded(running_run["id"], reviews_ingested=0)
+
+    assert done["status"] == "FAILED"
+    assert done["error_code"] == "NO_REVIEWS_FOUND"
+
+
+def test_a_rerun_that_finds_only_saved_reviews_is_completed_not_failed(
+    runs, running_run
+):
+    done = runs.mark_succeeded(
+        running_run["id"], reviews_ingested=0, reviews_duplicate=25
+    )
+
+    assert done["status"] == "COMPLETED"
+    assert done["error_code"] is None
+    assert done["reviews_ingested"] == 0
+    assert done["reviews_duplicate"] == 25
+
+
+def test_a_rerun_with_only_saved_and_skipped_reviews_is_partial(runs, running_run):
+    done = runs.mark_succeeded(
+        running_run["id"], reviews_ingested=0, reviews_rejected=2, reviews_duplicate=23
+    )
+
+    assert done["status"] == "PARTIAL"
+
+
+def test_a_run_that_found_nothing_at_all_still_fails(runs, running_run):
+    done = runs.mark_succeeded(
+        running_run["id"], reviews_ingested=0, reviews_rejected=3
+    )
 
     assert done["status"] == "FAILED"
     assert done["error_code"] == "NO_REVIEWS_FOUND"
@@ -289,8 +322,90 @@ def test_stale_active_run_is_failed_as_timeout_and_a_new_run_can_start(
         (stuck["id"],),
     ).fetchone()
     assert old["status"] == "FAILED"
-    assert old["error_code"] == "TIMEOUT"
+    assert old["error_code"] == "CUT_OFF"
     assert old["finished_at"] is not None
+
+
+def test_worker_sweep_ends_a_cut_off_run_without_a_new_run_being_queued(
+    conn, runs, running_run
+):
+    _age(conn, running_run["id"], STALE_RUN_AFTER * 2)
+
+    assert runs.finish_stale_runs() == 1
+
+    row = conn.execute(
+        "select status::text as status, error_code from public.ingestion_runs "
+        "where id = %s",
+        (running_run["id"],),
+    ).fetchone()
+    assert (row["status"], row["error_code"]) == ("FAILED", "CUT_OFF")
+
+
+def test_worker_sweep_leaves_a_queued_run_for_the_worker_to_pick_up(
+    conn, runs, owned_target
+):
+    target_id, owner = owned_target
+    queued = runs.create_run(target_id, owner)
+    _age(conn, queued["id"], STALE_RUN_AFTER * 2)
+
+    assert runs.finish_stale_runs() == 0
+    assert runs.latest_for_target(target_id, owner)["status"] == "QUEUED"
+
+
+def test_a_cut_off_run_is_not_shown_so_the_last_real_result_is(
+    conn, runs, owned_target
+):
+    target_id, owner = owned_target
+    earlier = insert_run(conn, target_id, "PARTIAL", age="3 days")
+    stuck = runs.create_run(target_id, owner)
+    runs.mark_running(stuck["id"])
+    _age(conn, stuck["id"], STALE_RUN_AFTER * 2)
+
+    runs.finish_stale_runs()
+
+    assert runs.latest_for_target(target_id, owner)["id"] == earlier
+    listed = TargetRepository(conn).list_for_owner(owner)
+    assert listed[0]["ingestion_status"] == "PARTIAL"
+
+
+def test_a_target_whose_only_run_was_cut_off_is_not_ingested(conn, runs, owned_target):
+    target_id, owner = owned_target
+    stuck = runs.create_run(target_id, owner)
+    runs.mark_running(stuck["id"])
+    _age(conn, stuck["id"], STALE_RUN_AFTER * 2)
+
+    runs.finish_stale_runs()
+
+    assert runs.latest_for_target(target_id, owner) is None
+    listed = TargetRepository(conn).list_for_owner(owner)
+    assert listed[0]["ingestion_status"] is None
+
+
+def test_cut_off_run_that_had_saved_reviews_ends_partial_not_failed(
+    conn, runs, running_run, owned_target
+):
+    target_id, _ = owned_target
+    for n in range(3):
+        conn.execute(
+            "insert into public.reviews "
+            "(target_id, run_id, rating, review_text, source_review_id, mapping_version) "
+            "values (%s, %s, 5, 'Great', %s, 'serpapi@1')",
+            (target_id, running_run["id"], f"r{n}"),
+        )
+    _age(conn, running_run["id"], STALE_RUN_AFTER * 2)
+
+    runs.finish_stale_runs()
+
+    row = conn.execute(
+        "select status::text as status, error_code, reviews_ingested "
+        "from public.ingestion_runs where id = %s",
+        (running_run["id"],),
+    ).fetchone()
+    assert (row["status"], row["error_code"], row["reviews_ingested"]) == (
+        "PARTIAL",
+        None,
+        3,
+    )
 
 
 def test_recent_active_run_is_not_treated_as_stale(conn, runs, owned_target):
@@ -335,6 +450,96 @@ def test_user_b_cannot_read_user_a_runs(runs, owned_target, make_user):
     runs.create_run(target_id, owner)
     with pytest.raises(NotFoundError):
         runs.latest_for_target(target_id, make_user())
+
+
+# --- why records were skipped (S2-007) ---------------------------------------------
+
+
+def _skip(conn, run, owner, *reasons):
+    """Record skipped source records for a RUNNING run, one per reason given."""
+    records = [
+        RejectedRecord(reason, {"review_id": f"r{i}", "rating": 5})
+        for i, reason in enumerate(reasons)
+    ]
+    ReviewRepository(conn).save_rejections(run["id"], run["target_id"], owner, records)
+
+
+def test_skipped_records_are_counted_by_reason_most_common_first(
+    conn, runs, running_run, owned_target
+):
+    _target_id, owner = owned_target
+    _skip(
+        conn,
+        running_run,
+        owner,
+        RejectionReason.MISSING_RATING,
+        RejectionReason.MISSING_TEXT,
+        RejectionReason.MISSING_TEXT,
+        RejectionReason.MISSING_TEXT,
+    )
+
+    result = runs.skipped_reasons(running_run["target_id"], owner, running_run["id"])
+
+    assert result == [
+        {"reason": "MISSING_TEXT", "count": 3},
+        {"reason": "MISSING_RATING", "count": 1},
+    ]
+
+
+def test_a_run_that_skipped_nothing_has_no_reasons(runs, running_run, owned_target):
+    _target_id, owner = owned_target
+    assert (
+        runs.skipped_reasons(running_run["target_id"], owner, running_run["id"]) == []
+    )
+
+
+def test_unknown_stored_reasons_are_added_up_as_other(
+    conn, runs, running_run, owned_target
+):
+    _target_id, owner = owned_target
+    for i, text in enumerate(["odd thing", "another odd thing"]):
+        conn.execute(
+            "insert into public.ingestion_rejections (run_id, reason, raw_record) "
+            "values (%s, %s, %s)",
+            (running_run["id"], text, f'{{"review_id": "x{i}"}}'),
+        )
+
+    result = runs.skipped_reasons(running_run["target_id"], owner, running_run["id"])
+
+    assert result == [{"reason": "OTHER", "count": 2}]
+
+
+def test_reasons_never_include_the_stored_record(conn, runs, running_run, owned_target):
+    _target_id, owner = owned_target
+    _skip(conn, running_run, owner, RejectionReason.MISSING_TEXT)
+
+    result = runs.skipped_reasons(running_run["target_id"], owner, running_run["id"])
+
+    assert set(result[0]) == {"reason", "count"}
+
+
+def test_user_b_cannot_read_user_a_skipped_reasons(
+    conn, runs, running_run, owned_target, make_user
+):
+    _target_id, owner = owned_target
+    _skip(conn, running_run, owner, RejectionReason.MISSING_TEXT)
+
+    with pytest.raises(NotFoundError):
+        runs.skipped_reasons(running_run["target_id"], make_user(), running_run["id"])
+
+
+def test_a_run_from_another_target_gives_no_reasons(
+    conn, runs, running_run, owned_target
+):
+    target_id, owner = owned_target
+    _skip(conn, running_run, owner, RejectionReason.MISSING_TEXT)
+    other = TargetRepository(conn).create(
+        owner, "Other Place", "google_maps", URL + "-2"
+    )
+
+    # The run exists and has skipped records, but it is not this target's run.
+    assert runs.skipped_reasons(other["id"], owner, running_run["id"]) == []
+    assert target_id != other["id"]
 
 
 def _owner_of(runs, target_id):

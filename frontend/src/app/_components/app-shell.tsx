@@ -1,17 +1,9 @@
 "use client";
 
 // AppShell (ui-ux-standards.md §2, §3, §8): top bar + sidebar + content, adapted from
-// the shadcn sidebar-16 block. It also owns the signed-in user's target list, so the
-// sidebar and the pages show the same data and a new target appears straight away.
-import {
-  createContext,
-  Suspense,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+// the shadcn sidebar-16 block. The target list comes from useTargets (lib/hooks).
+import { Suspense } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { ChevronDownIcon, LogOutIcon, PlusIcon, SearchIcon } from "lucide-react";
@@ -42,69 +34,26 @@ import {
   useSidebar,
 } from "@/app/_components/ui/sidebar";
 import { statusDotClass, statusLabel } from "@/app/_components/status-badge";
-import { apiFetch, ApiError } from "@/lib/api";
+import { useReadMe } from "@/lib/generated/api";
+import { useTargets } from "@/lib/hooks/use-targets";
 import { createClient } from "@/lib/supabase/client";
-import type { Target } from "@/lib/targets";
-
-type TargetsState = {
-  // null while the first load is in progress.
-  targets: Target[] | null;
-  error: string | null;
-  refresh: () => Promise<void>;
-};
-
-const TargetsContext = createContext<TargetsState | null>(null);
-
-export function useTargets(): TargetsState {
-  const state = useContext(TargetsContext);
-  if (!state) throw new Error("useTargets must be used inside AppShell.");
-  return state;
-}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const [targets, setTargets] = useState<Target[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const refresh = useCallback(async () => {
-    try {
-      const data = await apiFetch<{ items: Target[] }>("/api/v1/targets");
-      setTargets(data.items);
-      setError(null);
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 401) {
-        router.replace("/login");
-        return;
-      }
-      setError(e instanceof ApiError ? e.message : "Could not reach the server. Please try again.");
-    }
-  }, [router]);
-
-  useEffect(() => {
-    // The state updates happen after the request finishes, not during this effect.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    void refresh();
-  }, [refresh]);
-
-  const state = useMemo(() => ({ targets, error, refresh }), [targets, error, refresh]);
-
   return (
-    <TargetsContext.Provider value={state}>
-      <div className="[--header-height:calc(--spacing(14))]">
-        <SidebarProvider
-          className="flex flex-col"
-          style={{ "--sidebar-width": "15rem" } as React.CSSProperties}
-        >
-          <TopBar />
-          <div className="flex flex-1">
-            <AppSidebar />
-            <SidebarInset>
-              <div className="w-full max-w-[1200px] p-4 lg:p-8">{children}</div>
-            </SidebarInset>
-          </div>
-        </SidebarProvider>
-      </div>
-    </TargetsContext.Provider>
+    <div className="[--header-height:calc(--spacing(14))]">
+      <SidebarProvider
+        className="flex flex-col"
+        style={{ "--sidebar-width": "15rem" } as React.CSSProperties}
+      >
+        <TopBar />
+        <div className="flex flex-1">
+          <AppSidebar />
+          <SidebarInset>
+            <div className="w-full max-w-[1200px] p-4 lg:p-8">{children}</div>
+          </SidebarInset>
+        </div>
+      </SidebarProvider>
+    </div>
   );
 }
 
@@ -127,22 +76,19 @@ function TopBar() {
 
 function UserMenu() {
   const router = useRouter();
-  const [email, setEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    // The menu still works if this fails: it just shows a generic name.
-    apiFetch<{ email: string | null }>("/api/v1/me")
-      .then((me) => setEmail(me.email))
-      .catch(() => setEmail(null));
-  }, []);
+  const queryClient = useQueryClient();
+  // The menu still works if this fails: it just shows a generic name.
+  const { data: me } = useReadMe();
 
   async function signOut() {
     await createClient().auth.signOut();
+    // Forget this user's cached data before anyone else signs in on this browser.
+    queryClient.clear();
     router.replace("/login");
     router.refresh();
   }
 
-  const name = email ?? "Account";
+  const name = me?.email || "Account";
 
   return (
     <DropdownMenu>

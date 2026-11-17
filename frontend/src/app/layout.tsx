@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { QueryProvider } from "@/app/_components/query-provider";
 import { Toaster } from "@/app/_components/ui/sonner";
+import { APP_TITLE } from "@/lib/app-title";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -14,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReviewLens",
+  title: APP_TITLE,
   description: "Understand what customers say in their reviews.",
 };
 
@@ -22,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        {children}
+        <QueryProvider>{children}</QueryProvider>
         <Toaster position="bottom-right" />
       </body>
     </html>

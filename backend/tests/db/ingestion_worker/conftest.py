@@ -23,6 +23,7 @@ from app.repositories.ingestion_stages import (
 )
 from app.repositories.targets import TargetRepository
 from app.worker import Pipeline
+from tests.conftest import FakeEmbedder
 
 FIXTURES = Path(__file__).resolve().parents[3] / "app" / "fixtures"
 PAGE_1 = json.loads(
@@ -73,6 +74,12 @@ class FakeReviewStore:
     def save_rejections(self, run_id, target_id, owner_id, rejected):
         self.rejected = list(rejected)
 
+    def without_embedding(self, *, limit, target_id=None, after=None):
+        return []
+
+    def save_embeddings(self, embeddings):
+        pass
+
 
 def serpapi(page_2=None):
     """Fake SerpApi: page 1, then page 2 (or the given failure)."""
@@ -115,7 +122,7 @@ def queued_run(conn, target):
     return run
 
 
-def make_pipeline(conn, open_source, reviews=None):
+def make_pipeline(conn, open_source, reviews=None, embedder=None):
     return Pipeline(
         conn=SavepointConn(conn),
         runs=IngestionRunRepository(conn),
@@ -125,6 +132,7 @@ def make_pipeline(conn, open_source, reviews=None):
         reviews=reviews or FakeReviewStore(),
         open_source=open_source,
         max_reviews=30,
+        embedder=embedder or FakeEmbedder(),
     )
 
 

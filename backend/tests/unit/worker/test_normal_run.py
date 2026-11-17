@@ -22,6 +22,14 @@ def test_nothing_queued_does_nothing(log):
     assert google.searches == 0
 
 
+def test_every_pass_ends_cut_off_runs_before_claiming_the_next(log):
+    pipeline, _ = make_pipeline(log, runs=FakeRuns(log, queued=()))
+
+    process_next_run(pipeline)
+
+    assert pipeline.runs.swept == 1
+
+
 def test_queued_run_is_fetched_normalized_saved_and_finished(log):
     pipeline, google = make_pipeline(log)
 

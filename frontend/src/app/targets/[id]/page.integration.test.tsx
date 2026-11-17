@@ -1,6 +1,7 @@
 // Integration tests for the target workspace page: the Start ingestion and
 // Try again buttons (#55). The whole page is rendered, and MSW plays the backend.
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { SkippedReason } from "@/lib/generated/api";
 import type { IngestionRun } from "@/lib/ingestion-runs";
 import {
   act,
@@ -11,6 +12,7 @@ import {
   HttpResponse,
   ingestionRun,
   jsonResponse,
+  queryWrapper,
   render,
   review,
   reviewPage,
@@ -18,6 +20,7 @@ import {
   server,
   target,
   waitFor,
+  within,
 } from "@/test";
 
 const TARGET_ID = "11111111-1111-1111-1111-111111111111";
@@ -32,11 +35,16 @@ const LATEST_RUN_URL = `${RUNS_URL}/latest`;
 const router = { replace: vi.fn() };
 const refreshSidebar = vi.fn(async () => {});
 
+// Which target the URL names. The sidebar changes it without leaving the page.
+let currentTargetId = TARGET_ID;
+// The page's query string, e.g. "review=<id>". Empty unless a test sets it.
+let searchString = "";
 vi.mock("next/navigation", () => ({
   useRouter: () => router,
-  useParams: () => ({ id: TARGET_ID }),
+  useParams: () => ({ id: currentTargetId }),
+  useSearchParams: () => new URLSearchParams(searchString),
 }));
-vi.mock("@/app/_components/app-shell", () => ({
+vi.mock("@/lib/hooks/use-targets", () => ({
   useTargets: () => ({ refresh: refreshSidebar }),
 }));
 vi.mock("@/lib/supabase/client", () => ({
@@ -60,7 +68,8 @@ const failedRun = ingestionRun({ target_id: TARGET_ID, status: "FAILED", error_c
 
 // Sets up the endpoints the page calls when it opens.
 // latestRun is the newest ingestion run, or null if the target was never ingested.
-function backendHas(latestRun: IngestionRun | null) {
+// skippedReasons says why that run skipped records (S2-007); none by default.
+function backendHas(latestRun: IngestionRun | null, skippedReasons: SkippedReason[] = []) {
   let status: IngestionRun["status"] | null = null;
   if (latestRun !== null) {
     status = latestRun.status;
@@ -69,7 +78,19 @@ function backendHas(latestRun: IngestionRun | null) {
   server.use(
     http.get(TARGET_URL, () => jsonResponse(target({ id: TARGET_ID, ingestion_status: status }))),
     http.get(REVIEWS_URL, () => jsonResponse(reviewPage([]))),
-    http.get(LATEST_RUN_URL, () => jsonResponse({ run: latestRun })),
+    http.get(LATEST_RUN_URL, () =>
+      jsonResponse({ run: latestRun, skipped_reasons: skippedReasons }),
+    ),
+    // The Ingestion tab shows the review summary for a target that has a run (S2-006), so
+    // every test that opens it needs this endpoint. An empty summary adds almost no text;
+    // a test that cares about the numbers adds its own handler after this one.
+    http.get(`${TARGET_URL}/summary`, () =>
+      jsonResponse({
+        review_count: 0,
+        average_rating: null,
+        rating_counts: [1, 2, 3, 4, 5].map((rating) => ({ rating, count: 0 })),
+      }),
+    ),
   );
 }
 
@@ -83,7 +104,8 @@ function startingARunReturns(respond: () => Response | Promise<Response>) {
 
 // Renders the page and waits until it has finished loading.
 async function openWorkspace(expectedStatus: string) {
-  render(<TargetWorkspacePage />);
+  // As in the app: a 401 from any request goes to /login (QueryProvider does this there).
+  render(<TargetWorkspacePage />, { wrapper: queryWrapper(() => router.replace("/login")) });
   await screen.findByRole("heading", { name: "Joe's Pizza" });
   await screen.findByText(expectedStatus);
 
@@ -121,6 +143,110 @@ describe("while a run is active", () => {
     await openWorkspace("Ingesting…");
 
     expectAllDisabled(ingestButtons());
+  });
+});
+
+// The status moves queued -> running -> finished without a manual reload.
+// Only the interval timer is faked, so the checks happen at once instead of every 3 s.
+describe("checking an active run", () => {
+  function runStartedAgo(minutes: number, status: IngestionRun["status"] = "RUNNING") {
+    const startedAt = new Date(Date.now() - minutes * 60_000).toISOString();
+    return ingestionRun({
+      target_id: TARGET_ID,
+      status,
+      queued_at: startedAt,
+      started_at: startedAt,
+      finished_at: null,
+    });
+  }
+
+  // Answers the latest-run checks with `respond`, and counts them.
+  function latestRunAnswers(respond: () => Response) {
+    const checks = vi.fn(respond);
+    server.use(http.get(LATEST_RUN_URL, checks));
+    return checks;
+  }
+
+  it("checks a running run until it finishes, then stops", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    try {
+      backendHas(runStartedAgo(1));
+      await openWorkspace("Ingesting…");
+      const checks = latestRunAnswers(() =>
+        jsonResponse({ run: ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }) }),
+      );
+
+      await act(() => vi.advanceTimersByTimeAsync(3_000));
+      await screen.findByText("Ingested");
+      const checksUntilFinished = checks.mock.calls.length;
+
+      await act(() => vi.advanceTimersByTimeAsync(30_000));
+      expect(checksUntilFinished).toBeGreaterThan(0);
+      expect(checks.mock.calls.length).toBe(checksUntilFinished);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("stops checking a run that has been going for over 5 minutes", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    try {
+      const stuck = runStartedAgo(6);
+      backendHas(stuck);
+      const checks = latestRunAnswers(() => jsonResponse({ run: stuck }));
+      await openWorkspace("Ingesting…");
+      const checksOnOpen = checks.mock.calls.length;
+
+      await act(() => vi.advanceTimersByTimeAsync(30_000));
+
+      expect(checks.mock.calls.length).toBe(checksOnOpen);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("while a new run is going, the list still has what the previous run saved", async () => {
+    vi.useFakeTimers({ toFake: ["setInterval", "clearInterval"] });
+    try {
+      // Run A is going; the target has 5 reviews so far.
+      let saved = 5;
+      backendHas({ ...runStartedAgo(1), id: "run-a" });
+      server.use(
+        http.get(REVIEWS_URL, () =>
+          jsonResponse(
+            reviewPage(
+              Array.from({ length: saved }, () => review()),
+              { total: saved },
+            ),
+          ),
+        ),
+      );
+      await openWorkspace("Ingesting…");
+      await screen.findByText("Showing 1–5 of 5");
+
+      // Run A finishes and saves 3 more.
+      saved = 8;
+      latestRunAnswers(() =>
+        jsonResponse({
+          run: ingestionRun({ id: "run-a", target_id: TARGET_ID, reviews_ingested: 3 }),
+        }),
+      );
+      await act(() => vi.advanceTimersByTimeAsync(3_000));
+      await screen.findByText("Showing 1–8 of 8");
+
+      // Run B starts. Its reviews list must not fall back to the one from before run A finished.
+      startingARunReturns(() => jsonResponse({ ...queuedRun, id: "run-b" }, 202));
+      fireEvent.click(ingestButtons()[0]);
+      await screen.findByText("Queued");
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      expect(screen.getByText("Showing 1–8 of 8")).toBeTruthy();
+      expect(screen.queryByText("Showing 1–5 of 5")).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -260,7 +386,7 @@ describe("workspace layout", () => {
     expect(ingestButtons()).toHaveLength(1);
   });
 
-  it("does not show the Sprint 2 tabs", async () => {
+  it("shows the Ingestion and Reviews tabs", async () => {
     backendHas(null);
 
     await openWorkspace("Not ingested");
@@ -303,6 +429,54 @@ describe("workspace layout", () => {
     await screen.findByText("Never started");
     expect(screen.queryByText("Not started yet")).toBeNull();
   });
+
+  // S2-006: the Ingestion tab shows the summary card above the latest run. The summary is
+  // only asked for once that tab is opened, so the other tests here don't need a handler.
+  it("the Ingestion tab shows the review count and average above the latest run", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" }));
+    const summaryAsked = vi.fn();
+    server.use(
+      http.get(`${TARGET_URL}/summary`, () => {
+        summaryAsked();
+        return jsonResponse({
+          review_count: 5,
+          average_rating: 3.4,
+          rating_counts: [1, 1, 0, 1, 2].map((count, i) => ({ rating: i + 1, count })),
+        });
+      }),
+    );
+
+    await openWorkspace("Ingested");
+    expect(summaryAsked).not.toHaveBeenCalled();
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    const card = await screen.findByRole("region", {
+      name: "Review summary for Joe's Pizza · Google Maps",
+    });
+    expect(await within(card).findByText("5 reviews")).toBeTruthy();
+    expect(within(card).getByText("3.4 out of 5")).toBeTruthy();
+    expect(summaryAsked).toHaveBeenCalledOnce();
+    // The summary comes first, and the latest run below it.
+    const latestRun = screen.getByRole("heading", { name: "Latest run" });
+    expect(card.compareDocumentPosition(latestRun) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("a never-ingested target shows no summary card and asks for no summary", async () => {
+    backendHas(null);
+    const summaryAsked = vi.fn();
+    server.use(
+      http.get(`${TARGET_URL}/summary`, () => {
+        summaryAsked();
+        return jsonResponse({ review_count: 0, average_rating: null, rating_counts: [] });
+      }),
+    );
+
+    await openWorkspace("Not ingested");
+
+    expect(screen.queryByRole("region", { name: /Review summary for/ })).toBeNull();
+    expect(summaryAsked).not.toHaveBeenCalled();
+  });
 });
 
 // The reviews endpoint is paginated (#68): items is one page, total is every review.
@@ -337,6 +511,57 @@ describe("reviews list", () => {
     return screen.getByRole<HTMLButtonElement>("button", { name });
   }
 
+  // A link to one review (?review=<id>, e.g. from a Q&A source) opens the Reviews tab on
+  // the page that holds it, and marks that review.
+  describe("opened from a review link", () => {
+    afterEach(() => {
+      searchString = "";
+    });
+
+    it("asks for the page around that review and highlights it", async () => {
+      searchString = "review=review-14";
+      backendHas(completedRun);
+      const around: (string | null)[] = [];
+      server.use(
+        http.get(REVIEWS_URL, ({ request }) => {
+          around.push(new URL(request.url).searchParams.get("around"));
+          return jsonResponse(
+            reviewPage(reviewsNumbered(12, 12), { total: 30, limit: 12, offset: 12 }),
+          );
+        }),
+      );
+
+      await openWorkspace("Ingested");
+
+      await screen.findByText("Showing 13–24 of 30");
+      expect(around).toEqual(["review-14"]);
+      const linked = screen.getByText("Review number 14").closest("[data-highlighted]");
+      expect(linked?.id).toBe("review-review-14");
+      expect(document.querySelectorAll("[data-highlighted]")).toHaveLength(1);
+    });
+
+    it("shows the first page when that review no longer exists", async () => {
+      searchString = "review=gone";
+      backendHas(completedRun);
+      server.use(
+        http.get(REVIEWS_URL, ({ request }) => {
+          const query = new URL(request.url).searchParams;
+          if (query.get("around")) {
+            return apiErrorResponse(404, "NOT_FOUND", "Review not found.");
+          }
+          return jsonResponse(
+            reviewPage(reviewsNumbered(0, 12), { total: 30, limit: 12, offset: 0 }),
+          );
+        }),
+      );
+
+      await openWorkspace("Ingested");
+
+      await screen.findByText("Showing 1–12 of 30");
+      expect(document.querySelector("[data-highlighted]")).toBeNull();
+    });
+  });
+
   it("shows the first page and counts every review of the target", async () => {
     backendHas(completedRun);
     backendHoldsReviews(30);
@@ -350,7 +575,7 @@ describe("reviews list", () => {
     expect(button("Next").disabled).toBe(false);
   });
 
-  it("next and previous fetch the neighbouring pages from the server", async () => {
+  it("next fetches the next page from the server; previous reuses the page already loaded", async () => {
     backendHas(completedRun);
     const offsetsAsked = backendHoldsReviews(30);
     await openWorkspace("Ingested");
@@ -364,7 +589,25 @@ describe("reviews list", () => {
     fireEvent.click(button("Previous"));
     await screen.findByText("Showing 1–12 of 30");
 
-    expect(offsetsAsked).toEqual([0, 12, 0]);
+    // Page 1 is cached for this run (saved reviews only change when a run saves them),
+    // so going back to it asks the server for nothing.
+    expect(offsetsAsked).toEqual([0, 12]);
+  });
+
+  it("scrolls to the first review of the new page when Next is pressed", async () => {
+    backendHas(completedRun);
+    backendHoldsReviews(30);
+    const scrolled = vi.fn();
+    Element.prototype.scrollIntoView = scrolled; // jsdom has none
+    await openWorkspace("Ingested");
+    await screen.findByText("Showing 1–12 of 30");
+    scrolled.mockClear();
+
+    fireEvent.click(button("Next"));
+
+    await screen.findByText("Showing 13–24 of 30");
+    await waitFor(() => expect(scrolled).toHaveBeenCalled());
+    expect(scrolled.mock.calls[0][0]).toMatchObject({ block: "start" });
   });
 
   it("next is disabled on the last page", async () => {
@@ -415,7 +658,7 @@ describe("reviews list", () => {
 
     await openWorkspace("Ingested");
 
-    await screen.findByText("3 reviews added from Google Maps · 8 in total.");
+    await screen.findByText("3 reviews added from Google Maps · 8 in total saved.");
   });
 
   it("the success banner says when every review was already saved", async () => {
@@ -424,7 +667,243 @@ describe("reviews list", () => {
 
     await openWorkspace("Ingested");
 
-    await screen.findByText("No reviews added: all 5 reviews from Google Maps were already saved.");
+    await screen.findByText(
+      "Already up to date: all 5 reviews from Google Maps were already saved.",
+    );
+  });
+
+  it("the ingest button is off when the last run found only reviews already saved", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 0, reviews_duplicate: 5 }));
+    backendHoldsReviews(5);
+
+    await openWorkspace("Ingested");
+
+    expectAllDisabled(ingestButtons());
+  });
+
+  it("the ingest button stays on after a run that added reviews", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3, reviews_duplicate: 2 }));
+    backendHoldsReviews(8);
+
+    await openWorkspace("Ingested");
+
+    for (const button of ingestButtons()) {
+      expect(button.disabled).toBe(false);
+    }
+  });
+
+  // S2-BR-001: the page says which target the status belongs to.
+  it("names the active target next to the ingestion status", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    backendHoldsReviews(3);
+
+    await openWorkspace("Ingested");
+
+    expect(screen.getByText("Active target")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Joe's Pizza" })).toBeTruthy();
+  });
+
+  // S2-BR-007: the "in total" figure is the size of the stored dataset (what Q&A will read),
+  // not the count of the latest run.
+  it("reports the stored review total, not just what the latest run added", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 14 }));
+    backendHoldsReviews(30);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText("14 reviews added from Google Maps · 30 in total saved.");
+    await screen.findByText("Showing 1–12 of 30");
+  });
+
+  it("the partial banner says how many reviews were added and how many were skipped", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "PARTIAL",
+        reviews_ingested: 14,
+        reviews_rejected: 3,
+      }),
+    );
+    backendHoldsReviews(14);
+
+    await openWorkspace("Partially ingested");
+
+    await screen.findByText(
+      "14 reviews added from Google Maps, 3 skipped as unusable · 14 in total saved.",
+    );
+  });
+
+  it("a complete run shows no partial banner", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3, reviews_duplicate: 2 }));
+    backendHoldsReviews(8);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText("3 reviews added from Google Maps · 8 in total saved.");
+    expect(screen.queryByText(/skipped as unusable/)).toBeNull();
+  });
+
+  it("the partial banner can be dismissed", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "PARTIAL",
+        reviews_ingested: 14,
+        reviews_rejected: 3,
+      }),
+    );
+    backendHoldsReviews(14);
+    await openWorkspace("Partially ingested");
+    await screen.findByText(/3 skipped as unusable/);
+
+    fireEvent.click(screen.getByRole("button", { name: "Dismiss" }));
+
+    expect(screen.queryByText(/3 skipped as unusable/)).toBeNull();
+  });
+
+  // S2-007 / S2-BR-006: skipped records say why, and that they are not in the dataset.
+  const partialRun = () =>
+    ingestionRun({
+      target_id: TARGET_ID,
+      status: "PARTIAL",
+      reviews_ingested: 14,
+      reviews_rejected: 4,
+    });
+
+  it("the partial banner says why records were skipped and that they are not in the dataset", async () => {
+    backendHas(partialRun(), [
+      { reason: "MISSING_TEXT", count: 3 },
+      { reason: "MISSING_RATING", count: 1 },
+    ]);
+    backendHoldsReviews(14);
+
+    await openWorkspace("Partially ingested");
+
+    await screen.findByText(
+      "Skipped: no written review (star rating only) ×3, no star rating ×1. " +
+        "These records were not added to your reviews.",
+    );
+  });
+
+  it("shows an unknown skip reason as 'other reason', never as raw text", async () => {
+    backendHas(partialRun(), [{ reason: "SOMETHING_NEW" as never, count: 4 }]);
+    backendHoldsReviews(14);
+
+    await openWorkspace("Partially ingested");
+
+    await screen.findByText(/Skipped: other reason ×4\./);
+    expect(screen.queryByText(/SOMETHING_NEW/)).toBeNull();
+  });
+
+  it("shows no 'Skipped:' line when the run skipped nothing", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    backendHoldsReviews(3);
+
+    await openWorkspace("Ingested");
+
+    expect(screen.queryByText(/Skipped:/)).toBeNull();
+  });
+
+  it("the Ingestion tab lists why records were skipped", async () => {
+    backendHas(partialRun(), [
+      { reason: "MISSING_TEXT", count: 3 },
+      { reason: "MISSING_RATING", count: 1 },
+    ]);
+    backendHoldsReviews(14);
+    await openWorkspace("Partially ingested");
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Why records were skipped");
+    expect(screen.getByText("No written review (star rating only)")).toBeTruthy();
+    expect(screen.getByText("No star rating")).toBeTruthy();
+    expect(screen.getByText("These records were not added to your reviews.")).toBeTruthy();
+    // A table with named columns, and a total that adds the reasons up (3 + 1).
+    expect(screen.getByRole("columnheader", { name: "Reason" })).toBeTruthy();
+    expect(screen.getByRole("columnheader", { name: "Records" })).toBeTruthy();
+    const total = screen.getByText("Total skipped").closest("tr");
+    expect(total?.textContent).toBe("Total skipped4");
+  });
+
+  it("the Ingestion tab shows no total row when there is only one reason", async () => {
+    backendHas(partialRun(), [{ reason: "MISSING_TEXT", count: 4 }]);
+    backendHoldsReviews(14);
+    await openWorkspace("Partially ingested");
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Why records were skipped");
+    expect(screen.getByText("No written review (star rating only)")).toBeTruthy();
+    expect(screen.queryByText("Total skipped")).toBeNull();
+  });
+
+  it("the Ingestion tab has no skip list when nothing was skipped", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    backendHoldsReviews(3);
+    await openWorkspace("Ingested");
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Latest run");
+    expect(screen.queryByText("Why records were skipped")).toBeNull();
+  });
+
+  it("shows Ingested for a completed run even when the target has no review rows", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, status: "COMPLETED", reviews_ingested: 5 }));
+    backendHoldsReviews(0);
+
+    await openWorkspace("Ingested");
+
+    expect(screen.queryByText("Failed")).toBeNull();
+  });
+
+  it("says reviews were found but none could be used when every record was skipped", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "FAILED",
+        error_code: "NO_REVIEWS_FOUND",
+        reviews_rejected: 2,
+      }),
+      [{ reason: "MISSING_TEXT", count: 2 }],
+    );
+    backendHoldsReviews(0);
+
+    await openWorkspace("Failed");
+
+    await screen.findByText("Reviews were found, but none could be used.");
+    expect(
+      screen.getByText(
+        "All 2 records were skipped: no written review (star rating only) ×2. " +
+          "None of them were added to your reviews.",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("This page didn't return any reviews.")).toBeNull();
+  });
+
+  it("still says the page returned nothing when no record was skipped", async () => {
+    backendHas(
+      ingestionRun({
+        target_id: TARGET_ID,
+        status: "FAILED",
+        error_code: "NO_REVIEWS_FOUND",
+        reviews_rejected: 0,
+      }),
+    );
+    backendHoldsReviews(0);
+
+    await openWorkspace("Failed");
+
+    await screen.findByText("This page didn't return any reviews.");
+  });
+
+  it("shows Failed for a failed run even when the target has review rows", async () => {
+    backendHas(failedRun);
+    backendHoldsReviews(5);
+
+    await openWorkspace("Failed");
+
+    expect(screen.queryByText("Ingested")).toBeNull();
   });
 
   it("a failed page change keeps the page on screen and says so", async () => {
@@ -440,5 +919,49 @@ describe("reviews list", () => {
     expect(screen.getByText("Showing 1–12 of 30")).toBeTruthy();
     expect(screen.getByText("Review number 0")).toBeTruthy();
     await waitFor(() => expect(button("Next").disabled).toBe(false));
+  });
+});
+
+// S2-002 / S2-018: moving to another target shows only that target's data.
+describe("switching to another target", () => {
+  const OTHER_ID = "22222222-2222-2222-2222-222222222222";
+  const OTHER_URL = `${API}/api/v1/targets/${OTHER_ID}`;
+
+  afterEach(() => {
+    currentTargetId = TARGET_ID;
+  });
+
+  it("shows the new target's name and reviews and none of the previous target's", async () => {
+    const completed = ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" });
+    backendHas(completed);
+    server.use(
+      http.get(REVIEWS_URL, () =>
+        jsonResponse(reviewPage([review({ id: "a-1", review_text: "The battery life is short" })])),
+      ),
+      http.get(OTHER_URL, () =>
+        jsonResponse(target({ id: OTHER_ID, name: "Service Cafe", ingestion_status: "COMPLETED" })),
+      ),
+      http.get(`${OTHER_URL}/ingestion-runs/latest`, () =>
+        jsonResponse({
+          run: ingestionRun({ target_id: OTHER_ID, status: "COMPLETED" }),
+          skipped_reasons: [],
+        }),
+      ),
+      http.get(`${OTHER_URL}/reviews`, () =>
+        jsonResponse(
+          reviewPage([review({ id: "b-1", review_text: "Customer service was great" })]),
+        ),
+      ),
+    );
+    const { rerender } = render(<TargetWorkspacePage />, { wrapper: queryWrapper() });
+    await screen.findByText("The battery life is short");
+
+    currentTargetId = OTHER_ID;
+    rerender(<TargetWorkspacePage />);
+
+    await screen.findByRole("heading", { name: "Service Cafe" });
+    await screen.findByText("Customer service was great");
+    expect(screen.queryByText("The battery life is short")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Joe's Pizza" })).toBeNull();
   });
 });

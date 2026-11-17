@@ -72,6 +72,18 @@ class RejectionReason(StrEnum):
     INVALID_RATING = "invalid rating"
 
 
+def reason_code(stored_reason: str) -> str:
+    """A stable code for a stored reason, safe to send to the browser (S2-007).
+
+    ingestion_rejections.reason is free text. Anything that is not one of
+    RejectionReason becomes "OTHER", so unknown text never reaches the user.
+    """
+    try:
+        return RejectionReason(stored_reason).name
+    except ValueError:
+        return "OTHER"
+
+
 @dataclass(frozen=True)
 class RejectedRecord:
     reason: RejectionReason

@@ -100,6 +100,24 @@ def test_error_outside_a_stage_still_fails_the_run(log):
     assert pipeline.runs.result == ("FAILED", ErrorCode.UNEXPECTED)
 
 
+class _NoEmbeddingColumn(FakeReviews):
+    """Like a database where the embeddings migration has not run yet."""
+
+    def without_embedding(self, *, limit, target_id=None, after=None):
+        raise RuntimeError('column "embedding" does not exist')
+
+
+def test_a_failed_embed_step_is_rolled_back_and_the_run_still_succeeds(log, caplog):
+    caplog.set_level(logging.WARNING)
+    pipeline, _ = make_pipeline(log, reviews=_NoEmbeddingColumn(log))
+
+    process_next_run(pipeline)
+
+    assert pipeline.runs.result == ("SUCCEEDED", 18, 12, 0)
+    assert "rollback" in log[log.index("mark_succeeded") :]
+    assert "could not embed its reviews" in caplog.text
+
+
 def test_failure_detail_names_the_stage_but_not_the_api_key(log, caplog):
     caplog.set_level(logging.DEBUG)
     leak = httpx.Response(500, json={"error": f"Bad key {API_KEY}"})

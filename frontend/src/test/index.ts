@@ -6,5 +6,6 @@
 export * from "@testing-library/react";
 export { http, HttpResponse } from "msw";
 export * from "./factories";
+export * from "./query";
 export * from "./responses";
 export * from "./server";

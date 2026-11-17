@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.schemas.errors import ErrorResponse
+
 
 class AppError(Exception):
     status_code = 500
@@ -38,10 +40,13 @@ class ConflictError(AppError):
 
 
 def error_body(code: str, message: str, details: list[dict] | None = None) -> dict:
-    body: dict = {"error": {"code": code, "message": message}}
-    if details:
-        body["error"]["details"] = details
-    return body
+    error = {"code": code, "message": message, "details": details or None}
+    return ErrorResponse(error=error).model_dump(exclude_none=True)
+
+
+def error_responses(*status_codes: int) -> dict:
+    """OpenAPI `responses=` for the errors a route can return."""
+    return {code: {"model": ErrorResponse} for code in status_codes}
 
 
 def _field_issue(err: dict) -> dict:
@@ -82,4 +87,11 @@ def register_error_handlers(app: FastAPI) -> None:
             status_code=exc.status_code,
             content=error_body(exc.code, exc.message),
             headers=headers,
+        )
+
+    @app.exception_handler(Exception)
+    async def _unexpected_error(_: Request, exc: Exception) -> JSONResponse:
+        # Starlette still logs the exception; the client gets only the generic body.
+        return JSONResponse(
+            status_code=500, content=error_body(AppError.code, AppError.message)
         )

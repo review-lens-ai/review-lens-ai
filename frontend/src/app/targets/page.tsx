@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ChevronRightIcon, PlusIcon, TargetIcon, TriangleAlertIcon } from "lucide-react";
-import { useTargets } from "@/app/_components/app-shell";
 import { EmptyState } from "@/app/_components/empty-state";
 import { PageHeader } from "@/app/_components/page-header";
 import { PlatformBadge } from "@/app/_components/platform-badge";
@@ -10,6 +9,7 @@ import { StatusBadge } from "@/app/_components/status-badge";
 import { Alert, AlertDescription, AlertTitle } from "@/app/_components/ui/alert";
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
+import { useTargets } from "@/lib/hooks/use-targets";
 import { shortSource } from "@/lib/targets";
 
 function NewTargetButton() {

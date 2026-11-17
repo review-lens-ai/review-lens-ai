@@ -13,6 +13,10 @@ Folder layout and conventions: [Coding Standards](docs/standards/coding-standard
 - Node.js + npm
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
+The backend runs on Python 3.12, the same version as CI (`backend/.python-version`). uv picks it up automatically and downloads it if it is missing, so no separate Python install is needed. A different version can change generated files (for example, Python 3.13 renames HTTP 422 in `frontend/openapi.json`) and make `./scripts/check.sh` fail.
+
+Any Python 3.12 works, including the python.org installer. The backend trusts the [certifi](https://pypi.org/project/certifi/) certificate bundle for its HTTPS calls, so the installer's "Install Certificates.command" step is not needed. If sign-in succeeds but the app goes straight back to `/login`, the backend is answering 401: look for `token rejected` in the backend's output.
+
 ## Setup
 
 ```bash
@@ -61,4 +65,19 @@ Runs every check CI runs except the production build (`cd frontend && npm run bu
 
 Fix formatting automatically with `ruff format .` (backend) and `npm run format` (frontend). Rules live in `backend/pyproject.toml` (`[tool.ruff]`) and `frontend/.prettierrc.json`, so results do not depend on anyone's editor. Tests never open a browser or call a live service.
 
+Database tests (`backend/tests/db`) skip unless `TEST_DATABASE_URL` points at a throwaway Postgres. Use the pgvector image, as CI does: the embeddings migration needs the `vector` extension, which plain `postgres:17` does not have.
+
+```bash
+docker run -d --name reviewlens-test-db -p 5432:5432 -e POSTGRES_PASSWORD=postgres pgvector/pgvector:pg17
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres ./scripts/check.sh
+```
+
 Backend coverage (lines and branches) for any file: `cd backend && uv run pytest --cov=app.auth --cov-branch --cov-report=term-missing`.
+
+Changed-code coverage gate (CI runs it on PRs into `dev`; at least 80% of changed lines covered, backend and frontend separately). Needs the test database:
+
+```bash
+TEST_DATABASE_URL=postgresql://postgres:postgres@localhost:5432/postgres ./scripts/coverage.sh
+```
+
+Policy and exclusions: [Coding Standards §8](docs/standards/coding-standards.md#8-testing).

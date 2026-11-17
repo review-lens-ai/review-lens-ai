@@ -3,6 +3,14 @@ import { cleanup } from "@testing-library/react";
 import { afterAll, afterEach, beforeAll, expect, vi } from "vitest";
 import { server } from "./server";
 
+// jsdom has no layout, so it lacks ResizeObserver. assistant-ui's thread viewport uses it
+// to keep the newest message in view; in tests nothing ever resizes, so a stub is enough.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 // Requests the page made that no handler answered.
 const unansweredRequests: string[] = [];
 
