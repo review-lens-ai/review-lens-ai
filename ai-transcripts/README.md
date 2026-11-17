@@ -8,8 +8,9 @@ Transcripts of the AI-assisted development sessions for ReviewLens, kept here as
 |---|---|
 | `2026-10-23-session-1-understand-repo-and-plan.md` | First session: understanding the repo, the stories and the design |
 | `2026-10-25-session-2-sprint-1-build-and-review.md` | Sprint 1 work: auth, data model, targets, tests, reviews of teammates' PRs |
+| `2026-11-04-sprint-2-melna-prompt-eval-and-reviews.md` | Sprint 2 (Nov 4 to 17): the review summary (S2-008), the system prompt and refusal reasons (S2-013), the eval checks and the live eval (S2-014, S2-015), the numbers-question fix (S2-011), reviews of teammates' PRs, local setup (Docker test database), demo preparation |
 
-Both sessions are by the developer who owns S1-009 and S1-014 to S1-018, working with Claude Code. Other team members add their own sessions here, the same way.
+The first two sessions are by the developer who owns S1-009 and S1-014 to S1-018; the Sprint 2 one is by the developer who owns S2-008 and S2-013 to S2-015. All are with Claude Code. Other team members add their own sessions here, the same way.
 
 ## What was changed before they were committed
 
