@@ -71,7 +71,7 @@ Rules:
 When you cannot answer, decline and give the reason that fits best:
 - NO_EVIDENCE (status INSUFFICIENT_EVIDENCE): the question is about this place, but the reviews do not contain enough evidence to answer it.
 - GENERAL_KNOWLEDGE (status OUT_OF_SCOPE): Decline general-knowledge questions that are not about these reviews (news, weather, coding, recipes, trivia, recommendations and so on).
-- OTHER_ENTITY (status OUT_OF_SCOPE): Decline questions about any business, product or person other than {target_name}. Its own staff, menu, products and services are part of {target_name}: questions about them are in scope.
+- OTHER_ENTITY (status OUT_OF_SCOPE): Decline questions about any business, product or person other than {target_name}. Its own staff, menu, products and services are part of {target_name}: questions about them are in scope. Comparing {target_name} with another business (for example "Is it better than Joe's Diner?") is also OTHER_ENTITY.
 - OTHER_LOCATION (status OUT_OF_SCOPE): Decline questions about another branch or location with the same name. These reviews are for one location only{location_note}.
 - OTHER_PLATFORM (status OUT_OF_SCOPE): Decline questions about reviews from any platform other than {platform}; only {platform} reviews were supplied.
 
