@@ -10,14 +10,21 @@ owner check runs once per question, cannot be skipped, and the tools never see o
 pass an owner or a target. Every query is built from where_clause, so target_id is
 always the first condition and is never taken from the filter.
 guard.require_in_scope checks the rows again.
+
+MEANING SEARCH: search_by_meaning ranks the target's reviews by how close their
+stored embedding is to the embedding of a phrase. The embeddings and the phrase's
+numbers stay inside this class and the database; the model only ever receives
+review text. It uses the same where_clause, so target_id is still the first
+condition and the same filters apply.
 """
 
 from uuid import UUID
 
 import psycopg
 
-from app.repositories.reviews import NEWEST_FIRST, aggregate
+from app.repositories.reviews import NEWEST_FIRST, _vector_literal, aggregate
 from app.repositories.targets import TargetRepository
+from app.services.embed_reviews import Embedder
 from app.services.qa.tools.review_filter import ReviewFilter
 
 # ORDER BY text is chosen from this fixed list, never built from the model's input.
@@ -58,6 +65,10 @@ def where_clause(
     return " and ".join(conditions), params
 
 
+class MeaningSearchUnavailableError(Exception):
+    """Search by meaning cannot run now (no embedder, or the model failed)."""
+
+
 # Only for_owner holds this, so a repository can't be made without the owner check.
 _CHECKED = object()
 
@@ -67,7 +78,12 @@ class ReviewSearchRepository:
     calling the class directly raises TypeError."""
 
     def __init__(
-        self, conn: psycopg.Connection, target_id: UUID | str, *, _checked=None
+        self,
+        conn: psycopg.Connection,
+        target_id: UUID | str,
+        *,
+        embedder: Embedder | None = None,
+        _checked=None,
     ):
         if _checked is not _CHECKED:
             raise TypeError(
@@ -76,14 +92,20 @@ class ReviewSearchRepository:
             )
         self._conn = conn
         self.target_id = target_id
+        self._embedder = embedder
 
     @classmethod
     def for_owner(
-        cls, conn: psycopg.Connection, target_id: UUID | str, owner_id: UUID | str
+        cls,
+        conn: psycopg.Connection,
+        target_id: UUID | str,
+        owner_id: UUID | str,
+        embedder: Embedder | None = None,
     ) -> "ReviewSearchRepository":
-        """The repository for this target if owner_id owns it; otherwise NotFoundError."""
+        """The repository for this target if owner_id owns it; otherwise NotFoundError.
+        Without an embedder, search_by_meaning is not available."""
         target = TargetRepository(conn).get_owned(target_id, owner_id)
-        return cls(conn, target["id"], _checked=_CHECKED)
+        return cls(conn, target["id"], embedder=embedder, _checked=_CHECKED)
 
     def stats(self, review_filter: ReviewFilter) -> dict:
         """Count, average, per-star counts and date range of the matching reviews,
@@ -176,6 +198,30 @@ class ReviewSearchRepository:
              limit %s
             """,
             [*params, limit],
+        ).fetchall()
+
+    def search_by_meaning(
+        self, phrase: str, review_filter: ReviewFilter, *, limit: int = 5
+    ) -> list[dict]:
+        """The reviews whose meaning is closest to `phrase`, closest first. Reviews
+        without an embedding yet are left out. Raises MeaningSearchUnavailableError when
+        there is no embedder or it fails, so the tool can say so and fall back."""
+        if self._embedder is None:
+            raise MeaningSearchUnavailableError("no embedder was given")
+        try:
+            vector = self._embedder.embed([phrase])[0]
+        except Exception as error:
+            raise MeaningSearchUnavailableError(str(error)) from error
+        where, params = where_clause(self.target_id, review_filter)
+        return self._conn.execute(
+            f"""
+            select {_REVIEW_COLUMNS}
+              from public.reviews
+             where {where} and embedding is not null
+             order by embedding <=> %s::vector, id
+             limit %s
+            """,
+            [*params, _vector_literal(vector), limit],
         ).fetchall()
 
     def get_many(self, review_ids: list[UUID]) -> list[dict]:

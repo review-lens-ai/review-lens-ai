@@ -31,9 +31,14 @@ from app.repositories.review_search import ReviewSearchRepository
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
 from app.schemas.qa import AnswerResponse, QuestionCreate
+from app.services.embed_reviews import FastEmbedder
 from app.services.qa import QAConfig, answer_question
 
 router = APIRouter(prefix="/targets", tags=["questions"])
+
+# One embedder for the process: the model loads on first use, so a question that
+# never searches by meaning pays nothing. It embeds only the phrase the model asks for.
+_EMBEDDER = FastEmbedder()
 
 
 def get_model_factory(
@@ -73,7 +78,7 @@ def ask_question(
         question=body.question,
         targets=TargetRepository(conn),
         reviews=ReviewRepository(conn),
-        open_search=partial(ReviewSearchRepository.for_owner, conn),
+        open_search=partial(ReviewSearchRepository.for_owner, conn, embedder=_EMBEDDER),
         make_model=make_model,
         config=QAConfig.from_settings(settings),
     )
