@@ -9,7 +9,10 @@ from datetime import UTC, datetime
 import pytest
 
 from app.core.errors import NotFoundError
-from app.repositories.review_search import ReviewSearchRepository
+from app.repositories.review_search import (
+    MeaningSearchUnavailableError,
+    ReviewSearchRepository,
+)
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
 from app.schemas.reviews import ReviewCreate
@@ -212,3 +215,127 @@ def test_another_users_target_gets_no_repository(conn, make_user, seeded):
 
     with pytest.raises(NotFoundError):
         ReviewSearchRepository.for_owner(conn, target_id, make_user())
+
+
+# --- search by meaning ------------------------------------------------------------
+
+
+class AxisEmbedder:
+    """Stand-in for the real model: reviews about waiting point along one axis, the
+    rest along another, so which review is "closer" is known in advance."""
+
+    def embed(self, texts):
+        vectors = []
+        for text in texts:
+            waits = any(w in text.lower() for w in ("wait", "slow", "forever", "long"))
+            vector = [0.0] * 384
+            vector[0 if waits else 1] = 1.0
+            vectors.append(vector)
+        return vectors
+
+
+class BrokenEmbedder:
+    def embed(self, texts):
+        raise RuntimeError("model could not load")
+
+
+def _embed_all(conn, target_id):
+    reviews = ReviewRepository(conn)
+    rows = conn.execute(
+        "select id, review_text from public.reviews where target_id = %s", (target_id,)
+    ).fetchall()
+    embedder = AxisEmbedder()
+    reviews.save_embeddings(
+        [(row["id"], embedder.embed([row["review_text"]])[0]) for row in rows]
+    )
+
+
+@pytest.fixture
+def embedded(conn, make_user):
+    owner = make_user()
+    target_id = _target(
+        conn,
+        owner,
+        [
+            ("Friendly staff, great pizza", 5, _day(1)),
+            ("It took forever to get our food", 1, _day(2)),
+            ("Great pizza, great price", 4, _day(3)),
+            ("Long wait and cold fries", 2, _day(4)),
+        ],
+    )
+    _embed_all(conn, target_id)
+    repo = ReviewSearchRepository.for_owner(
+        conn, target_id, owner, embedder=AxisEmbedder()
+    )
+    return repo, owner, target_id
+
+
+def test_meaning_search_puts_the_closest_reviews_first(embedded):
+    repo, _, _ = embedded
+
+    rows = repo.search_by_meaning("how long did people wait", ReviewFilter(), limit=2)
+
+    assert {r["review_text"] for r in rows} == {
+        "It took forever to get our food",
+        "Long wait and cold fries",
+    }
+
+
+def test_meaning_search_applies_the_other_filters(embedded):
+    repo, _, _ = embedded
+
+    rows = repo.search_by_meaning("waiting", ReviewFilter(max_rating=1), limit=5)
+
+    assert [r["review_text"] for r in rows] == ["It took forever to get our food"]
+
+
+def test_meaning_search_leaves_out_reviews_without_an_embedding(conn, make_user):
+    owner = make_user()
+    target_id = _target(conn, owner, [("Long wait", 1, _day(1)), ("Slow", 1, _day(2))])
+    reviews = ReviewRepository(conn)
+    first = conn.execute(
+        "select id from public.reviews where target_id = %s and review_text = 'Long wait'",
+        (target_id,),
+    ).fetchone()["id"]
+    reviews.save_embeddings([(first, AxisEmbedder().embed(["wait"])[0])])
+    repo = ReviewSearchRepository.for_owner(
+        conn, target_id, owner, embedder=AxisEmbedder()
+    )
+
+    rows = repo.search_by_meaning("wait", ReviewFilter(), limit=5)
+
+    assert [r["review_text"] for r in rows] == ["Long wait"]
+
+
+def test_meaning_search_never_returns_another_targets_reviews(
+    conn, make_user, embedded
+):
+    repo, _, target_id = embedded
+    other_owner = make_user()
+    other_target = _target(
+        conn, other_owner, [("Another user's long wait review", 1, _day(5))]
+    )
+    _embed_all(conn, other_target)  # identical meaning, so it would rank first
+
+    rows = repo.search_by_meaning("wait", ReviewFilter(), limit=10)
+
+    assert rows and {str(r["target_id"]) for r in rows} == {str(target_id)}
+    assert all("Another user's" not in r["review_text"] for r in rows)
+
+
+def test_meaning_search_without_an_embedder_is_unavailable(conn, embedded):
+    _, owner, target_id = embedded
+    repo = ReviewSearchRepository.for_owner(conn, target_id, owner)
+
+    with pytest.raises(MeaningSearchUnavailableError):
+        repo.search_by_meaning("wait", ReviewFilter())
+
+
+def test_meaning_search_reports_a_failing_embedder_as_unavailable(conn, embedded):
+    _, owner, target_id = embedded
+    repo = ReviewSearchRepository.for_owner(
+        conn, target_id, owner, embedder=BrokenEmbedder()
+    )
+
+    with pytest.raises(MeaningSearchUnavailableError):
+        repo.search_by_meaning("wait", ReviewFilter())

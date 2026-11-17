@@ -14,9 +14,10 @@ How each field finds reviews (all deterministic; the model only writes the value
 - since / until: the review date range.
 All set fields must match (AND).
 
-Search by meaning (a phrase like "long wait" also finding "took forever") is not
-here yet. It becomes a new field once embedding search exists, so the model is
-never offered a field that does nothing.
+Search by meaning (a phrase like "long wait" also finding "took forever") is the
+`similar_to` field of search_reviews only (tools/search.py). It is not a filter:
+counts, averages and terms stay exact, so no tool reports a number that depends
+on how close is close enough.
 """
 
 from datetime import datetime
