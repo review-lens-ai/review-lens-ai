@@ -10,6 +10,7 @@ Transcripts of the AI-assisted development sessions for ReviewLens, kept here as
 | `2026-10-25-session-2-sprint-1-build-and-review.md` | Sprint 1 work: auth, data model, targets, tests, reviews of teammates' PRs |
 | `2026-11-10-sprint-2-reviewlens-qa.md` | Sprint 2 (S2-004, S2-009): scope-guard evaluation set and the review Q&A interface |
 | `2026-11-16-sprint-2-active-target-switching.md` | Sprint 2 (S2-017): switching the active AnalysisTarget |
+| `2026-11-17-session-3-sprint-2-build-review-and-demo-prep.md` | Sprint 2 work: ingestion status and skipped reasons, the Q&A review tools, the scope-guard pipeline test, reviews of teammates' PRs, demo preparation |
 
 
 ## What was changed before they were committed
