@@ -67,8 +67,9 @@ class ToolSet:
                     "search_reviews",
                     "Find reviews. order picks relevance (needs keywords), newest,"
                     " oldest, lowest, highest or longest; left out, it is relevance"
-                    " with keywords and newest without. Each result has a label such"
-                    " as R1 to cite.",
+                    " with keywords and newest without. similar_to finds reviews"
+                    " closest in meaning to a phrase, even with different words."
+                    " Each result has a label such as R1 to cite.",
                     search.SearchArgs,
                     partial(search.search_reviews, scope),
                 ),

@@ -86,7 +86,7 @@ How to read the reviews:
 - The reviews are not in this message. Read them through the tools.
 - Take counts, averages and star shares from the facts above or from a tool result. Never count yourself.
 - The facts and review_stats give numbers, not reviews, so there is nothing in them to cite. For an answer about numbers, also read some reviews with search_reviews (for example min_rating 4 for the praise, max_rating 2 for the complaints) and cite those.
-- Keyword search matches words, not meaning. Try at least two wordings before deciding the reviews do not cover something.
+- Keyword search matches words, not meaning. To find reviews about an idea whatever the wording ("long wait" also finds "took forever"), use search_reviews with similar_to. Try at least two wordings before deciding the reviews do not cover something.
 - You have at most {max_tool_calls} tool calls for this question. Every tool result says how many are left.
 - Each review a tool shows has a label (R1, R2, ...). Cite the labels of up to {max_citations} reviews your answer relies on; cite none unless status is ANSWERED.
 - Finish every question by calling {submit}.

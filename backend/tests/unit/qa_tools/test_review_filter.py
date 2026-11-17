@@ -29,7 +29,7 @@ def test_every_condition_is_a_parameter_not_text_in_the_sql():
     assert text in params
 
 
-def test_meaning_search_is_not_offered_until_it_exists():
+def test_meaning_search_is_not_a_filter_field():
     assert "similar_to" not in ReviewFilter.model_json_schema()["properties"]
     with pytest.raises(ValidationError):
         ReviewFilter(similar_to="rude staff")
