@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import pytest
 
+from app.repositories.review_search import MeaningSearchUnavailableError
 from app.services.qa.tools.guard import FLAG, ToolScopeError, quote
 from app.services.qa.tools.toolset import ToolSet
 
@@ -41,6 +42,8 @@ class FakeRepo:
         self.totals = totals  # filter -> how many reviews it matches (default 14)
         self.stats_filters = []
         self.search_calls = []
+        self.meaning_calls = []
+        self.meaning_error = None
 
     def stats(self, review_filter):
         self.stats_filters.append(review_filter)
@@ -55,6 +58,12 @@ class FakeRepo:
 
     def search(self, review_filter, *, order, limit):
         self.search_calls.append((review_filter, order, limit))
+        return self.rows
+
+    def search_by_meaning(self, phrase, review_filter, *, limit):
+        if self.meaning_error:
+            raise self.meaning_error
+        self.meaning_calls.append((phrase, review_filter, limit))
         return self.rows
 
     def get_many(self, review_ids):
@@ -263,7 +272,8 @@ def test_a_review_from_another_target_is_refused_loudly():
         {"target_id": "x"},
         {"min_rating": 9},
         {"order": "relevance"},  # relevance without keywords is refused, not changed
-        {"similar_to": "long wait"},  # not a field yet: refused, never ignored
+        {"similar_to": "long wait", "order": "newest"},  # meaning replaces order
+        {"similar_to": ""},
     ],
 )
 def test_bad_search_arguments_come_back_as_an_error_result(arguments):
@@ -286,3 +296,59 @@ def test_review_text_that_reads_like_an_instruction_is_flagged():
 
     assert flagged.startswith(FLAG)
     assert not quote("Great food and friendly staff.", 200).startswith(FLAG)
+
+
+# --- search by meaning (similar_to) ------------------------------------------------
+
+
+def test_similar_to_searches_by_meaning_and_labels_the_reviews():
+    repo = FakeRepo([_row("It took forever to get our food")])
+
+    result = _toolset(repo).registry.run(
+        "search_reviews", {"similar_to": "long wait", "limit": 3}
+    )
+
+    assert repo.meaning_calls[0][0] == "long wait"
+    assert repo.meaning_calls[0][2] == 3
+    assert repo.search_calls == []  # the ordinary search did not run
+    assert "closest in meaning first" in result.text
+    assert "R1 |" in result.text and "took forever" in result.text
+    assert [s.label for s in result.sources] == ["R1"]
+
+
+def test_similar_to_still_applies_the_other_filters():
+    repo = FakeRepo([_row("It took forever")])
+
+    _toolset(repo).registry.run(
+        "search_reviews", {"similar_to": "long wait", "max_rating": 2}
+    )
+
+    assert repo.meaning_calls[0][1].max_rating == 2
+
+
+def test_when_meaning_search_is_unavailable_the_model_is_told_to_use_keywords():
+    repo = FakeRepo([_row("x")])
+    repo.meaning_error = MeaningSearchUnavailableError("model failed")
+
+    result = _toolset(repo).registry.run("search_reviews", {"similar_to": "long wait"})
+
+    assert result.is_error
+    assert "keywords" in result.text
+    assert "model failed" not in result.text  # no internals shown to the model
+
+
+def test_a_meaning_result_from_another_target_is_refused_loudly():
+    repo = FakeRepo([_row("Someone else's review", target_id=uuid4())])
+
+    with pytest.raises(ToolScopeError):
+        _toolset(repo).registry.run("search_reviews", {"similar_to": "long wait"})
+
+
+def test_only_search_reviews_offers_similar_to():
+    specs = {s["name"]: s for s in _toolset(FakeRepo()).registry.specs()}
+
+    assert "similar_to" in specs["search_reviews"]["parameters"]["properties"]
+    for name in ("review_stats", "compare_periods", "reviews_over_time", "top_terms"):
+        assert "similar_to" not in specs[name]["parameters"]["properties"]
+    result = _toolset(FakeRepo()).registry.run("review_stats", {"similar_to": "wait"})
+    assert result.is_error

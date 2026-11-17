@@ -3,7 +3,8 @@
 search_reviews  matching reviews, shortened, in a chosen order (relevance, newest,
                 oldest, lowest, highest, longest) - so "the worst reviews" and
                 "the most recent ones" need no sorting by the model. The order
-                used is stated in the result.
+                used is stated in the result. similar_to ranks by meaning instead
+                (closest embedding first), so "long wait" also finds "took forever".
 get_reviews     the full text of reviews already shown, by label
 """
 
@@ -11,9 +12,13 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from app.repositories.review_search import ORDERS, RELEVANCE
+from app.repositories.review_search import (
+    ORDERS,
+    RELEVANCE,
+    MeaningSearchUnavailableError,
+)
 from app.services.qa.tools.guard import quote, require_in_scope
-from app.services.qa.tools.review_filter import ReviewFilter
+from app.services.qa.tools.review_filter import MAX_PHRASE_LENGTH, ReviewFilter
 from app.services.qa.tools.scope import ToolScope
 from app.services.qa.tools.types import ToolResult
 
@@ -29,6 +34,25 @@ class SearchArgs(ReviewFilter):
     # relevance without keywords is refused, never quietly changed.
     order: Order | None = None
     limit: Annotated[int, Field(ge=1, le=10)] = 5
+    # Rank by similar meaning instead of by order (a phrase like "long wait" also
+    # finds "took forever"). Only this tool has it: counts and terms stay exact.
+    similar_to: str | None = Field(
+        default=None,
+        min_length=1,
+        max_length=MAX_PHRASE_LENGTH,
+        description=(
+            "A phrase; returns the reviews closest in meaning to it, closest first."
+            " Cannot be combined with order."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _meaning_replaces_order(self) -> "SearchArgs":
+        if self.similar_to is not None and self.order is not None:
+            raise ValueError(
+                "similar_to ranks by meaning; leave order out when you use it"
+            )
+        return self
 
     @model_validator(mode="after")
     def _relevance_needs_keywords(self) -> "SearchArgs":
@@ -57,9 +81,23 @@ def _line(scope: ToolScope, row: dict, characters: int) -> tuple[str, object]:
 
 
 def search_reviews(scope: ToolScope, args: SearchArgs) -> ToolResult:
-    review_filter = ReviewFilter(**args.model_dump(exclude={"order", "limit"}))
-    order = args.order or (RELEVANCE if args.keywords is not None else "newest")
-    rows = scope.reviews.search(review_filter, order=order, limit=args.limit)
+    review_filter = ReviewFilter(
+        **args.model_dump(exclude={"order", "limit", "similar_to"})
+    )
+    if args.similar_to is not None:
+        order = "closest in meaning"
+        try:
+            rows = scope.reviews.search_by_meaning(
+                args.similar_to, review_filter, limit=args.limit
+            )
+        except MeaningSearchUnavailableError:
+            return ToolResult(
+                text="Search by meaning is not available right now. Use keywords instead.",
+                is_error=True,
+            )
+    else:
+        order = args.order or (RELEVANCE if args.keywords is not None else "newest")
+        rows = scope.reviews.search(review_filter, order=order, limit=args.limit)
     require_in_scope(rows, scope.target_id)
     if not rows:
         return ToolResult(text="No reviews match.")
