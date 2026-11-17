@@ -37,8 +37,10 @@ Other rules this module enforces:
 - NO FAKE SUCCESS: only a RUNNING run can succeed. COMPLETED and PARTIAL are
   final; the only way out of FAILED is requeue().
 - STALE RUNS: a QUEUED or RUNNING run with no progress for STALE_RUN_AFTER (since
-  it was queued or started) is failed as TIMEOUT before a new run is created, so
-  a crash never blocks a target forever.
+  it was queued or started) is ended by the worker on every pass, and before a new
+  run is created, so a crash never blocks a target forever. If it had already saved
+  reviews it ends PARTIAL (they stay); if it saved nothing it is FAILED as CUT_OFF,
+  which the latest-run views skip (the last real result, or "not ingested", shows).
 - NO LEAKED INTERNALS: error_code is one of a fixed list. Technical detail is
   scrubbed (API keys, query strings) and logged; it is never stored or returned.
 """
@@ -58,6 +60,11 @@ from app.services.normalize_reviews import reason_code
 
 logger = logging.getLogger(__name__)
 
+# SQL condition for the "latest run" views: a run that was cut off saved nothing,
+# so it is not shown as the target's result. The last real run (or "not ingested")
+# is shown instead.
+HIDE_CUT_OFF_RUNS = "not (status = 'FAILED' and error_code = 'CUT_OFF')"
+
 # A run still queued or running after this long is treated as crashed.
 STALE_RUN_AFTER = timedelta(minutes=10)
 
@@ -73,6 +80,9 @@ class ErrorCode(StrEnum):
     NO_REVIEWS_FOUND = "NO_REVIEWS_FOUND"
     QUOTA_EXCEEDED = "QUOTA_EXCEEDED"
     TIMEOUT = "TIMEOUT"
+    # The worker stopped before the run finished and the run had saved nothing.
+    # Not a result: the latest-run views skip it (see HIDE_CUT_OFF_RUNS).
+    CUT_OFF = "CUT_OFF"
     UNEXPECTED = "UNEXPECTED"
 
 
@@ -316,7 +326,7 @@ class IngestionRunRepository:
             f"""
             select {_RUN_COLUMNS}
               from public.ingestion_runs
-             where target_id = %s
+             where target_id = %s and {HIDE_CUT_OFF_RUNS}
              order by queued_at desc
              limit 1
             """,
@@ -352,20 +362,54 @@ class IngestionRunRepository:
             for code, count in sorted(totals.items(), key=lambda t: (-t[1], t[0]))
         ]
 
+    def finish_stale_runs(self) -> int:
+        """Finish every QUEUED or RUNNING run, on any target, that has made no
+        progress for STALE_RUN_AFTER. The worker calls this on every pass, so a
+        run that was cut off (worker stopped, laptop closed) never stays
+        "Ingesting" for ever. Returns how many runs it finished."""
+        return self._finish_stale(None, ("RUNNING",))
+
     def _fail_stale_runs(self, target_id: UUID | str) -> None:
-        """Fail any QUEUED or RUNNING run that has made no progress for too long."""
-        self._conn.execute(
+        """The same, for one target, before a new run is queued for it. A run that
+        is only queued is included: it has waited too long to be trusted."""
+        self._finish_stale(target_id, ("QUEUED", "RUNNING"))
+
+    def _finish_stale(
+        self, target_id: UUID | str | None, statuses: tuple[str, ...]
+    ) -> int:
+        """A run that had already saved reviews ends PARTIAL (what it saved stays and
+        counts), never FAILED. A run that saved nothing ends FAILED as CUT_OFF.
+
+        The worker only ends RUNNING runs: a QUEUED run is still waiting for it."""
+        return self._conn.execute(
             """
-            update public.ingestion_runs
-               set status = 'FAILED',
+            with stale as (
+                select r.id,
+                       (select count(*) from public.reviews v where v.run_id = r.id) as saved
+                  from public.ingestion_runs r
+                 where r.status::text = any(%(statuses)s)
+                   and coalesce(r.started_at, r.queued_at) < now() - %(after)s
+                   and (%(target)s::uuid is null or r.target_id = %(target)s::uuid)
+            )
+            update public.ingestion_runs r
+               set status = (case when s.saved > 0 and r.started_at is not null
+                                  then 'PARTIAL' else 'FAILED' end
+                            )::public.ingestion_status,
                    finished_at = now(),
-                   error_code = %s
-             where target_id = %s
-               and status in ('QUEUED', 'RUNNING')
-               and coalesce(started_at, queued_at) < now() - %s
+                   reviews_ingested = case when s.saved > 0 and r.started_at is not null
+                                           then s.saved else r.reviews_ingested end,
+                   error_code = case when s.saved > 0 and r.started_at is not null
+                                     then null else %(code)s end
+              from stale s
+             where r.id = s.id
             """,
-            (ErrorCode.TIMEOUT.value, target_id, STALE_RUN_AFTER),
-        )
+            {
+                "after": STALE_RUN_AFTER,
+                "target": target_id,
+                "code": ErrorCode.CUT_OFF.value,
+                "statuses": list(statuses),
+            },
+        ).rowcount
 
     def _finish(
         self,

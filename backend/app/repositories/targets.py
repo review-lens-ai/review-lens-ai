@@ -19,11 +19,13 @@ from psycopg.types.json import Jsonb
 from app.core.errors import ConflictError, NotFoundError
 
 # The newest ingestion run's status, or NULL when the target was never ingested.
+# A run that was cut off saved nothing and is skipped (ErrorCode.CUT_OFF).
 # "Newest" is the most recently queued run (queued_at; a queued run has no started_at).
 _LATEST_STATUS = """
     (select r.status::text
        from public.ingestion_runs r
       where r.target_id = t.id
+        and not (r.status = 'FAILED' and r.error_code = 'CUT_OFF')
       order by r.queued_at desc
       limit 1) as ingestion_status
 """

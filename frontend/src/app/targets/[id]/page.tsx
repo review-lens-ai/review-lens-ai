@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useId, useState } from "react";
+import { Suspense, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import {
@@ -639,6 +639,7 @@ function ReviewsPanel({
   onPage: (page: number) => void;
   highlightId: string | null;
 }) {
+  const firstReviewRef = useRef<HTMLDivElement>(null);
   if (!everIngested || (reviews !== null && total === 0)) {
     return (
       // The one Ingest button lives in the header above, so this only points to it.
@@ -675,6 +676,17 @@ function ReviewsPanel({
   const hasPrevious = page > 0;
   const hasNext = last < total;
 
+  // Next/Previous: once the new page is on screen, jump to its first review so it is
+  // clear the page changed (the buttons sit far below the list).
+  async function goToPage(target: number) {
+    await onPage(target);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        firstReviewRef.current?.scrollIntoView?.({ block: "start", behavior: "smooth" }),
+      ),
+    );
+  }
+
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -683,7 +695,10 @@ function ReviewsPanel({
           Showing {first}–{last} of {total}
         </p>
       </div>
-      <div className="grid items-start gap-4 @xl:grid-cols-2 @4xl:grid-cols-3">
+      <div
+        ref={firstReviewRef}
+        className="grid scroll-mt-4 items-start gap-4 @xl:grid-cols-2 @4xl:grid-cols-3"
+      >
         {reviews.map((review) => (
           <ReviewCard key={review.id} review={review} highlighted={review.id === highlightId} />
         ))}
@@ -697,14 +712,14 @@ function ReviewsPanel({
         <nav aria-label="Review pages" className="flex items-center gap-2">
           <Button
             variant="outline"
-            onClick={() => onPage(page - 1)}
+            onClick={() => goToPage(page - 1)}
             disabled={!hasPrevious || pageLoading}
           >
             Previous
           </Button>
           <Button
             variant="outline"
-            onClick={() => onPage(page + 1)}
+            onClick={() => goToPage(page + 1)}
             disabled={!hasNext || pageLoading}
           >
             Next
