@@ -8,8 +8,9 @@ Transcripts of the AI-assisted development sessions for ReviewLens, kept here as
 |---|---|
 | `2026-10-23-session-1-understand-repo-and-plan.md` | First session: understanding the repo, the stories and the design |
 | `2026-10-25-session-2-sprint-1-build-and-review.md` | Sprint 1 work: auth, data model, targets, tests, reviews of teammates' PRs |
+| `2026-11-10-sprint-2-reviewlens-qa.md` | Sprint 2 (S2-004, S2-009): scope-guard evaluation set and the review Q&A interface |
+| `2026-11-16-sprint-2-active-target-switching.md` | Sprint 2 (S2-017): switching the active AnalysisTarget |
 
-Both sessions are by the developer who owns S1-009 and S1-014 to S1-018, working with Claude Code. Other team members add their own sessions here, the same way.
 
 ## What was changed before they were committed
 
