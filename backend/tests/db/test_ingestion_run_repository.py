@@ -23,6 +23,7 @@ from app.repositories.ingestion_runs import (
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
 from app.services.normalize_reviews import RejectedRecord, RejectionReason
+from tests.db.conftest import insert_run
 
 URL = "https://www.google.com/maps/place/Joes+Pizza"
 
@@ -321,7 +322,7 @@ def test_stale_active_run_is_failed_as_timeout_and_a_new_run_can_start(
         (stuck["id"],),
     ).fetchone()
     assert old["status"] == "FAILED"
-    assert old["error_code"] == "TIMEOUT"
+    assert old["error_code"] == "CUT_OFF"
     assert old["finished_at"] is not None
 
 
@@ -337,7 +338,47 @@ def test_worker_sweep_ends_a_cut_off_run_without_a_new_run_being_queued(
         "where id = %s",
         (running_run["id"],),
     ).fetchone()
-    assert (row["status"], row["error_code"]) == ("FAILED", "TIMEOUT")
+    assert (row["status"], row["error_code"]) == ("FAILED", "CUT_OFF")
+
+
+def test_worker_sweep_leaves_a_queued_run_for_the_worker_to_pick_up(
+    conn, runs, owned_target
+):
+    target_id, owner = owned_target
+    queued = runs.create_run(target_id, owner)
+    _age(conn, queued["id"], STALE_RUN_AFTER * 2)
+
+    assert runs.finish_stale_runs() == 0
+    assert runs.latest_for_target(target_id, owner)["status"] == "QUEUED"
+
+
+def test_a_cut_off_run_is_not_shown_so_the_last_real_result_is(
+    conn, runs, owned_target
+):
+    target_id, owner = owned_target
+    earlier = insert_run(conn, target_id, "PARTIAL", age="3 days")
+    stuck = runs.create_run(target_id, owner)
+    runs.mark_running(stuck["id"])
+    _age(conn, stuck["id"], STALE_RUN_AFTER * 2)
+
+    runs.finish_stale_runs()
+
+    assert runs.latest_for_target(target_id, owner)["id"] == earlier
+    listed = TargetRepository(conn).list_for_owner(owner)
+    assert listed[0]["ingestion_status"] == "PARTIAL"
+
+
+def test_a_target_whose_only_run_was_cut_off_is_not_ingested(conn, runs, owned_target):
+    target_id, owner = owned_target
+    stuck = runs.create_run(target_id, owner)
+    runs.mark_running(stuck["id"])
+    _age(conn, stuck["id"], STALE_RUN_AFTER * 2)
+
+    runs.finish_stale_runs()
+
+    assert runs.latest_for_target(target_id, owner) is None
+    listed = TargetRepository(conn).list_for_owner(owner)
+    assert listed[0]["ingestion_status"] is None
 
 
 def test_cut_off_run_that_had_saved_reviews_ends_partial_not_failed(
