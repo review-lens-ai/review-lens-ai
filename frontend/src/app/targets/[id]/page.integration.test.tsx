@@ -1,6 +1,6 @@
 // Integration tests for the target workspace page: the Start ingestion and
 // Try again buttons (#55). The whole page is rendered, and MSW plays the backend.
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SkippedReason } from "@/lib/generated/api";
 import type { IngestionRun } from "@/lib/ingestion-runs";
 import {
@@ -47,6 +47,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/hooks/use-targets", () => ({
   useTargets: () => ({ refresh: refreshSidebar }),
 }));
+const showToast = vi.fn();
+vi.mock("sonner", () => ({ toast: { success: (message: string) => showToast(message) } }));
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({ auth: { getSession: async () => ({ data: { session: null } }) } }),
 }));
@@ -963,5 +965,119 @@ describe("switching to another target", () => {
     await screen.findByText("Customer service was great");
     expect(screen.queryByText("The battery life is short")).toBeNull();
     expect(screen.queryByRole("heading", { name: "Joe's Pizza" })).toBeNull();
+  });
+});
+
+// S3-004: a returning user reopens a saved target. Everything comes from the backend
+// (each render gets a fresh query client), so nothing depends on an earlier visit.
+describe("reopening a saved target", () => {
+  it("restores its name, source, ingestion state, reviews and summary", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" }));
+    server.use(
+      http.get(REVIEWS_URL, () => jsonResponse(reviewPage([review()], { total: 1 }))),
+      http.get(`${TARGET_URL}/summary`, () =>
+        jsonResponse({
+          review_count: 1,
+          average_rating: 5,
+          rating_counts: [0, 0, 0, 0, 1].map((count, i) => ({ rating: i + 1, count })),
+        }),
+      ),
+    );
+
+    await openWorkspace("Ingested");
+
+    // Name and source.
+    expect(screen.getByRole("link", { name: /google\.com\/maps/ }).getAttribute("href")).toBe(
+      target().source_url,
+    );
+    // Saved reviews (the Reviews tab opens first for an ingested target).
+    await screen.findByText("Great slice, friendly staff.");
+    // Ingestion summary.
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+    const card = await screen.findByRole("region", { name: /Review summary for Joe's Pizza/ });
+    expect(await within(card).findByText("1 review")).toBeTruthy();
+  });
+});
+
+// S3-005: deleting the target, after the user confirms.
+describe("deleting the target", () => {
+  const completedRun = ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" });
+
+  beforeEach(() => {
+    router.replace.mockClear();
+    refreshSidebar.mockClear();
+    showToast.mockClear();
+  });
+
+  // Opens the workspace for a target with 42 saved reviews and opens the delete dialog.
+  async function openDeleteDialog() {
+    backendHas(completedRun);
+    server.use(http.get(REVIEWS_URL, () => jsonResponse(reviewPage([review()], { total: 42 }))));
+    await openWorkspace("Ingested");
+    await screen.findByText("Great slice, friendly staff.");
+    fireEvent.click(screen.getByRole("button", { name: "Delete target" }));
+    return screen.findByRole("alertdialog");
+  }
+
+  function deleteReturns(respond: () => Response | Promise<Response>) {
+    const remove = vi.fn(respond);
+    server.use(http.delete(TARGET_URL, remove));
+    return remove;
+  }
+
+  it("the dialog names the target and how many reviews go with it", async () => {
+    const dialog = await openDeleteDialog();
+
+    within(dialog).getByText("Joe's Pizza");
+    within(dialog).getByText(/removes the target and its 42 reviews/);
+  });
+
+  it("confirming deletes it, reloads the sidebar and goes to the target list", async () => {
+    const remove = deleteReturns(() => new HttpResponse(null, { status: 204 }));
+    const dialog = await openDeleteDialog();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete target" }));
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/targets"));
+    expect(remove).toHaveBeenCalledTimes(1);
+    expect(refreshSidebar).toHaveBeenCalled();
+    expect(showToast).toHaveBeenCalledWith("Target deleted.");
+  });
+
+  it("cancel closes the dialog and deletes nothing", async () => {
+    const remove = deleteReturns(() => new HttpResponse(null, { status: 204 }));
+    const dialog = await openDeleteDialog();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(remove).not.toHaveBeenCalled();
+    expect(router.replace).not.toHaveBeenCalled();
+    screen.getByRole("heading", { name: "Joe's Pizza" });
+  });
+
+  it("a failed delete keeps the dialog open with the reason, and the target stays", async () => {
+    deleteReturns(() => apiErrorResponse(500, "INTERNAL", "Something went wrong on our side."));
+    const dialog = await openDeleteDialog();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete target" }));
+
+    expect(await within(dialog).findByRole("alert")).toHaveProperty(
+      "textContent",
+      "Something went wrong on our side.",
+    );
+    expect(router.replace).not.toHaveBeenCalled();
+    expect(showToast).not.toHaveBeenCalled();
+    screen.getByText("Great slice, friendly staff.");
+  });
+
+  it("a target that is already gone counts as deleted", async () => {
+    deleteReturns(() => apiErrorResponse(404, "NOT_FOUND", "Target not found."));
+    const dialog = await openDeleteDialog();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete target" }));
+
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/targets"));
+    expect(refreshSidebar).toHaveBeenCalled();
   });
 });
