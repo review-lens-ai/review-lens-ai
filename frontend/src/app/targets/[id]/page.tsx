@@ -43,7 +43,7 @@ import {
   skipReasonLabel,
   type IngestionRun,
 } from "@/lib/ingestion-runs";
-import { REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
+import { persistedReviewsLabel, REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
 import { ReviewQaPanel } from "./_components/review-qa-panel";
 
@@ -296,6 +296,7 @@ function TargetWorkspace({
         >
           <ReviewQaPanel
             target={target}
+            open={qaOpen}
             reviewTotal={everIngested && reviews.reviews === null ? null : reviews.total}
             onNotFound={() => setQaNotFound(true)}
             onClose={closeQa}
@@ -504,13 +505,7 @@ function DeleteTargetButton({
 // S3-005: what deleting removes (docs/architecture/target-deletion.md). Lists only data
 // that exists today: Q&A history joins the list once it is saved (S3-006).
 function DeletedDataList({ target, reviewTotal }: { target: Target; reviewTotal: number | null }) {
-  // No count while the reviews load, and no line for a target without reviews.
-  const reviews =
-    reviewTotal === 1
-      ? "The 1 persisted review"
-      : reviewTotal
-        ? `All ${reviewTotal} persisted reviews`
-        : null;
+  const reviews = persistedReviewsLabel(reviewTotal);
 
   return (
     <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">

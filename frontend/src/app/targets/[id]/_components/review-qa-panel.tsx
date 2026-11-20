@@ -4,10 +4,13 @@
 //
 // assistant-ui draws the conversation; it does not send requests or keep messages.
 // useAskQuestion owns both (ExternalStoreRuntime): it sends one question at a time
-// through TanStack Query and keeps the turns, which are cleared on a target switch.
+// through TanStack Query and keeps the turns, which start over on a target switch.
 // Each question is answered on its own: no earlier turns are sent.
+//
+// S3-007: the conversation starts from the target's saved history, loaded the first time
+// the panel opens. S3-008: Clear Q&A History removes that history, and nothing else.
 
-import { useCallback, useId, useMemo } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import {
   type AppendMessage,
   AssistantRuntimeProvider,
@@ -22,6 +25,7 @@ import {
   ArrowRightIcon,
   ArrowUpIcon,
   BanIcon,
+  CheckIcon,
   CircleAlertIcon,
   CircleCheckIcon,
   ExternalLinkIcon,
@@ -33,15 +37,19 @@ import {
   XIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { ConfirmDialog } from "@/app/_components/confirm-dialog";
 import { EmptyState } from "@/app/_components/empty-state";
 import { ReviewCard } from "@/app/_components/review-card";
 import { AskQuestionContext, FollowUpSuggestions } from "./follow-up-suggestions";
 import { Button } from "@/app/_components/ui/button";
 import { Skeleton } from "@/app/_components/ui/skeleton";
 import type { AnswerResponse, AnswerStatus } from "@/lib/generated/api";
-import { type QaTurn, useAskQuestion } from "@/lib/hooks/use-ask-question";
+import { type QaTurn, turnOf, useAskQuestion } from "@/lib/hooks/use-ask-question";
+import { useClearQaHistory, useQaHistory } from "@/lib/hooks/use-qa-history";
 import { reviewCount } from "@/lib/ingestion-runs";
+import { dayHeadings, questionCount, type SavedQaExchange, timeLabel } from "@/lib/qa-history";
 import { noReviewsNotice, QUESTION_MAX_LENGTH, SUGGESTED_QUESTIONS } from "@/lib/questions";
+import { persistedReviewsLabel } from "@/lib/reviews";
 import { platformLabel, type Target } from "@/lib/targets";
 
 // What assistant-ui is given: each turn becomes the user's question and ReviewLens's reply.
@@ -69,33 +77,61 @@ function textOf(message: AppendMessage): string {
     .trim();
 }
 
-export function ReviewQaPanel({
-  target,
-  reviewTotal,
-  onNotFound,
-  onClose,
-}: {
+type PanelProps = {
   target: Target;
   // Saved reviews for this target, or null while they load.
   reviewTotal: number | null;
   onNotFound: () => void;
   onClose: () => void;
+};
+
+export function ReviewQaPanel({ open, ...props }: PanelProps & { open: boolean }) {
+  const { target, onNotFound } = props;
+  // The history loads the first time the panel opens, and stays while it is closed.
+  const [opened, setOpened] = useState(open);
+  if (open && !opened) setOpened(true);
+  const history = useQaHistory(target.id, { enabled: opened });
+
+  // The history as it first loaded (or failed to). The conversation starts from this
+  // and is never swapped out afterwards: a later refetch (after each answer, or when the
+  // browser tab regains focus) briefly empties the query while it runs, and showing the
+  // loading state then would unmount the conversation and lose what is on screen.
+  const [start, setStart] = useState<{ saved: SavedQaExchange[]; failed: boolean } | null>(null);
+  if (start === null && (history.exchanges !== null || history.failed)) {
+    setStart({ saved: history.exchanges ?? [], failed: history.failed });
+  }
+
+  useEffect(() => {
+    if (history.targetMissing) onNotFound();
+  }, [history.targetMissing, onNotFound]);
+
+  if (start === null) {
+    return (
+      <PanelFrame {...props} subtitle="Loading your questions…">
+        <div role="status" aria-label="Loading your questions" className="flex flex-col gap-3 p-5">
+          <Skeleton className="ml-auto h-12 w-3/4 rounded-xl" />
+          <Skeleton className="h-20 w-full rounded-xl" />
+        </div>
+      </PanelFrame>
+    );
+  }
+
+  return <QaConversation {...props} saved={start.saved} historyFailed={start.failed} />;
+}
+
+// The panel around the conversation. The dataset answers come from, always in view
+// (S2-BR-014).
+function PanelFrame({
+  target,
+  onClose,
+  subtitle,
+  status,
+  children,
+}: Pick<PanelProps, "target" | "onClose"> & {
+  subtitle: string;
+  status?: React.ReactNode;
+  children: React.ReactNode;
 }) {
-  const { turns, ask, retry, asking } = useAskQuestion(target.id, {
-    onTargetMissing: onNotFound,
-  });
-  const messages = useMemo(() => messagesOf(turns), [turns]);
-
-  const runtime = useExternalStoreRuntime({
-    messages,
-    convertMessage,
-    isRunning: asking,
-    onNew: async (message) => {
-      const question = textOf(message);
-      if (question && !asking) ask(question);
-    },
-  });
-
   const headingId = useId();
 
   return (
@@ -107,49 +143,180 @@ export function ReviewQaPanel({
       }}
       className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border bg-card"
     >
-      {/* The dataset answers come from, always in view (S2-BR-014). */}
       <div className="flex items-start justify-between gap-3 border-b px-5 py-4">
         <div className="min-w-0">
           <h2 id={headingId} className="font-semibold break-words">
             Ask {target.name}
           </h2>
-          <p className="text-sm text-muted-foreground">
-            {reviewTotal === null ? "Loading reviews…" : reviewCount(reviewTotal)} ·{" "}
-            {platformLabel(target.platform)}
-          </p>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <Button variant="ghost" size="icon" aria-label="Close Q&A" onClick={onClose}>
-          <XIcon aria-hidden="true" />
-        </Button>
+        <div className="flex items-center gap-2">
+          {status}
+          <Button variant="ghost" size="icon" aria-label="Close Q&A" onClick={onClose}>
+            <XIcon aria-hidden="true" />
+          </Button>
+        </div>
       </div>
+      {children}
+    </section>
+  );
+}
 
-      {reviewTotal === 0 ? (
+function QaConversation({
+  target,
+  reviewTotal,
+  onNotFound,
+  onClose,
+  saved,
+  historyFailed,
+}: PanelProps & { saved: SavedQaExchange[]; historyFailed: boolean }) {
+  const initialTurns = useMemo(() => saved.map(turnOf), [saved]);
+  const { turns, ask, retry, clear, asking } = useAskQuestion(target.id, {
+    onTargetMissing: onNotFound,
+    initialTurns,
+  });
+  const messages = useMemo(() => messagesOf(turns), [turns]);
+  const headings = useMemo(() => dayHeadings(turns), [turns]);
+
+  // S3-008: true once the history was cleared in this visit.
+  const [cleared, setCleared] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
+  const clearing = useClearQaHistory(target.id, {
+    onCleared: () => {
+      clear();
+      setCleared(true);
+      setClearOpen(false);
+    },
+    onTargetMissing: onNotFound,
+  });
+
+  const runtime = useExternalStoreRuntime({
+    messages,
+    convertMessage,
+    isRunning: asking,
+    onNew: async (message) => {
+      const question = textOf(message);
+      if (question && !asking) ask(question);
+    },
+  });
+
+  const reviews = reviewTotal === null ? "Loading reviews…" : reviewCount(reviewTotal);
+  const subtitle = `${questionCount(turns.length)} · ${reviews} · ${platformLabel(target.platform)}`;
+  let status: React.ReactNode = null;
+  if (saved.length > 0 && !cleared && turns.length > 0) {
+    status = <span className="text-xs font-medium text-success">History restored</span>;
+  } else if (cleared && turns.length === 0) {
+    status = <span className="text-xs text-muted-foreground">Ready for a new question</span>;
+  }
+
+  return (
+    <PanelFrame target={target} onClose={onClose} subtitle={subtitle} status={status}>
+      {historyFailed && (
+        <p role="status" className="border-b bg-warning/10 px-5 py-2 text-sm text-warning">
+          Your earlier questions couldn&apos;t load. You can still ask new ones.
+        </p>
+      )}
+      {reviewTotal === 0 && turns.length === 0 ? (
         <div className="flex-1 overflow-y-auto p-5">
           <EmptyState icon={<InboxIcon />} {...noReviewsNotice(target.ingestion_status)} />
         </div>
       ) : (
         <AssistantRuntimeProvider runtime={runtime}>
-          <QaThread target={target} messages={messages} onRetry={retry} />
+          <QaThread
+            target={target}
+            reviewTotal={reviewTotal}
+            messages={messages}
+            headings={headings}
+            cleared={cleared}
+            onRetry={retry}
+            onClear={() => {
+              clearing.reset();
+              setClearOpen(true);
+            }}
+          />
         </AssistantRuntimeProvider>
       )}
-    </section>
+      <ConfirmDialog
+        open={clearOpen}
+        onOpenChange={setClearOpen}
+        title="Clear Q&A history?"
+        description={clearDescription(turns.length, target.name)}
+        confirmLabel="Clear Q&A History"
+        pendingLabel="Clearing…"
+        pending={clearing.clearing}
+        error={clearing.error}
+        onConfirm={clearing.clear}
+      >
+        <KeptDataList target={target} reviewTotal={reviewTotal} />
+        <p className="text-sm text-muted-foreground">
+          Other analyses and their Q&amp;A histories are not affected.
+        </p>
+      </ConfirmDialog>
+    </PanelFrame>
+  );
+}
+
+function clearDescription(questions: number, targetName: string): string {
+  const what =
+    questions === 1
+      ? "the saved question and answer"
+      : `the ${questions} saved questions and answers`;
+  return `Permanently remove ${what} for ${targetName}. This cannot be undone.`;
+}
+
+// S3-008: what clearing leaves alone (S3-BR-012).
+function KeptDataList({ target, reviewTotal }: { target: Target; reviewTotal: number | null }) {
+  const kept = [
+    `Analysis: ${target.name}`,
+    `${platformLabel(target.platform)} source URL`,
+    persistedReviewsLabel(reviewTotal),
+    "Ingestion summary",
+  ].filter((item) => item !== null);
+
+  return (
+    <div className="rounded-md bg-success/10 px-4 py-3 text-sm text-success">
+      <p className="font-medium">Your analysis and review data stay saved</p>
+      <ul className="mt-2 flex flex-col gap-1">
+        {kept.map((item) => (
+          <li key={item} className="flex items-center gap-2">
+            <CheckIcon className="size-4 shrink-0" aria-hidden="true" />
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
 function QaThread({
   target,
+  reviewTotal,
   messages,
+  headings,
+  cleared,
   onRetry,
+  onClear,
 }: {
   target: Target;
+  reviewTotal: number | null;
   messages: QaMessage[];
+  // The day heading above the first question of each day, by turn id.
+  headings: Map<string, string>;
+  cleared: boolean;
   onRetry: (turn: QaTurn) => void;
+  onClear: () => void;
 }) {
   const inputId = useId();
   const aui = useAui();
   const asking = useAuiState((state) => state.thread.isRunning);
   const length = useAuiState((state) => state.composer.text.length);
-  const turnOf = useCallback((id: string) => messages.find((m) => m.id === id)?.turn, [messages]);
+  const turnFor = useCallback((id: string) => messages.find((m) => m.id === id)?.turn, [messages]);
+
+  // The conversation appears once the history has loaded, just after the panel opens, so
+  // the cursor goes to the question box then.
+  useEffect(() => {
+    document.getElementById(inputId)?.focus();
+  }, [inputId]);
 
   // Puts a question back in the box, to change it before asking again.
   const edit = useCallback(
@@ -177,14 +344,17 @@ function QaThread({
         className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-5"
       >
         <ThreadPrimitive.Empty>
-          <Suggestions />
+          {cleared && <ClearedNotice reviewTotal={reviewTotal} />}
+          <Suggestions cleared={cleared} targetName={target.name} />
         </ThreadPrimitive.Empty>
         <AskQuestionContext.Provider value={ask}>
           <ThreadPrimitive.Messages>
             {({ message }) => {
-              const turn = turnOf(message.id);
+              const turn = turnFor(message.id);
               if (!turn) return null;
-              if (message.role === "user") return <AskedQuestion question={turn.question} />;
+              if (message.role === "user") {
+                return <AskedQuestion turn={turn} heading={headings.get(turn.id)} />;
+              }
               return <Reply turn={turn} targetName={target.name} onRetry={onRetry} onEdit={edit} />;
             }}
           </ThreadPrimitive.Messages>
@@ -215,16 +385,28 @@ function QaThread({
               ? "Your question is being processed."
               : "Press Enter to ask, Shift+Enter for a new line."}
           </p>
-          <ComposerPrimitive.Send asChild>
-            <Button type="submit" className="ml-auto">
-              {asking ? (
-                <Loader2Icon className="animate-spin" aria-hidden="true" />
-              ) : (
-                <ArrowUpIcon aria-hidden="true" />
-              )}
-              {asking ? "Analyzing…" : "Ask ReviewLens"}
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            {/* S3-008: type="button", so it never submits the question box. Off while an
+                answer is on its way, and when there is nothing to clear. */}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClear}
+              disabled={asking || messages.length === 0}
+            >
+              Clear Q&amp;A History
             </Button>
-          </ComposerPrimitive.Send>
+            <ComposerPrimitive.Send asChild>
+              <Button type="submit">
+                {asking ? (
+                  <Loader2Icon className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <ArrowUpIcon aria-hidden="true" />
+                )}
+                {asking ? "Analyzing…" : "Ask ReviewLens"}
+              </Button>
+            </ComposerPrimitive.Send>
+          </div>
         </div>
         <p className="text-xs text-muted-foreground">
           Each question is answered on its own, using only {target.name}&apos;s reviews.
@@ -234,7 +416,18 @@ function QaThread({
   );
 }
 
-function Suggestions() {
+// S3-008: after clearing, says what was kept (S3-BR-012).
+function ClearedNotice({ reviewTotal }: { reviewTotal: number | null }) {
+  const reviews = reviewTotal === null ? "saved reviews" : `${reviewCount(reviewTotal)}`;
+  return (
+    <div role="status" className="rounded-lg bg-success/10 px-4 py-3 text-sm text-success">
+      <p className="font-medium">Q&amp;A history cleared</p>
+      <p>Your analysis, source URL, {reviews} and ingestion summary are unchanged.</p>
+    </div>
+  );
+}
+
+function Suggestions({ cleared, targetName }: { cleared: boolean; targetName: string }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-start gap-3">
@@ -242,9 +435,13 @@ function Suggestions() {
           <SparklesIcon className="size-5" />
         </span>
         <div>
-          <h3 className="font-semibold">Your next insight starts with a question.</h3>
+          <h3 className="font-semibold">
+            {cleared ? "A fresh start, same reviews." : "Your next insight starts with a question."}
+          </h3>
           <p className="text-sm text-muted-foreground">
-            Start with a suggestion, or ask something of your own.
+            {cleared
+              ? `Ask a new question about ${targetName}. Answers use only its reviews.`
+              : "Start with a suggestion, or ask something of your own."}
           </p>
         </div>
       </div>
@@ -266,12 +463,26 @@ function Suggestions() {
   );
 }
 
-function AskedQuestion({ question }: { question: string }) {
+// The user's question, with the day heading above it when it is the first of its day
+// (S3-007), and the time it was asked.
+function AskedQuestion({ turn, heading }: { turn: QaTurn; heading?: string }) {
   return (
-    <div className="ml-auto max-w-[85%] rounded-xl bg-primary px-4 py-3 text-sm whitespace-pre-line text-primary-foreground">
-      <span className="sr-only">You asked: </span>
-      {question}
-    </div>
+    <>
+      {heading && (
+        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+          {heading}
+        </p>
+      )}
+      <div className="ml-auto max-w-[85%] rounded-xl bg-primary px-4 py-3 text-sm whitespace-pre-line text-primary-foreground">
+        <p>
+          <span className="sr-only">You asked: </span>
+          {turn.question}
+        </p>
+        <time dateTime={turn.askedAt} className="mt-1 block text-xs text-primary-foreground/80">
+          {timeLabel(turn.askedAt)}
+        </time>
+      </div>
+    </>
   );
 }
 
