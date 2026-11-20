@@ -467,8 +467,6 @@ function DeleteTargetButton({
   }, [router]);
   const { deleteTarget, deleting, error, reset } = useDeleteTarget(target.id, { onDeleted });
 
-  const reviews = reviewTotal ? ` and its ${reviewCount(reviewTotal)}` : "";
-
   return (
     <>
       <Button
@@ -480,7 +478,7 @@ function DeleteTargetButton({
         className="text-destructive hover:text-destructive"
       >
         <Trash2Icon aria-hidden="true" />
-        Delete target
+        Delete Analysis
       </Button>
       <ConfirmDialog
         open={open}
@@ -490,14 +488,40 @@ function DeleteTargetButton({
             Delete <em>{target.name}</em>?
           </>
         }
-        description={`This removes the target${reviews} and its ingestion history. This can't be undone.`}
-        confirmLabel="Delete target"
+        description="Permanently delete this analysis and its saved data. This cannot be undone."
+        confirmLabel="Delete Analysis"
         pendingLabel="Deleting…"
         pending={deleting}
         error={error}
         onConfirm={deleteTarget}
-      />
+      >
+        <DeletedDataList target={target} reviewTotal={reviewTotal} />
+      </ConfirmDialog>
     </>
+  );
+}
+
+// S3-005: what deleting removes (docs/architecture/target-deletion.md). Lists only data
+// that exists today: Q&A history joins the list once it is saved (S3-006).
+function DeletedDataList({ target, reviewTotal }: { target: Target; reviewTotal: number | null }) {
+  // No count while the reviews load, and no line for a target without reviews.
+  const reviews =
+    reviewTotal === 1
+      ? "The 1 persisted review"
+      : reviewTotal
+        ? `All ${reviewTotal} persisted reviews`
+        : null;
+
+  return (
+    <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
+      <p className="font-medium">This will permanently remove</p>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        <li>Analysis: {target.name}</li>
+        <li>Saved source URL</li>
+        {reviews && <li>{reviews}</li>}
+        <li>Ingestion summary</li>
+      </ul>
+    </div>
   );
 }
 

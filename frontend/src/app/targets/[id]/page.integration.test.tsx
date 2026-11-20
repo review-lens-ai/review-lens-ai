@@ -1015,7 +1015,7 @@ describe("deleting the target", () => {
     server.use(http.get(REVIEWS_URL, () => jsonResponse(reviewPage([review()], { total: 42 }))));
     await openWorkspace("Ingested");
     await screen.findByText("Great slice, friendly staff.");
-    fireEvent.click(screen.getByRole("button", { name: "Delete target" }));
+    fireEvent.click(screen.getByRole("button", { name: "Delete Analysis" }));
     return screen.findByRole("alertdialog");
   }
 
@@ -1025,18 +1025,37 @@ describe("deleting the target", () => {
     return remove;
   }
 
-  it("the dialog names the target and how many reviews go with it", async () => {
+  it("the dialog names the target and lists what will be removed", async () => {
     const dialog = await openDeleteDialog();
 
-    within(dialog).getByText("Joe's Pizza");
-    within(dialog).getByText(/removes the target and its 42 reviews/);
+    within(dialog).getByRole("heading", { name: "Delete Joe's Pizza?" });
+    within(dialog).getByText(/Permanently delete this analysis and its saved data/);
+    const removed = within(dialog)
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+    expect(removed).toEqual([
+      "Analysis: Joe's Pizza",
+      "Saved source URL",
+      "All 42 persisted reviews",
+      "Ingestion summary",
+    ]);
+  });
+
+  it("the close button closes the dialog and deletes nothing", async () => {
+    const remove = deleteReturns(() => new HttpResponse(null, { status: 204 }));
+    const dialog = await openDeleteDialog();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+
+    await waitFor(() => expect(screen.queryByRole("alertdialog")).toBeNull());
+    expect(remove).not.toHaveBeenCalled();
   });
 
   it("confirming deletes it, reloads the sidebar and goes to the target list", async () => {
     const remove = deleteReturns(() => new HttpResponse(null, { status: 204 }));
     const dialog = await openDeleteDialog();
 
-    fireEvent.click(within(dialog).getByRole("button", { name: "Delete target" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete Analysis" }));
 
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/targets"));
     expect(remove).toHaveBeenCalledTimes(1);
@@ -1060,7 +1079,7 @@ describe("deleting the target", () => {
     deleteReturns(() => apiErrorResponse(500, "INTERNAL", "Something went wrong on our side."));
     const dialog = await openDeleteDialog();
 
-    fireEvent.click(within(dialog).getByRole("button", { name: "Delete target" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete Analysis" }));
 
     expect(await within(dialog).findByRole("alert")).toHaveProperty(
       "textContent",
@@ -1075,7 +1094,7 @@ describe("deleting the target", () => {
     deleteReturns(() => apiErrorResponse(404, "NOT_FOUND", "Target not found."));
     const dialog = await openDeleteDialog();
 
-    fireEvent.click(within(dialog).getByRole("button", { name: "Delete target" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete Analysis" }));
 
     await waitFor(() => expect(router.replace).toHaveBeenCalledWith("/targets"));
     expect(refreshSidebar).toHaveBeenCalled();

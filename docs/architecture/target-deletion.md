@@ -34,7 +34,7 @@ Allowed. The run is deleted with the target. The worker catches a run that disap
 
 ## In the app
 
-- **Delete target** button in the workspace header opens a confirmation dialog that names the target and how many reviews go with it.
+- **Delete Analysis** button in the workspace header opens a confirmation dialog titled with the target's name. It lists what will be removed: the analysis, its source URL, its saved reviews (with the count) and its ingestion summary. Q&A history joins the list once it is saved (S3-006). Cancel, Esc and the close button all close it without deleting.
 - Confirm: `DELETE /api/v1/targets/{id}`, then the sidebar list reloads, a "Target deleted." toast shows, and the page goes to the target list (replacing history, so Back does not return to a deleted target).
 - A 404 on delete counts as deleted (e.g. it was deleted in another tab).
 - Any other failure keeps the dialog open with the reason. Nothing is removed.
@@ -47,4 +47,4 @@ Allowed. The run is deleted with the target. The worker catches a run that disap
 | Deleting one user's target leaves another user's data | `backend/tests/db/test_reopen_and_delete_target.py` |
 | Another user cannot delete; a missing token is rejected | `backend/tests/db/test_target_access.py`, `backend/tests/api/test_delete_target.py` |
 | Runs, reviews and rejections go with the target | `backend/tests/db/test_schema.py` |
-| Dialog, confirm, cancel, failure, already-deleted | `frontend/src/app/targets/[id]/page.integration.test.tsx` |
+| Dialog, confirm, cancel, close button, failure, already-deleted | `frontend/src/app/targets/[id]/page.integration.test.tsx` |
