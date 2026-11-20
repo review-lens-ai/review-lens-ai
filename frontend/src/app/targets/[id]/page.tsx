@@ -41,7 +41,7 @@ import {
 } from "@/lib/ingestion-runs";
 import { REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
-import { ExportButtons } from "./_components/export-buttons";
+import { ExportMenu } from "./_components/export-menu";
 import { ReviewQaPanel } from "./_components/review-qa-panel";
 
 // S2-009: the header button that opens and closes the docked Q&A panel.
@@ -419,7 +419,7 @@ function TargetContextHeader({
             Ask about reviews
           </Button>
           <IngestButton ingest={ingest} />
-          <ExportButtons targetId={target.id} hasReviews={reviewsKept > 0} />
+          <ExportMenu targetId={target.id} hasReviews={reviewsKept > 0} />
         </div>
       </div>
 
