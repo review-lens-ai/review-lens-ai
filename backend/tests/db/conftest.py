@@ -14,6 +14,8 @@ import pytest
 
 from app.db import connect
 from app.db.migrate import apply_migrations
+from app.repositories.reviews import ReviewRepository
+from app.schemas.reviews import ReviewCreate
 
 STUB_SQL = Path(__file__).with_name("supabase_stub.sql")
 
@@ -88,3 +90,52 @@ def make_user(conn: psycopg.Connection):
         ).fetchone()["id"]
 
     return _make
+
+
+@pytest.fixture
+def save_run(conn):
+    """Save one finished run's reviews the way the worker does: inserted while the
+    run is RUNNING, then the run is marked COMPLETED. Returns the saved review ids."""
+
+    def _save(target_id, owner_id, ratings, text="Good", dates=None) -> list[str]:
+        # dates: one review date per rating (None for an undated review). No dates
+        # by default, so those tests see first/last_reviewed_at as None.
+        dates = dates or [None] * len(ratings)
+        run_id = conn.execute(
+            """
+            insert into public.ingestion_runs (target_id, status, started_at)
+            values (%s, 'RUNNING', now())
+            returning id
+            """,
+            (target_id,),
+        ).fetchone()["id"]
+        ReviewRepository(conn).bulk_insert(
+            run_id,
+            target_id,
+            owner_id,
+            [
+                ReviewCreate(
+                    rating=rating,
+                    review_text=text,
+                    mapping_version="serpapi@1",
+                    reviewed_at=reviewed_at,
+                )
+                for rating, reviewed_at in zip(ratings, dates, strict=True)
+            ],
+        )
+        conn.execute(
+            """
+            update public.ingestion_runs
+               set status = 'COMPLETED', finished_at = now(), reviews_ingested = %s
+             where id = %s
+            """,
+            (len(ratings), run_id),
+        )
+        return [
+            str(row["id"])
+            for row in conn.execute(
+                "select id from public.reviews where run_id = %s", (run_id,)
+            ).fetchall()
+        ]
+
+    return _save

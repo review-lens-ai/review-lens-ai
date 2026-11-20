@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useId, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import {
   CircleAlertIcon,
   CircleCheckIcon,
@@ -12,9 +13,11 @@ import {
   MessageSquareTextIcon,
   RefreshCwIcon,
   SearchXIcon,
+  Trash2Icon,
   TriangleAlertIcon,
   XIcon,
 } from "lucide-react";
+import { ConfirmDialog } from "@/app/_components/confirm-dialog";
 import { EmptyState } from "@/app/_components/empty-state";
 import { PlatformBadge } from "@/app/_components/platform-badge";
 import { ReviewCard } from "@/app/_components/review-card";
@@ -27,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/_components/ui/t
 import { errorMessage, isNotFound, isUnauthorized } from "@/lib/api";
 import { APP_TITLE } from "@/lib/app-title";
 import { type SkippedReason, useGetTarget } from "@/lib/generated/api";
+import { useDeleteTarget } from "@/lib/hooks/use-delete-target";
 import { useLatestRun } from "@/lib/hooks/use-latest-run";
 import { useReviews } from "@/lib/hooks/use-reviews";
 import {
@@ -207,6 +211,7 @@ function TargetWorkspace({
         target={target}
         run={run}
         reviewsKept={reviews.total}
+        reviewTotal={everIngested && reviews.reviews === null ? null : reviews.total}
         ingest={ingest}
         qa={qa}
       />
@@ -367,12 +372,15 @@ function TargetContextHeader({
   target,
   run,
   reviewsKept,
+  reviewTotal,
   ingest,
   qa,
 }: {
   target: Target;
   run: IngestionRun | null;
   reviewsKept: number;
+  // Saved reviews, or null while they load (the delete dialog then leaves the count out).
+  reviewTotal: number | null;
   ingest: IngestAction;
   qa: QaToggle;
 }) {
@@ -418,6 +426,7 @@ function TargetContextHeader({
             Ask about reviews
           </Button>
           <IngestButton ingest={ingest} />
+          <DeleteTargetButton target={target} reviewTotal={reviewTotal} />
         </div>
       </div>
 
@@ -437,6 +446,81 @@ function TargetContextHeader({
 
       {/* With the Q&A panel open, the tabs sit above their own column instead. */}
       {!qa.open && <WorkspaceTabs />}
+    </div>
+  );
+}
+
+// S3-005: delete this target after the user confirms. On success the page moves to the
+// target list (replace, so Back does not return to a target that no longer exists).
+function DeleteTargetButton({
+  target,
+  reviewTotal,
+}: {
+  target: Target;
+  reviewTotal: number | null;
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const onDeleted = useCallback(() => {
+    toast.success("Target deleted.");
+    router.replace("/targets");
+  }, [router]);
+  const { deleteTarget, deleting, error, reset } = useDeleteTarget(target.id, { onDeleted });
+
+  return (
+    <>
+      <Button
+        variant="outline"
+        onClick={() => {
+          reset();
+          setOpen(true);
+        }}
+        className="text-destructive hover:text-destructive"
+      >
+        <Trash2Icon aria-hidden="true" />
+        Delete Analysis
+      </Button>
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title={
+          <>
+            Delete <em>{target.name}</em>?
+          </>
+        }
+        description="Permanently delete this analysis and its saved data. This cannot be undone."
+        confirmLabel="Delete Analysis"
+        pendingLabel="Deleting…"
+        pending={deleting}
+        error={error}
+        onConfirm={deleteTarget}
+      >
+        <DeletedDataList target={target} reviewTotal={reviewTotal} />
+      </ConfirmDialog>
+    </>
+  );
+}
+
+// S3-005: what deleting removes (docs/architecture/target-deletion.md). Lists only data
+// that exists today: Q&A history joins the list once it is saved (S3-006).
+function DeletedDataList({ target, reviewTotal }: { target: Target; reviewTotal: number | null }) {
+  // No count while the reviews load, and no line for a target without reviews.
+  const reviews =
+    reviewTotal === 1
+      ? "The 1 persisted review"
+      : reviewTotal
+        ? `All ${reviewTotal} persisted reviews`
+        : null;
+
+  return (
+    <div className="rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">
+      <p className="font-medium">This will permanently remove</p>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        <li>Analysis: {target.name}</li>
+        <li>Saved source URL</li>
+        {reviews && <li>{reviews}</li>}
+        <li>Ingestion summary</li>
+      </ul>
     </div>
   );
 }
