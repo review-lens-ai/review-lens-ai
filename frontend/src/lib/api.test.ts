@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { jsonResponse } from "@/test/responses";
+import { apiErrorResponse, jsonResponse } from "@/test/responses";
 import type { ApiError as ApiErrorType } from "./api";
 
 const getSession = vi.fn();
@@ -87,5 +87,59 @@ describe("apiFetch", () => {
     vi.stubEnv("NEXT_PUBLIC_API_URL", "");
 
     await expect(loadApi()).rejects.toThrow("NEXT_PUBLIC_API_URL is not set");
+  });
+});
+
+describe("apiFetchFile", () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    vi.stubEnv("NEXT_PUBLIC_API_URL", "http://api.test");
+    vi.stubGlobal("fetch", fetchMock);
+    fetchMock.mockReset();
+    getSession.mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  it("sends the access token and returns the file with the name the backend chose", async () => {
+    getSession.mockResolvedValue({ data: { session: { access_token: "tok-123" } } });
+    fetchMock.mockResolvedValue(
+      new Response("rating,review_text", {
+        headers: { "Content-Disposition": 'attachment; filename="joes-pizza-reviews.csv"' },
+      }),
+    );
+    const { apiFetchFile } = await loadApi();
+
+    const { blob, filename } = await apiFetchFile("/api/v1/targets/t1/export/reviews");
+
+    expect(filename).toBe("joes-pizza-reviews.csv");
+    expect(await blob.text()).toBe("rating,review_text");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("http://api.test/api/v1/targets/t1/export/reviews");
+    expect(init.headers.Authorization).toBe("Bearer tok-123");
+  });
+
+  it("returns no file name when the backend sends none", async () => {
+    getSession.mockResolvedValue({ data: { session: null } });
+    fetchMock.mockResolvedValue(new Response("x"));
+    const { apiFetchFile } = await loadApi();
+
+    expect((await apiFetchFile("/api/v1/x")).filename).toBeNull();
+  });
+
+  it("throws the backend's error, as apiFetch does", async () => {
+    getSession.mockResolvedValue({ data: { session: null } });
+    fetchMock.mockResolvedValue(apiErrorResponse(404, "NOT_FOUND", "Target not found."));
+    const { apiFetchFile, ApiError } = await loadApi();
+
+    const error = (await apiFetchFile("/api/v1/x").catch((e) => e)) as ApiErrorType;
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error.status).toBe(404);
+    expect(error.message).toBe("Target not found.");
   });
 });

@@ -5,12 +5,14 @@ verified user. Ownership always comes from get_current_user_id (the token),
 never from the request.
 """
 
+from datetime import UTC, datetime
 from typing import Annotated
 from uuid import UUID
 
 import psycopg
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Response
 
+from app.api.ingestion_runs import Runs
 from app.auth import OwnerId
 from app.core.errors import error_responses
 from app.db import get_connection
@@ -19,6 +21,12 @@ from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
 from app.schemas.reviews import ReviewPage, ReviewSummary
 from app.schemas.targets import TargetCreate, TargetList, TargetResponse
+from app.services.export import (
+    ExportKind,
+    analysis_markdown,
+    export_filename,
+    reviews_csv,
+)
 
 router = APIRouter(prefix="/targets", tags=["targets"])
 
@@ -108,6 +116,53 @@ def get_target_summary(target_id: UUID, owner_id: OwnerId, reviews: ReviewRepo) 
     Another user's target is a 404, indistinguishable from one that does not exist.
     """
     return reviews.summary_for_target(target_id, owner_id)
+
+
+def _download(
+    content: str, media_type: str, target_name: str, kind: ExportKind
+) -> Response:
+    """A file the browser saves. Private data, so it is never cached."""
+    filename = export_filename(target_name, kind)
+    return Response(
+        content=content.encode("utf-8"),
+        media_type=f"{media_type}; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-store",
+        },
+    )
+
+
+# The two export endpoints return files, not JSON, so they stay out of the OpenAPI spec
+# and its generated client; the frontend downloads them with downloadExport
+# (frontend/src/lib/exports.ts). kind in the path is the same word as in the file name.
+@router.get("/{target_id}/export/reviews", include_in_schema=False)
+def export_reviews_csv(
+    target_id: UUID, owner_id: OwnerId, repo: Repo, reviews: ReviewRepo
+) -> Response:
+    """S3-017: the target's saved reviews as CSV. Another user's target is a 404."""
+    target = repo.get_owned(target_id, owner_id)
+    rows = reviews.list_for_target(target_id, owner_id)
+    return _download(reviews_csv(rows), "text/csv", target["name"], "reviews")
+
+
+@router.get("/{target_id}/export/analysis", include_in_schema=False)
+def export_analysis_markdown(
+    target_id: UUID,
+    owner_id: OwnerId,
+    repo: Repo,
+    reviews: ReviewRepo,
+    runs: Runs,
+) -> Response:
+    """S3-018: the saved analysis as Markdown. Another user's target is a 404."""
+    target = repo.get_owned(target_id, owner_id)
+    summary = reviews.summary_for_target(target_id, owner_id)
+    run = runs.latest_for_target(target_id, owner_id)
+    skipped = []
+    if run is not None and run["reviews_rejected"] > 0:
+        skipped = runs.skipped_reasons(target_id, owner_id, run["id"])
+    text = analysis_markdown(target, summary, run, skipped, datetime.now(UTC))
+    return _download(text, "text/markdown", target["name"], "analysis")
 
 
 @router.delete("/{target_id}", status_code=204, responses=error_responses(404))

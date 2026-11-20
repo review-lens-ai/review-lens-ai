@@ -1,8 +1,9 @@
 // Integration tests for the target workspace page: the Start ingestion and
 // Try again buttons (#55). The whole page is rendered, and MSW plays the backend.
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SkippedReason } from "@/lib/generated/api";
 import type { IngestionRun } from "@/lib/ingestion-runs";
+import { REVIEWS_PAGE_SIZE } from "@/lib/reviews";
 import {
   act,
   API,
@@ -919,6 +920,134 @@ describe("reviews list", () => {
     expect(screen.getByText("Showing 1–12 of 30")).toBeTruthy();
     expect(screen.getByText("Review number 0")).toBeTruthy();
     await waitFor(() => expect(button("Next").disabled).toBe(false));
+  });
+});
+
+// S3-017, S3-018: the header's export buttons save the files the backend builds.
+describe("exporting", () => {
+  const EXPORT_URL = `${TARGET_URL}/export`;
+  const completedRun = ingestionRun({ target_id: TARGET_ID, status: "COMPLETED" });
+  let savedNames: string[] = [];
+
+  beforeEach(() => {
+    savedNames = [];
+    // jsdom cannot save a file: record the name the browser would have saved it under.
+    URL.createObjectURL = vi.fn(() => "blob:saved-file");
+    URL.revokeObjectURL = vi.fn();
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(function (
+      this: HTMLAnchorElement,
+    ) {
+      savedNames.push(this.download);
+    });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  function backendHoldsReviews(total: number) {
+    backendHas(completedRun);
+    server.use(
+      http.get(REVIEWS_URL, () =>
+        jsonResponse(
+          reviewPage(total > 0 ? [review({ id: "review-1" })] : [], {
+            total,
+            limit: REVIEWS_PAGE_SIZE,
+            offset: 0,
+          }),
+        ),
+      ),
+    );
+  }
+
+  // The one Export button opens a menu of the two files.
+  async function chooseExport(name: "Reviews (CSV)" | "Analysis (Markdown)") {
+    fireEvent.keyDown(screen.getByRole("button", { name: "Export" }), { key: "Enter" });
+    fireEvent.click(await screen.findByRole("menuitem", { name }));
+  }
+
+  function fileResponse(filename: string, type: string) {
+    return new HttpResponse("file body", {
+      headers: {
+        "Content-Type": type,
+        "Content-Disposition": `attachment; filename="${filename}"`,
+      },
+    });
+  }
+
+  it("offers the backend's file name, and saves under it when the user just confirms", async () => {
+    backendHoldsReviews(1);
+    server.use(
+      http.get(`${EXPORT_URL}/reviews`, () => fileResponse("joes-pizza-reviews.csv", "text/csv")),
+    );
+    await openWorkspace("Ingested");
+
+    await chooseExport("Reviews (CSV)");
+
+    const nameBox = await screen.findByLabelText<HTMLInputElement>("Save as");
+    expect(nameBox.value).toBe("joes-pizza-reviews.csv");
+    expect(savedNames).toEqual([]); // nothing is saved until the user confirms
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    await waitFor(() => expect(savedNames).toEqual(["joes-pizza-reviews.csv"]));
+  });
+
+  it("lets the user change the name before the file is saved", async () => {
+    backendHoldsReviews(1);
+    server.use(
+      http.get(`${EXPORT_URL}/analysis`, () =>
+        fileResponse("joes-pizza-analysis.md", "text/markdown"),
+      ),
+    );
+    await openWorkspace("Ingested");
+
+    await chooseExport("Analysis (Markdown)");
+    const nameBox = await screen.findByLabelText<HTMLInputElement>("Save as");
+    fireEvent.change(nameBox, { target: { value: "Joe's notes" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(savedNames).toEqual(["Joe's notes.md"]));
+  });
+
+  it("saves nothing when the user cancels", async () => {
+    backendHoldsReviews(1);
+    server.use(
+      http.get(`${EXPORT_URL}/reviews`, () => fileResponse("joes-pizza-reviews.csv", "text/csv")),
+    );
+    await openWorkspace("Ingested");
+
+    await chooseExport("Reviews (CSV)");
+    await screen.findByLabelText("Save as");
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.queryByLabelText("Save as")).toBeNull();
+    expect(savedNames).toEqual([]);
+  });
+
+  it("has no CSV to save for a target without reviews, but still offers the analysis", async () => {
+    backendHoldsReviews(0);
+    await openWorkspace("Ingested");
+
+    fireEvent.keyDown(screen.getByRole("button", { name: "Export" }), { key: "Enter" });
+
+    const csv = await screen.findByRole("menuitem", { name: "Reviews (CSV)" });
+    const markdown = screen.getByRole("menuitem", { name: "Analysis (Markdown)" });
+    expect(csv.getAttribute("aria-disabled")).toBe("true");
+    expect(markdown.getAttribute("aria-disabled")).toBeNull();
+  });
+
+  it("says so when the export fails, and saves nothing", async () => {
+    backendHoldsReviews(1);
+    server.use(
+      http.get(`${EXPORT_URL}/reviews`, () =>
+        apiErrorResponse(404, "NOT_FOUND", "Target not found."),
+      ),
+    );
+    await openWorkspace("Ingested");
+
+    await chooseExport("Reviews (CSV)");
+
+    expect(await screen.findByText("Target not found.")).toBeTruthy();
+    expect(savedNames).toEqual([]);
   });
 });
 
