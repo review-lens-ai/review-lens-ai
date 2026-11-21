@@ -81,6 +81,8 @@ function backendHasFiveReviews() {
     http.get(`${TARGET_URL}/reviews`, () =>
       jsonResponse(reviewPage([review({ target_id: TARGET_ID })], { total: 5 })),
     ),
+    // S3-007: no saved questions yet.
+    http.get(`${TARGET_URL}/questions`, () => jsonResponse({ items: [] })),
     http.get(`${TARGET_URL}/summary`, () =>
       jsonResponse({
         review_count: 5,
@@ -104,6 +106,8 @@ function backendHasNoReviews(status: IngestionRun["status"] | null) {
       }),
     ),
     http.get(`${TARGET_URL}/reviews`, () => jsonResponse(reviewPage([], { total: 0 }))),
+    // S3-007: no saved questions yet.
+    http.get(`${TARGET_URL}/questions`, () => jsonResponse({ items: [] })),
     http.get(`${TARGET_URL}/summary`, () =>
       jsonResponse({
         review_count: 0,
@@ -133,6 +137,10 @@ async function openPanel() {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
   fireEvent.click(screen.getByRole("button", { name: "Ask about reviews" }));
+  // S3-007: the conversation shows once the saved history has loaded.
+  await waitFor(() =>
+    expect(screen.queryByRole("status", { name: "Loading your questions" })).toBeNull(),
+  );
 }
 
 async function askAbout(question: string) {

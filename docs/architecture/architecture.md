@@ -265,6 +265,7 @@ The session transcripts live at the repository root in `ai-transcripts/` (added 
 | [019-ingestion-pipeline.md](019-ingestion-pipeline.md) | How a run moves from QUEUED to a result (still marked Draft) |
 | [review-ingestion.md](review-ingestion.md) | Why SerpApi, the worker's steps and rules, and the adapter that fetches Google Maps reviews |
 | [qa-harness.md](qa-harness.md) | How a question reaches the model, the answer contract, and the deterministic test harness (S2-003) |
+| [target-deletion.md](target-deletion.md) | Why deleting a target cascades to its runs, reviews and Q&A, and how the app confirms it (S3-005) |
 
 ## 8. Keeping this current
 

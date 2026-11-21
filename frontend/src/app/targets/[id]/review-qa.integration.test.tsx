@@ -85,6 +85,8 @@ function backendHas(reviewTotal: number, id = TARGET_ID, name = "Joe's Pizza") {
     http.get(`${targetUrl}/reviews`, () =>
       jsonResponse(reviewPage([review({ target_id: id })], { total: reviewTotal })),
     ),
+    // S3-007: no saved questions yet. A test that needs some adds its own handler.
+    http.get(`${targetUrl}/questions`, () => jsonResponse({ items: [] })),
     // The Ingestion tab shows the review summary (S2-006).
     http.get(`${targetUrl}/summary`, () =>
       jsonResponse({
@@ -122,6 +124,10 @@ async function openQaPanel(name = "Joe's Pizza") {
     await new Promise((resolve) => setTimeout(resolve, 0));
   });
   fireEvent.click(qaButton());
+  // S3-007: the conversation shows once the saved history has loaded.
+  await waitFor(() =>
+    expect(screen.queryByRole("status", { name: "Loading your questions" })).toBeNull(),
+  );
   return page;
 }
 

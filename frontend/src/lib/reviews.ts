@@ -40,3 +40,11 @@ export function formatReviewDate(iso: string): string {
     year: "numeric",
   });
 }
+
+// The saved-reviews line in the Delete Analysis and Clear Q&A History dialogs (S3-005,
+// S3-008): "All 42 persisted reviews". null while the count loads or when there are none,
+// so the dialog never states a number it doesn't have.
+export function persistedReviewsLabel(total: number | null): string | null {
+  if (!total) return null;
+  return total === 1 ? "The 1 persisted review" : `All ${total} persisted reviews`;
+}
