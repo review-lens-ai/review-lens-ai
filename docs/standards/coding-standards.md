@@ -50,6 +50,7 @@ Use these terms everywhere. No synonyms.
 | One ingestion attempt | `IngestionRun` | `ingestion_runs` |
 | Normalized review | `Review` | `reviews` |
 | Skipped record | `IngestionRejection` | `ingestion_rejections` |
+| Saved question and its response | `Question` | `questions` |
 
 ### Code
 

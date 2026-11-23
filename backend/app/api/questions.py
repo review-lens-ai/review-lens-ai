@@ -1,11 +1,16 @@
 """Review Q&A endpoint (S2-009, S2-010), mounted under /api/v1/targets.
 
-    POST /api/v1/targets/{target_id}/questions   {"question": "..."}  -> AnswerResponse
+    POST   /api/v1/targets/{target_id}/questions   {"question": "..."}  -> AnswerResponse
+    GET    /api/v1/targets/{target_id}/questions   -> QuestionList, oldest first (S3-006)
+    DELETE /api/v1/targets/{target_id}/questions   -> 204, clears only the Q&A (S3-006)
 
 The router is mounted on api_router, so every request comes from a verified user.
 Ownership comes from the token: another user's target is a 404 before anything is
 read or sent to the model (S2-BR-022, S2-BR-026). Only the question is sent; there
-is no chat history yet.
+is no chat history sent to the model.
+
+Every 200 answer (answered, refused or NO_REVIEWS) is saved with the target, in the
+same transaction (S3-BR-009). A request that fails saves nothing.
 
     200  an answer, a refusal, or NO_REVIEWS for a target without reviews
     404  the target is not the caller's
@@ -27,12 +32,14 @@ from app.core.config import Settings, get_settings
 from app.core.errors import error_responses
 from app.db import get_connection
 from app.llm import ChatModel
+from app.repositories.questions import QuestionRepository
 from app.repositories.review_search import ReviewSearchRepository
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
-from app.schemas.qa import AnswerResponse, QuestionCreate
+from app.schemas.qa import AnswerResponse, QuestionCreate, QuestionList
 from app.services.embed_reviews import FastEmbedder
 from app.services.qa import QAConfig, answer_question
+from app.services.qa.prompt import clean_question
 
 router = APIRouter(prefix="/targets", tags=["questions"])
 
@@ -71,8 +78,9 @@ def ask_question(
     settings: AppSettings,
 ) -> AnswerResponse:
     """S2-009: ask one question about one of the user's targets. The answer is
-    built from that target's saved reviews only."""
-    return answer_question(
+    built from that target's saved reviews only. S3-006: the answer is saved
+    to the target's Q&A history before it is returned."""
+    response = answer_question(
         owner_id=owner_id,
         target_id=target_id,
         question=body.question,
@@ -82,3 +90,28 @@ def ask_question(
         make_model=make_model,
         config=QAConfig.from_settings(settings),
     )
+    # clean_question already passed inside answer_question; this saves the same text.
+    QuestionRepository(conn).add(
+        target_id, owner_id, clean_question(body.question), response
+    )
+    return response
+
+
+@router.get(
+    "/{target_id}/questions",
+    response_model=QuestionList,
+    responses=error_responses(404),
+)
+def list_questions(target_id: UUID, owner_id: OwnerId, conn: Conn) -> dict:
+    """S3-006, S3-007: the target's saved questions and responses, oldest first.
+    Another user's target is a 404, indistinguishable from one that does not exist."""
+    return {"items": QuestionRepository(conn).list_for_target(target_id, owner_id)}
+
+
+@router.delete(
+    "/{target_id}/questions", status_code=204, responses=error_responses(404)
+)
+def clear_questions(target_id: UUID, owner_id: OwnerId, conn: Conn) -> None:
+    """S3-006, S3-008: clear the target's Q&A history. The target, its runs and its
+    reviews stay. Another user's target is a 404."""
+    QuestionRepository(conn).clear_for_target(target_id, owner_id)

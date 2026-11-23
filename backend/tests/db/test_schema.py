@@ -14,6 +14,7 @@ APP_TABLES = [
     "ingestion_rejections",
     "ingestion_stages",
     "ingestion_raw_pages",
+    "questions",
 ]
 
 
@@ -175,6 +176,18 @@ def test_deleting_a_target_deletes_its_runs_reviews_and_rejections(conn, make_us
             "n"
         ]
         assert count == 0, table
+
+
+def test_deleting_a_target_deletes_its_questions(conn, make_user):
+    target = _target(conn, make_user())
+    conn.execute(
+        "insert into public.questions (target_id, question, response) "
+        "values (%s, 'Is it good?', '{}'::jsonb)",
+        (target,),
+    )
+    conn.execute("delete from public.analysis_targets where id = %s", (target,))
+    count = conn.execute("select count(*) as n from public.questions").fetchone()["n"]
+    assert count == 0
 
 
 def test_applying_migrations_twice_changes_nothing(conn):

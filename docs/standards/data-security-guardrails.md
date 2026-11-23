@@ -43,8 +43,9 @@ JWT "sub"  =  auth.users.id  =  public.users.id  ←  analysis_targets.owner_id
 | Ingestion rejection | `ingestion_rejections` | `run_id` → run → target's `owner_id` |
 | Ingestion stage | `ingestion_stages` | `run_id` → run → target's `owner_id` |
 | Raw provider page | `ingestion_raw_pages` | `run_id` → run → target's `owner_id` |
+| Question (saved Q&A) | `questions` | `target_id` → target's `owner_id` |
 
-- Ownership is transitive: runs, reviews, rejections, stages and raw pages are reachable only through a target the user owns.
+- Ownership is transitive: runs, reviews, rejections, stages, raw pages and saved questions are reachable only through a target the user owns.
 - `reviews` uses a composite foreign key `(run_id, target_id)`, so a review can never point at another target's run.
 - Deleting a user cascades to their targets and everything under them.
 
@@ -56,7 +57,7 @@ Three layers. Only the second one actually protects data from our own backend.
 | --- | --- | --- |
 | 1. Authentication | `api_router` in `backend/app/api/router.py` | Every `/api/v1` route requires a verified token (S1-BR-004). Public routes such as `/health` live outside it. |
 | 2. Ownership filter | Repositories in `backend/app/repositories/` | Every query on user-owned data filters by `owner_id` in SQL (S1-BR-009). |
-| 3. Data API lockout | Every table in the `public` schema | Row Level Security on with no policies, and all grants revoked from `anon` and `authenticated`. Today that is `users`, `analysis_targets`, `ingestion_runs`, `reviews`, `ingestion_rejections`, `ingestion_stages` and `ingestion_raw_pages`. |
+| 3. Data API lockout | Every table in the `public` schema | Row Level Security on with no policies, and all grants revoked from `anon` and `authenticated`. Today that is `users`, `analysis_targets`, `ingestion_runs`, `reviews`, `ingestion_rejections`, `ingestion_stages`, `ingestion_raw_pages` and `questions`. |
 
 ### Why we don't use per-user RLS policies
 

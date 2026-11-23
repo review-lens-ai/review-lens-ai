@@ -615,7 +615,7 @@
           "questions"
         ],
         "summary": "Ask Question",
-        "description": "S2-009: ask one question about one of the user's targets. The answer is\nbuilt from that target's saved reviews only.",
+        "description": "S2-009: ask one question about one of the user's targets. The answer is\nbuilt from that target's saved reviews only. S3-006: the answer is saved\nto the target's Q&A history before it is returned.",
         "operationId": "ask_question",
         "security": [
           {
@@ -704,6 +704,133 @@
               }
             },
             "description": "Service Unavailable"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "questions"
+        ],
+        "summary": "List Questions",
+        "description": "S3-006, S3-007: the target's saved questions and responses, oldest first.\nAnother user's target is a 404, indistinguishable from one that does not exist.",
+        "operationId": "list_questions",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/QuestionList"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "questions"
+        ],
+        "summary": "Clear Questions",
+        "description": "S3-006, S3-008: clear the target's Q&A history. The target, its runs and its\nreviews stay. Another user's target is a 404.",
+        "operationId": "clear_questions",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
           }
         }
       }
@@ -1095,6 +1222,53 @@
           "question"
         ],
         "title": "QuestionCreate"
+      },
+      "QuestionList": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/QuestionResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "QuestionList",
+        "description": "A target's Q&A history, oldest first. Not paginated (known limit)."
+      },
+      "QuestionResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "question": {
+            "type": "string",
+            "title": "Question"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "response": {
+            "$ref": "#/components/schemas/AnswerResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "question",
+          "created_at",
+          "response"
+        ],
+        "title": "QuestionResponse",
+        "description": "S3-006: one saved question and the response the user saw, evidence read\nback from the target's reviews (QuestionRepository.list_for_target)."
       },
       "RatingCount": {
         "properties": {

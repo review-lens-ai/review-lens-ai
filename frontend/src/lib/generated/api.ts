@@ -180,6 +180,24 @@ export interface QuestionCreate {
 }
 
 /**
+ * S3-006: one saved question and the response the user saw, evidence read
+ * back from the target's reviews (QuestionRepository.list_for_target).
+ */
+export interface QuestionResponse {
+  id: string;
+  question: string;
+  created_at: string;
+  response: AnswerResponse;
+}
+
+/**
+ * A target's Q&A history, oldest first. Not paginated (known limit).
+ */
+export interface QuestionList {
+  items: QuestionResponse[];
+}
+
+/**
  * How many of the target's reviews have one star rating (S2-008).
  */
 export interface RatingCount {
@@ -1336,7 +1354,8 @@ export const getAskQuestionUrl = (targetId: string,) => {
 
 /**
  * S2-009: ask one question about one of the user's targets. The answer is
- * built from that target's saved reviews only.
+ * built from that target's saved reviews only. S3-006: the answer is saved
+ * to the target's Q&A history before it is returned.
  * @summary Ask Question
  */
 export const askQuestion = async (targetId: string,
@@ -1405,7 +1424,8 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     /**
  * S2-009: ask one question about one of the user's targets. The answer is
- * built from that target's saved reviews only.
+ * built from that target's saved reviews only. S3-006: the answer is saved
+ * to the target's Q&A history before it is returned.
  * @summary Ask Question
  */
 export const useAskQuestion = <TError = ErrorType<ErrorResponse>,
@@ -1417,6 +1437,203 @@ export const useAskQuestion = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getAskQuestionMutationOptions(options), queryClient);
+    }
+
+export const getListQuestionsUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/v1/targets/${targetId}/questions`
+}
+
+/**
+ * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary List Questions
+ */
+export const listQuestions = async (targetId: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuestionList> => {
+
+  return apiFetch<QuestionList>(getListQuestionsUrl(targetId),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListQuestionsQueryKey = (targetId: string,) => {
+    return [
+    `/api/v1/targets/${targetId}/questions`
+    ] as const;
+    }
+
+
+export const getListQuestionsQueryOptions = <TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListQuestionsQueryKey(targetId);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuestions>>> = ({ signal }) => listQuestions(targetId, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: targetId !== null && targetId !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListQuestionsQueryResult = NonNullable<Awaited<ReturnType<typeof listQuestions>>>
+export type ListQuestionsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary List Questions
+ */
+export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(
+ targetId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>> & Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuestions>>,
+          TError,
+          Awaited<ReturnType<typeof listQuestions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary List Questions
+ */
+export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(
+ targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>> & Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listQuestions>>,
+          TError,
+          Awaited<ReturnType<typeof listQuestions>>
+        > , 'initialData'
+      >, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary List Questions
+ */
+export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(
+ targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * Another user's target is a 404, indistinguishable from one that does not exist.
+ * @summary List Questions
+ */
+export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(
+ targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient
+ ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+
+  const queryOptions = getListQuestionsQueryOptions(targetId,options)
+
+  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+
+
+
+
+
+
+export const getClearQuestionsUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/v1/targets/${targetId}/questions`
+}
+
+/**
+ * S3-006, S3-008: clear the target's Q&A history. The target, its runs and its
+ * reviews stay. Another user's target is a 404.
+ * @summary Clear Questions
+ */
+export const clearQuestions = async (targetId: string, options?: Parameters<typeof apiFetch>[1]): Promise<void> => {
+
+  return apiFetch<void>(getClearQuestionsUrl(targetId),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+
+export const getClearQuestionsMutationKey = () => ['clearQuestions'] as const;
+
+export const getClearQuestionsMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearQuestions>>, TError,ClearQuestionsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof clearQuestions>>, TError,ClearQuestionsMutationVariables, TContext> => {
+
+const mutationKey = getClearQuestionsMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof clearQuestions>>, ClearQuestionsMutationVariables> = (props) => {
+          const {targetId} = props ?? {};
+
+          return  clearQuestions(targetId,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClearQuestionsMutationResult = NonNullable<Awaited<ReturnType<typeof clearQuestions>>>
+
+    export type ClearQuestionsMutationError = ErrorType<ErrorResponse>
+    export type ClearQuestionsMutationVariables = {targetId: string}
+
+    /**
+ * S3-006, S3-008: clear the target's Q&A history. The target, its runs and its
+ * reviews stay. Another user's target is a 404.
+ * @summary Clear Questions
+ */
+export const useClearQuestions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearQuestions>>, TError,ClearQuestionsMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof clearQuestions>>,
+        TError,
+        ClearQuestionsMutationVariables,
+        TContext
+      > => {
+      return useMutation(getClearQuestionsMutationOptions(options), queryClient);
     }
 
 export const getHealthUrl = () => {
