@@ -316,6 +316,15 @@ class IngestionRunRepository:
             )
         return row
 
+    def source_metadata(self, run_id: UUID | str) -> dict | None:
+        """What record_source_metadata stored for the run, or None. Worker only,
+        like TargetRepository.get_for_run: the run id never comes from a request."""
+        row = self._conn.execute(
+            "select source_metadata from public.ingestion_runs where id = %s",
+            (run_id,),
+        ).fetchone()
+        return None if row is None else row["source_metadata"]
+
     def latest_for_target(
         self, target_id: UUID | str, owner_id: UUID | str
     ) -> dict | None:

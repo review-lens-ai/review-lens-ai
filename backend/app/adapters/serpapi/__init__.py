@@ -26,7 +26,11 @@ Rules this package enforces:
   photos or owner replies.
 - SERVER-SIDE KEY: the API key comes from REVIEW_PROVIDER_API_KEY. It is never
   logged, never put in an error message, and removed from every returned page.
-- CAP: a run stops once it has fetched max_reviews reviews (MAX_REVIEWS_PER_RUN).
+- CAP: a run stops once it has fetched max_reviews NEW reviews (MAX_REVIEWS_PER_RUN),
+  or used max_searches searches (MAX_SEARCHES_PER_RUN).
+- REFRESH (S3-009): a run on a target that already has reviews reads the newest
+  pages until it reaches reviews it has, then continues collecting older reviews
+  from where the deepest earlier run stopped (FetchResult.older_cursor).
 - DISTINCT FAILURES: a timeout, a used-up quota and any other provider failure
   raise different exceptions. Each carries the ErrorCode to store on the run,
   and the pages fetched before it.
@@ -46,6 +50,7 @@ from app.adapters.serpapi.errors import (
 from app.adapters.serpapi.place import extract_data_id, resolve_data_id
 from app.adapters.serpapi.results import (
     FetchResult,
+    OlderCursor,
     RawPage,
     StopReason,
     pages_planned,
@@ -54,6 +59,7 @@ from app.adapters.serpapi.results import (
 __all__ = [
     "SERPAPI_URL",
     "FetchResult",
+    "OlderCursor",
     "RawPage",
     "ReviewFetchError",
     "ReviewFetchTimeoutError",

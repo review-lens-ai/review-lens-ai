@@ -251,6 +251,8 @@ export interface TargetResponse {
   platform: string;
   source_url: string;
   ingestion_status: TargetResponseIngestionStatus;
+  place_review_count?: number | null;
+  all_reviews_collected?: boolean;
   created_at: string;
   updated_at: string;
 }

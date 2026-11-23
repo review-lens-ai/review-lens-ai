@@ -74,6 +74,9 @@ class FakeReviewStore:
     def save_rejections(self, run_id, target_id, owner_id, rejected):
         self.rejected = list(rejected)
 
+    def seen_review_ids_for_target(self, target_id, owner_id):
+        return set()
+
     def without_embedding(self, *, limit, target_id=None, after=None):
         return []
 

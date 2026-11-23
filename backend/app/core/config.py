@@ -26,7 +26,11 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"  # comma-separated
     app_env: Literal["development", "test", "production"] = "development"
     log_level: str = "INFO"
-    max_reviews_per_run: int = 1000
+    # New reviews one run may collect (S3-009). 100 costs about 6 SerpApi searches.
+    max_reviews_per_run: int = 100
+    # Hard limit on SerpApi searches in one run, whatever it finds, so one refresh
+    # can never spend more than this.
+    max_searches_per_run: int = 15
 
     # Q&A (S2-010). qa_model is an OpenRouter model id, e.g. "provider/model-name".
     qa_model: str | None = None

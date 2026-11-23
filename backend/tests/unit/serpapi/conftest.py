@@ -43,7 +43,8 @@ NO_RESULTS = {
 class FakeSerpApi:
     """Answers like SerpApi: page 1 without a token, page 2 for page 1's token."""
 
-    def __init__(self, page_2=PAGE_2):
+    def __init__(self, page_2=PAGE_2, page_1=PAGE_1):
+        self.page_1 = page_1
         self.page_2 = page_2
         self.requests: list[httpx.Request] = []
 
@@ -51,7 +52,7 @@ class FakeSerpApi:
         self.requests.append(request)
         token = request.url.params.get("next_page_token")
         if token is None:
-            return httpx.Response(200, json=PAGE_1)
+            return httpx.Response(200, json=self.page_1)
         if token == TOKEN_AFTER_PAGE_1:
             return httpx.Response(200, json=self.page_2)
         return httpx.Response(200, json={"reviews": []})
