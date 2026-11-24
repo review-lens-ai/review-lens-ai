@@ -39,8 +39,10 @@ import {
   skipReasonLabel,
   type IngestionRun,
 } from "@/lib/ingestion-runs";
+import { hasFilters, type ReviewFilters as ReviewFilterChoice } from "@/lib/review-filters";
 import { REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
+import { ReviewFilters } from "./_components/review-filters";
 import { ReviewQaPanel } from "./_components/review-qa-panel";
 
 // S2-009: the header button that opens and closes the docked Q&A panel.
@@ -206,7 +208,7 @@ function TargetWorkspace({
       <TargetContextHeader
         target={target}
         run={run}
-        reviewsKept={reviews.total}
+        reviewsKept={reviews.datasetTotal}
         ingest={ingest}
         qa={qa}
       />
@@ -215,7 +217,7 @@ function TargetWorkspace({
         <RunFailedBanner
           run={run}
           reasons={skippedReasons}
-          reviewsKept={reviews.total}
+          reviewsKept={reviews.datasetTotal}
           ingest={ingest}
         />
       )}
@@ -226,7 +228,7 @@ function TargetWorkspace({
             {completedMessage(
               run,
               platformLabel(target.platform),
-              reviews.reviews === null ? null : reviews.total,
+              reviews.reviews === null ? null : reviews.datasetTotal,
             )}
             <button
               type="button"
@@ -247,7 +249,7 @@ function TargetWorkspace({
             {partialMessage(
               run,
               platformLabel(target.platform),
-              reviews.reviews === null ? null : reviews.total,
+              reviews.reviews === null ? null : reviews.datasetTotal,
             )}
             <button
               type="button"
@@ -291,7 +293,7 @@ function TargetWorkspace({
         >
           <ReviewQaPanel
             target={target}
-            reviewTotal={everIngested && reviews.reviews === null ? null : reviews.total}
+            reviewTotal={everIngested && reviews.reviews === null ? null : reviews.datasetTotal}
             onNotFound={() => setQaNotFound(true)}
             onClose={closeQa}
           />
@@ -324,6 +326,9 @@ function TargetWorkspace({
                 everIngested={everIngested}
                 reviews={reviews.reviews}
                 total={reviews.total}
+                datasetTotal={reviews.datasetTotal}
+                filters={reviews.filters}
+                onApplyFilters={reviews.applyFilters}
                 page={reviews.page}
                 failed={reviews.failed}
                 pageLoading={reviews.pageLoading}
@@ -622,6 +627,9 @@ function ReviewsPanel({
   everIngested,
   reviews,
   total,
+  datasetTotal,
+  filters,
+  onApplyFilters,
   page,
   failed,
   pageLoading,
@@ -631,16 +639,22 @@ function ReviewsPanel({
 }: {
   everIngested: boolean;
   reviews: Review[] | null;
+  // The reviews matching the filters (all when none), and every saved review.
   total: number;
+  datasetTotal: number;
+  filters: ReviewFilterChoice;
+  onApplyFilters: (filters: ReviewFilterChoice) => Promise<boolean>;
   page: number;
   failed: boolean;
   pageLoading: boolean;
   pageFailed: boolean;
-  onPage: (page: number) => void;
+  onPage: (page: number) => Promise<boolean>;
   highlightId: string | null;
 }) {
   const firstReviewRef = useRef<HTMLDivElement>(null);
-  if (!everIngested || (reviews !== null && total === 0)) {
+  const filtered = hasFilters(filters);
+  // No saved reviews at all. A filter that matches nothing is not this (S3-016).
+  if (!everIngested || (reviews !== null && datasetTotal === 0)) {
     return (
       // The one Ingest button lives in the header above, so this only points to it.
       <EmptyState
@@ -671,10 +685,25 @@ function ReviewsPanel({
   }
 
   // e.g. "Showing 13–24 of 60": the range is this page, the total is every review.
+  // Filtered: "Showing 1–12 of 37 matching reviews (739 in all)".
   const first = page * REVIEWS_PAGE_SIZE + 1;
   const last = page * REVIEWS_PAGE_SIZE + reviews.length;
   const hasPrevious = page > 0;
   const hasNext = last < total;
+  const filterBar = <ReviewFilters applied={filters} onApply={onApplyFilters} busy={pageLoading} />;
+
+  if (filtered && total === 0) {
+    return (
+      <section className="flex flex-col gap-4">
+        <h2 className="text-xl font-semibold">Reviews</h2>
+        {filterBar}
+        <EmptyState
+          icon={<SearchXIcon />}
+          message={`No reviews match these filters. All ${reviewCount(datasetTotal)} are still saved; change or clear the filters to see them.`}
+        />
+      </section>
+    );
+  }
 
   // Next/Previous: once the new page is on screen, jump to its first review so it is
   // clear the page changed (the buttons sit far below the list).
@@ -692,9 +721,12 @@ function ReviewsPanel({
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-xl font-semibold">Reviews</h2>
         <p className="text-sm text-muted-foreground">
-          Showing {first}–{last} of {total}
+          {filtered
+            ? `Showing ${first}–${last} of ${total} matching (${datasetTotal} in all)`
+            : `Showing ${first}–${last} of ${total}`}
         </p>
       </div>
+      {filterBar}
       <div
         ref={firstReviewRef}
         className="grid scroll-mt-4 items-start gap-4 @xl:grid-cols-2 @4xl:grid-cols-3"
