@@ -48,7 +48,9 @@ class ReviewResponse(BaseModel):
 
 class ReviewPage(BaseModel):
     items: list[ReviewResponse]
-    total: int  # all of the target's reviews, not just this page
+    # The target's reviews that match the filter (all of them when none is set),
+    # not just this page.
+    total: int
     limit: int
     offset: int
 

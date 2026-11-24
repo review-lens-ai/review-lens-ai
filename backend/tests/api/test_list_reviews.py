@@ -27,17 +27,23 @@ class FakeReviewRepository:
         if str(target_id) != TARGET_ID or owner_id != "user-a":
             raise NotFoundError("Target not found.")
 
-    def count_for_target(self, target_id, owner_id):
+    # review_filter (S3-016) is accepted and ignored: the real filtering is tested
+    # against Postgres in tests/db/test_review_filters.py.
+    def count_for_target(self, target_id, owner_id, review_filter=None):
         self._require_owner(target_id, owner_id)
         return 1
 
-    def page_offset_of(self, target_id, owner_id, review_id, *, limit):
+    def page_offset_of(
+        self, target_id, owner_id, review_id, *, limit, review_filter=None
+    ):
         self._require_owner(target_id, owner_id)
         if str(review_id) != KNOWN_REVIEW_ID:
             raise NotFoundError("Review not found.")
         return 0
 
-    def list_for_target(self, target_id, owner_id, *, limit=None, offset=0):
+    def list_for_target(
+        self, target_id, owner_id, *, limit=None, offset=0, review_filter=None
+    ):
         self._require_owner(target_id, owner_id)
         return [
             {

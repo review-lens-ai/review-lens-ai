@@ -22,7 +22,12 @@ from uuid import UUID
 
 import psycopg
 
-from app.repositories.reviews import NEWEST_FIRST, _vector_literal, aggregate
+from app.repositories.reviews import (
+    NEWEST_FIRST,
+    _vector_literal,
+    aggregate,
+    where_clause,
+)
 from app.repositories.targets import TargetRepository
 from app.services.embed_reviews import Embedder
 from app.services.qa.tools.review_filter import ReviewFilter
@@ -38,31 +43,6 @@ ORDERS = {
 RELEVANCE = "relevance"
 
 _REVIEW_COLUMNS = "id, target_id, rating, review_text, reviewed_at"
-
-
-def where_clause(
-    target_id: UUID | str, review_filter: ReviewFilter
-) -> tuple[str, list]:
-    """SQL after "where", and its parameters, for one target and one filter."""
-    conditions = ["target_id = %s"]
-    params: list = [target_id]
-    if review_filter.keywords is not None:
-        # websearch_to_tsquery accepts any text: it never raises on odd input.
-        conditions.append("search_vector @@ websearch_to_tsquery('english', %s)")
-        params.append(review_filter.keywords)
-    if review_filter.min_rating is not None:
-        conditions.append("rating >= %s")
-        params.append(review_filter.min_rating)
-    if review_filter.max_rating is not None:
-        conditions.append("rating <= %s")
-        params.append(review_filter.max_rating)
-    if review_filter.since is not None:
-        conditions.append("reviewed_at >= %s")
-        params.append(review_filter.since)
-    if review_filter.until is not None:
-        conditions.append("reviewed_at < %s")
-        params.append(review_filter.until)
-    return " and ".join(conditions), params
 
 
 class MeaningSearchUnavailableError(Exception):
