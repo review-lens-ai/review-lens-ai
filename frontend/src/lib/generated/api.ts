@@ -259,6 +259,14 @@ export interface TargetList {
   items: TargetResponse[];
 }
 
+/**
+ * S3-002: the only thing a rename may change is the name (S3-BR-002). Any
+ * other key, such as source_url or owner_id, is ignored.
+ */
+export interface TargetRename {
+  name: string;
+}
+
 export type ListTargetReviewsParams = {
   /**
    * @minimum 1
@@ -795,6 +803,101 @@ export const useDeleteTarget = <TError = ErrorType<ErrorResponse>,
         TContext
       > => {
       return useMutation(getDeleteTargetMutationOptions(options), queryClient);
+    }
+
+export const getRenameTargetUrl = (targetId: string,) => {
+
+
+
+
+  return `/api/v1/targets/${targetId}`
+}
+
+/**
+ * S3-002: rename one of your own targets. Only the name changes; the source
+ * URL, reviews and Q&A stay (S3-BR-002). A bad name is a 422; another user's
+ * target is a 404, the same as a missing one (S3-BR-004).
+ * @summary Rename Target
+ */
+export const renameTarget = async (targetId: string,
+    targetRename: TargetRename, options?: Parameters<typeof apiFetch>[1]): Promise<TargetResponse> => {
+
+    const getHeaders = (h?: NonNullable<RequestInit['headers']>): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(h as Iterable<Iterable<string>>, (entry) => Array.from(entry) as [string, string]),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<string | readonly string[] | undefined>(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+return apiFetch<TargetResponse>(getRenameTargetUrl(targetId),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...getHeaders(options?.headers) },
+    body: JSON.stringify(targetRename)
+  }
+);}
+
+
+
+
+
+export const getRenameTargetMutationKey = () => ['renameTarget'] as const;
+
+export const getRenameTargetMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameTarget>>, TError,RenameTargetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof renameTarget>>, TError,RenameTargetMutationVariables, TContext> => {
+
+const mutationKey = getRenameTargetMutationKey();
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof renameTarget>>, RenameTargetMutationVariables> = (props) => {
+          const {targetId,data} = props ?? {};
+
+          return  renameTarget(targetId,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RenameTargetMutationResult = NonNullable<Awaited<ReturnType<typeof renameTarget>>>
+    export type RenameTargetMutationBody = TargetRename
+    export type RenameTargetMutationError = ErrorType<ErrorResponse>
+    export type RenameTargetMutationVariables = {targetId: string;data: TargetRename}
+
+    /**
+ * S3-002: rename one of your own targets. Only the name changes; the source
+ * URL, reviews and Q&A stay (S3-BR-002). A bad name is a 422; another user's
+ * target is a 404, the same as a missing one (S3-BR-004).
+ * @summary Rename Target
+ */
+export const useRenameTarget = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof renameTarget>>, TError,RenameTargetMutationVariables, TContext>, request?: SecondParameter<typeof apiFetch>}
+ , queryClient?: QueryClient): UseMutationResult<
+        Awaited<ReturnType<typeof renameTarget>>,
+        TError,
+        RenameTargetMutationVariables,
+        TContext
+      > => {
+      return useMutation(getRenameTargetMutationOptions(options), queryClient);
     }
 
 export const getListTargetReviewsUrl = (targetId: string,

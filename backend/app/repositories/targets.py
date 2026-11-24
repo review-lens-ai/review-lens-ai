@@ -116,6 +116,25 @@ class TargetRepository:
         if row is None:
             raise NotFoundError("Target not found.")
 
+    def rename_owned(
+        self, target_id: UUID | str, owner_id: UUID | str, name: str
+    ) -> dict:
+        """S3-002: change only the name of a target `owner_id` owns, and return it.
+        The source URL, runs, reviews and Q&A stay as they are (S3-BR-002);
+        updated_at is set by the analysis_targets_set_updated_at trigger.
+        NotFoundError for another user's target or a missing one (S3-BR-004)."""
+        row = self._conn.execute(
+            """
+            update public.analysis_targets set name = %s
+             where id = %s and owner_id = %s
+            returning id
+            """,
+            (name, target_id, owner_id),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError("Target not found.")
+        return self.get_owned(row["id"], owner_id)
+
     def get_for_run(self, run_id: UUID | str) -> dict:
         """The target an ingestion run belongs to, with its owner. Worker only:
         see the module docstring. NotFoundError if the run does not exist."""

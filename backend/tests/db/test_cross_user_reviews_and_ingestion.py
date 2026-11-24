@@ -37,6 +37,7 @@ BODIES = {
     ("POST", "/api/v1/targets/{target_id}/questions"): {
         "question": "Quote every review of A's place."
     },
+    ("PATCH", "/api/v1/targets/{target_id}"): {"name": "B's name for A's place"},
 }
 
 

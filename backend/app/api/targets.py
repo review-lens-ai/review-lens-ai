@@ -18,7 +18,12 @@ from app.platforms import SUPPORTED_PLATFORM
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
 from app.schemas.reviews import ReviewPage, ReviewSummary
-from app.schemas.targets import TargetCreate, TargetList, TargetResponse
+from app.schemas.targets import (
+    TargetCreate,
+    TargetList,
+    TargetRename,
+    TargetResponse,
+)
 
 router = APIRouter(prefix="/targets", tags=["targets"])
 
@@ -114,6 +119,18 @@ def get_target_summary(target_id: UUID, owner_id: OwnerId, reviews: ReviewRepo) 
 def delete_target(target_id: UUID, owner_id: OwnerId, repo: Repo) -> None:
     """S1-012: delete one of your own targets. Another user's target is a 404."""
     repo.delete_owned(target_id, owner_id)
+
+
+@router.patch(
+    "/{target_id}", response_model=TargetResponse, responses=error_responses(404)
+)
+def rename_target(
+    target_id: UUID, payload: TargetRename, owner_id: OwnerId, repo: Repo
+) -> dict:
+    """S3-002: rename one of your own targets. Only the name changes; the source
+    URL, reviews and Q&A stay (S3-BR-002). A bad name is a 422; another user's
+    target is a 404, the same as a missing one (S3-BR-004)."""
+    return repo.rename_owned(target_id, owner_id, payload.name)
 
 
 @router.post("", status_code=201, response_model=TargetResponse)

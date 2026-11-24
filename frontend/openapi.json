@@ -280,6 +280,83 @@
             "description": "Not Found"
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "targets"
+        ],
+        "summary": "Rename Target",
+        "description": "S3-002: rename one of your own targets. Only the name changes; the source\nURL, reviews and Q&A stay (S3-BR-002). A bad name is a 422; another user's\ntarget is a 404, the same as a missing one (S3-BR-004).",
+        "operationId": "rename_target",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "target_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Target Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TargetRename"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          }
+        }
       }
     },
     "/api/v1/targets/{target_id}/reviews": {
@@ -1368,6 +1445,20 @@
           "items"
         ],
         "title": "TargetList"
+      },
+      "TargetRename": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "TargetRename",
+        "description": "S3-002: the only thing a rename may change is the name (S3-BR-002). Any\nother key, such as source_url or owner_id, is ignored."
       },
       "TargetResponse": {
         "properties": {
