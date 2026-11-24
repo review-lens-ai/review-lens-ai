@@ -719,7 +719,17 @@ function ReviewsPanel({
   return (
     <section className="flex flex-col gap-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-xl font-semibold">Reviews</h2>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-xl font-semibold">Reviews</h2>
+          {/* S3-015: say plainly what the list holds and in what order: the complete
+              saved dataset, or (S3-016) only the reviews matching the filters. Each card
+              shows its own rating, text and date. */}
+          <p className="text-sm text-muted-foreground">
+            {filtered
+              ? "Only reviews that match your filters · newest first"
+              : `All ${reviewCount(datasetTotal)} saved for this target · newest first`}
+          </p>
+        </div>
         <p className="text-sm text-muted-foreground">
           {filtered
             ? `Showing ${first}–${last} of ${total} matching (${datasetTotal} in all)`

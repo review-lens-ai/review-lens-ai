@@ -1,6 +1,7 @@
-// S3-016: filtering the Reviews list by rating and date. The whole workspace page is
-// rendered and MSW plays the backend, which filters like the real endpoint: inclusive
-// rating range, inclusive dates, AND, and total counting only the matches.
+// The Reviews tab: browsing the complete saved dataset (S3-015) and filtering it by
+// rating and date (S3-016). The whole workspace page is rendered and MSW plays the
+// backend, which pages and filters like the real endpoint: inclusive rating range,
+// inclusive dates, AND, and total counting only the matches.
 import { describe, expect, it, vi } from "vitest";
 import {
   act,
@@ -37,6 +38,7 @@ vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({ auth: { getSession: async () => ({ data: { session: null } }) } }),
 }));
 
+import { formatReviewDate } from "@/lib/reviews";
 import TargetWorkspacePage from "./page";
 
 // 30 reviews: ratings 1,2,3,4,5,1,2,... and one a day from Jan 1, 2026 (newest first).
@@ -48,6 +50,7 @@ const DATASET = Array.from({ length: 30 }, (_, i) =>
     reviewed_at: `2026-01-${String(i + 1).padStart(2, "0")}T12:00:00Z`,
   }),
 ).reverse();
+const NEWEST_DAY = "2026-01-30T12:00:00Z";
 
 // Sets up the page's endpoints. Returns every query string the reviews endpoint got.
 function backendHoldsDataset() {
@@ -232,5 +235,57 @@ describe("filtering the reviews list", () => {
     );
     await waitFor(() => expect(asked.length).toBe(requestsBefore));
     expect(screen.getByText("Showing 1–12 of 30")).toBeTruthy();
+  });
+});
+
+describe("browsing the complete dataset", () => {
+  it("says the list is every saved review, newest first", async () => {
+    backendHoldsDataset();
+    await openReviews();
+
+    expect(screen.getByText("All 30 reviews saved for this target · newest first")).toBeTruthy();
+  });
+
+  it("says the list is only the matching reviews while a filter is applied", async () => {
+    backendHoldsDataset();
+    await openReviews();
+    const form = openFilters();
+    choose(form, "Maximum rating", "1");
+    apply(form);
+
+    await screen.findByText("Showing 1–6 of 6 matching (30 in all)");
+    expect(screen.getByText("Only reviews that match your filters · newest first")).toBeTruthy();
+    expect(screen.queryByText(/^All 30 reviews saved/)).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear all" }));
+
+    await screen.findByText("All 30 reviews saved for this target · newest first");
+  });
+
+  it("shows each review's rating, text and date", async () => {
+    backendHoldsDataset();
+    await openReviews();
+
+    // The newest review: Jan 30, rated (29 % 5) + 1 = 5.
+    const card = screen.getByText("Review 29, 5 stars").closest("[data-slot='card']");
+    expect(card).toBeTruthy();
+    const inCard = within(card as HTMLElement);
+    expect(inCard.getByRole("img", { name: "5 out of 5 stars" })).toBeTruthy();
+    expect(inCard.getByText(formatReviewDate(NEWEST_DAY))).toBeTruthy();
+  });
+
+  it("pages through every saved review exactly once, newest first", async () => {
+    backendHoldsDataset();
+    await openReviews();
+    const seen = [...shownReviews()];
+
+    for (const range of ["13–24", "25–30"]) {
+      fireEvent.click(screen.getByRole("button", { name: "Next" }));
+      await screen.findByText(`Showing ${range} of 30`);
+      seen.push(...shownReviews());
+    }
+
+    expect(seen).toEqual(DATASET.map((r) => r.review_text));
+    expect(new Set(seen).size).toBe(30);
   });
 });
