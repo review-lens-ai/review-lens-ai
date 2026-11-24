@@ -686,6 +686,27 @@ describe("reviews list", () => {
     }
   });
 
+  // S3-012: a failed refresh says the reviews already collected are still there.
+  it("a failed refresh says the existing reviews are unchanged", async () => {
+    backendHas(failedRun);
+    backendHoldsReviews(12);
+
+    await openWorkspace("Failed");
+
+    await screen.findByText(/Your existing 12 reviews are unchanged\./);
+    expect(screen.getByText(/Showing 12 reviews from earlier runs/)).toBeTruthy();
+  });
+
+  // S3-010: the status line counts the whole dataset, not only what the refresh added.
+  it("the status line shows the total after a refresh that added nothing", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 0, reviews_duplicate: 10 }));
+    backendHoldsReviews(55);
+
+    await openWorkspace("Ingested");
+
+    await screen.findByText(/^55 reviews · no new · /);
+  });
+
   it("the button reads Refresh reviews once the target has reviews", async () => {
     backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
     backendHoldsReviews(3);

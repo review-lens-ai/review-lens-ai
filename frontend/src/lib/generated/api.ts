@@ -141,6 +141,7 @@ export interface IngestionRunResponse {
   reviews_ingested: number;
   reviews_rejected: number;
   reviews_duplicate: number;
+  reviews_updated?: number;
   error_code: string | null;
 }
 

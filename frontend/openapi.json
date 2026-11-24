@@ -1026,6 +1026,11 @@
             "type": "integer",
             "title": "Reviews Duplicate"
           },
+          "reviews_updated": {
+            "type": "integer",
+            "title": "Reviews Updated",
+            "default": 0
+          },
           "error_code": {
             "anyOf": [
               {

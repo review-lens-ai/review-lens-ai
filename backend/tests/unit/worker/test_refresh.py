@@ -93,3 +93,16 @@ def _source_answering(handler):
     return lambda: SerpApiReviewSource(
         API_KEY, httpx.Client(transport=httpx.MockTransport(handler))
     )
+
+
+def test_an_edited_review_is_counted_as_updated_not_as_a_duplicate(log):
+    # Page 1 was seen before: its 5 text reviews are saved, one of them now edited.
+    reviews = FakeReviews(log, already_saved=5, edited=1, seen=PAGE_1_IDS)
+    targets = FakeTargets(log, place_id="known", all_reviews_collected=True)
+    pipeline, _ = make_pipeline(log, reviews=reviews, targets=targets)
+
+    process_next_run(pipeline)
+
+    # 0 new, 1 updated; the other 4 text reviews and the 5 rating-only are duplicates.
+    assert pipeline.runs.result == ("SUCCEEDED", 0, 0, 9)
+    assert pipeline.runs.updated == 1

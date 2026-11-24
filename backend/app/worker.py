@@ -38,6 +38,8 @@ Rules:
   ones, then continues collecting older ones from older_page_token. The cursor
   moves in the NORMALIZATION commit, with the reviews, so a failed run never
   moves it past reviews it did not save.
+- EDITED IS UPDATED (S3-010): a saved review that comes back with new text, rating
+  or edit date is updated and re-embedded, and counted in reviews_updated.
 - SEEN BEFORE IS A DUPLICATE: a review an earlier run already saved OR rejected
   (e.g. rating-only) is counted as a duplicate, not saved or rejected again.
 - EMBEDDINGS NEVER FAIL A RUN: the run is already finished and its reviews saved
@@ -66,6 +68,7 @@ from app.repositories.ingestion_stages import (
     Stage,
     StageStatus,
 )
+from app.repositories.reviews import SavedCounts
 from app.repositories.targets import DuplicatePlaceError, TargetRepository
 from app.schemas.reviews import ReviewCreate
 from app.services.embed_reviews import (
@@ -86,14 +89,14 @@ class ReviewStore(EmbeddingStore, Protocol):
     """Saves normalized reviews and their embeddings: S1-022's ReviewRepository
     (app/repositories/reviews.py)."""
 
-    def bulk_insert(
+    def save_reviews(
         self,
         run_id: UUID | str,
         target_id: UUID | str,
         owner_id: UUID | str,
         reviews: list[ReviewCreate],
-    ) -> int:
-        """Save reviews; return how many were new (already-saved ones are skipped)."""
+    ) -> SavedCounts:
+        """Save reviews: insert new ones, update edited ones (S3-010), skip the rest."""
         ...
 
     def seen_review_ids_for_target(
@@ -115,7 +118,7 @@ class _MissingReviewStore:
     """Stands in until S1-022's ReviewRepository exists: the NORMALIZATION stage
     fails (UNEXPECTED) instead of reporting reviews it did not save."""
 
-    def bulk_insert(self, *args: Any) -> int:
+    def save_reviews(self, *args: Any) -> SavedCounts:
         raise RuntimeError(
             "Saving reviews (S1-022, app/repositories/reviews.py) is not available."
         )
@@ -347,15 +350,16 @@ def _normalize_and_finish(pipeline: Pipeline, run_id: UUID | str, target: dict) 
         for record in result.rejected
         if _review_id(record.raw_record) not in seen_before
     ]
-    saved = pipeline.reviews.bulk_insert(
+    counts = pipeline.reviews.save_reviews(
         run_id, target["id"], target["owner_id"], result.reviews
     )
+    saved, updated = counts.inserted, counts.updated
     pipeline.reviews.save_rejections(run_id, target["id"], target["owner_id"], rejected)
-    # Reviews an earlier run already saved are skipped by bulk_insert; they are
-    # duplicates, so fetched = saved + rejected + duplicates still holds.
+    # Reviews an earlier run already saved, unchanged, are left as they are; they
+    # are duplicates, so fetched = saved + updated + rejected + duplicates holds.
     duplicates = (
         result.duplicates
-        + (len(result.reviews) - saved)
+        + (len(result.reviews) - saved - updated)
         + (len(result.rejected) - len(rejected))
     )
     cursor = (pipeline.runs.source_metadata(run_id) or {}).get("older_cursor")
@@ -366,7 +370,7 @@ def _normalize_and_finish(pipeline: Pipeline, run_id: UUID | str, target: dict) 
             cursor["page_token"],
             cursor["all_collected"],
         )
-    pipeline.runs.mark_succeeded(run_id, saved, len(rejected), duplicates)
+    pipeline.runs.mark_succeeded(run_id, saved, len(rejected), duplicates, updated)
 
 
 def _embed(pipeline: Pipeline, run_id: UUID | str, target: dict) -> None:

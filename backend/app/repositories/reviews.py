@@ -15,12 +15,20 @@ Rules this module enforces:
   RUNNING (InvalidRunTransitionError otherwise), so nothing can be added to a run
   that is queued or already finished. Ownership is checked first, so another
   user's run is a 404 whatever its state.
-- DUPLICATES: a review whose source_review_id this target already has is skipped,
-  and the first copy wins. Reviews with no source_review_id are always saved.
+- DUPLICATES (S3-011): a review is the same source review when it has the same
+  source_review_id (SerpApi's review_id) within the target; the unique key
+  reviews_target_id_source_review_id_key enforces it. A re-fetched review never
+  gets a second row, however many refreshes return it. A review with no
+  source_review_id is always saved: nothing proves it is a duplicate, and SerpApi
+  sends a review_id with every review.
+- EDITS (S3-010): a re-fetched review whose text, rating or edit date
+  (source_metadata.edited_at) changed is updated in place, and its embedding
+  cleared so the EMBED step redoes it. run_id keeps the run that first saw it.
+  Anything else is left exactly as it was.
 - COUNTS: bulk_insert returns the rows actually inserted, so a run never reports
   reviews it did not store.
-- HISTORY: nothing here updates or deletes reviews, so a failed run cannot remove
-  what earlier runs saved.
+- HISTORY: nothing here deletes reviews, and the only update is EDITS, inside the
+  run's transaction, so a failed run cannot remove or change what earlier runs saved.
 - ACTIVE DATASET (S2-008): a target's dataset is every review saved for it, from
   every run (`where target_id = %s`). The reviews list, the summary and the Q&A
   context all read that same set, so the numbers on the Summary tab describe exactly
@@ -28,6 +36,7 @@ Rules this module enforces:
   the raw provider pages, the browser, or the model.
 """
 
+from dataclasses import dataclass
 from uuid import UUID
 
 import psycopg
@@ -43,6 +52,14 @@ from app.services.normalize_reviews import RejectedRecord
 # it, so a link to a review opens on the page the list would show it on.
 # id last: pages never overlap or skip a review.
 NEWEST_FIRST = "reviewed_at desc nulls last, created_at desc, id"
+
+
+@dataclass(frozen=True)
+class SavedCounts:
+    """What save_reviews did with a batch. The rest were duplicates left as they were."""
+
+    inserted: int  # new reviews
+    updated: int  # reviews already saved that were edited on the source (S3-010)
 
 
 def aggregate(conn: psycopg.Connection, where: str, params: list | tuple) -> dict:
@@ -105,18 +122,44 @@ class ReviewRepository:
         reviews: list[ReviewCreate],
     ) -> int:
         """Save a run's reviews, all or nothing. Returns how many were new."""
+        return self.save_reviews(run_id, target_id, owner_id, reviews).inserted
+
+    def save_reviews(
+        self,
+        run_id: UUID | str,
+        target_id: UUID | str,
+        owner_id: UUID | str,
+        reviews: list[ReviewCreate],
+    ) -> SavedCounts:
+        """Save a run's reviews, all or nothing: insert new ones, update edited
+        ones (S3-010), leave the rest. Returns how many were inserted and updated."""
         self._require_owned_run(run_id, target_id, owner_id)
-        saved = 0
+        inserted = updated = 0
         with self._conn.transaction():
             for review in reviews:
-                saved += self._conn.execute(
+                row = self._conn.execute(
                     """
                     insert into public.reviews (
                         target_id, run_id, rating, review_text, mapping_version,
                         reviewed_at, source_review_id, source_url, source_metadata
                     )
                     values (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    on conflict (target_id, source_review_id) do nothing
+                    on conflict (target_id, source_review_id) do update
+                       set rating = excluded.rating,
+                           review_text = excluded.review_text,
+                           mapping_version = excluded.mapping_version,
+                           reviewed_at = excluded.reviewed_at,
+                           source_url = excluded.source_url,
+                           source_metadata = excluded.source_metadata,
+                           embedding = null
+                     where (reviews.rating, reviews.review_text,
+                            reviews.source_metadata ->> 'edited_at')
+                           is distinct from
+                           (excluded.rating, excluded.review_text,
+                            excluded.source_metadata ->> 'edited_at')
+                    -- xmax is 0 for a row this statement inserted, not for one
+                    -- it updated. A duplicate that did not change returns no row.
+                    returning (xmax = 0) as inserted
                     """,
                     (
                         target_id,
@@ -129,8 +172,14 @@ class ReviewRepository:
                         review.source_url,
                         Jsonb(review.source_metadata),
                     ),
-                ).rowcount
-        return saved
+                ).fetchone()
+                if row is None:
+                    continue
+                if row["inserted"]:
+                    inserted += 1
+                else:
+                    updated += 1
+        return SavedCounts(inserted=inserted, updated=updated)
 
     def save_rejections(
         self,

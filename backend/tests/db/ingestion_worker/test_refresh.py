@@ -1,4 +1,5 @@
-"""S3-009: refreshing a target against a real Postgres and the real review store.
+"""S3-009 to S3-012: refreshing a target against a real Postgres and the real
+review store.
 
 SerpApi is faked. The place has three pages, newest first:
     page 1   10 reviews (5 rating-only)
@@ -8,14 +9,18 @@ So the first run saves 18 and rejects 12; a refresh finds nothing new on page 1,
 jumps to page 3 with the saved cursor, and adds its 5 older reviews.
 """
 
+import copy
+
 import httpx
 import pytest
 
 from app.adapters.serpapi import SerpApiReviewSource
 from app.core.errors import NotFoundError
 from app.repositories.ingestion_runs import IngestionRunRepository
+from app.repositories.review_search import ReviewSearchRepository
 from app.repositories.reviews import ReviewRepository
 from app.repositories.targets import TargetRepository
+from app.services.qa.tools.review_filter import ReviewFilter
 from app.worker import process_next_run
 from tests.db.ingestion_worker.conftest import (
     PAGE_1,
@@ -35,16 +40,16 @@ PAGE_3 = {
 }
 
 
-def place(older=None):
+def place(older=None, page_1=PAGE_1):
     """Fake SerpApi for the three-page place. `older` replaces page 3's answer
-    (e.g. a timeout). Returns (open_source, tokens asked for)."""
+    (e.g. a timeout); `page_1` replaces page 1. Returns (open_source, tokens asked for)."""
     asked = []
 
     def handle(request):
         token = request.url.params.get("next_page_token")
         asked.append(token)
         if token is None:
-            return httpx.Response(200, json=PAGE_1)
+            return httpx.Response(200, json=page_1)
         if token == TOKEN_AFTER_PAGE_1:
             return httpx.Response(200, json=PAGE_2)
         if token == TOKEN_AFTER_PAGE_2:
@@ -70,8 +75,41 @@ def queue_run(conn, target):
     return run
 
 
-def run_once(conn, open_source):
-    process_next_run(make_pipeline(conn, open_source, ReviewRepository(conn)))
+def run_once(conn, open_source, reviews=None):
+    process_next_run(
+        make_pipeline(conn, open_source, reviews or ReviewRepository(conn))
+    )
+
+
+def dataset(conn, target):
+    """Every saved review of the target, exactly as stored (for before/after checks)."""
+    return conn.execute(
+        "select id, run_id, source_review_id, rating, review_text, source_metadata "
+        "from public.reviews where target_id = %s order by id",
+        (target["id"],),
+    ).fetchall()
+
+
+EDITED_TEXT = "Edited: came back and the burger was much better this time."
+EDITED_ID = next(r["review_id"] for r in PAGE_1["reviews"] if r.get("snippet"))
+
+
+def page_1_with_an_edit():
+    """Page 1 again, with one text review edited on Google since the first run."""
+    page = copy.deepcopy(PAGE_1)
+    review = next(r for r in page["reviews"] if r["review_id"] == EDITED_ID)
+    review["snippet"] = EDITED_TEXT
+    review["extracted_snippet"] = {"original": EDITED_TEXT}
+    review["iso_date_of_last_edit"] = "2026-11-22T12:00:00Z"
+    return page
+
+
+class SaveThenFail(ReviewRepository):
+    """Saves the run's reviews, then fails before the run can finish."""
+
+    def save_reviews(self, *args, **kwargs):
+        super().save_reviews(*args, **kwargs)
+        raise RuntimeError("simulated failure after saving")
 
 
 def cursor(conn, target):
@@ -184,3 +222,66 @@ def test_the_target_reports_how_many_reviews_the_place_lists(conn, target, first
 
     assert shown["place_review_count"] == PAGE_1["place_info"]["reviews"]
     assert shown["all_reviews_collected"] is False
+
+
+# --- S3-010: the refreshed dataset is the current one -------------------------------
+
+
+def test_a_refresh_updates_a_review_edited_on_the_source(conn, target, first_run):
+    refresh = queue_run(conn, target)
+
+    run_once(conn, place(page_1=page_1_with_an_edit())[0])
+
+    row = run_row(conn, refresh["id"])
+    updated = conn.execute(
+        "select review_text, run_id, source_metadata from public.reviews "
+        "where target_id = %s and source_review_id = %s",
+        (target["id"], EDITED_ID),
+    ).fetchone()
+    assert row["status"] == "COMPLETED"
+    # Page 3 adds 5; the edited review is updated, the other 9 of page 1 are unchanged.
+    assert (row["reviews_ingested"], row["reviews_updated"]) == (5, 1)
+    assert row["reviews_duplicate"] == 9
+    assert updated["review_text"] == EDITED_TEXT
+    assert updated["source_metadata"]["edited_at"].startswith("2026-11-22T12:00:00")
+    assert updated["run_id"] == first_run["id"]  # still the run that first saw it
+    assert review_count(conn, target) == 23  # updated, not duplicated
+
+
+def test_after_a_refresh_summary_list_and_qa_read_the_same_dataset(
+    conn, target, first_run
+):
+    queue_run(conn, target)
+    run_once(conn, place(page_1=page_1_with_an_edit())[0])
+    owner = target["owner_id"]
+    reviews = ReviewRepository(conn)
+
+    summary = reviews.summary_for_target(target["id"], owner)
+    listed = reviews.list_for_target(target["id"], owner, limit=None)
+    qa = ReviewSearchRepository.for_owner(conn, target["id"], owner)
+
+    # Old (pages 1 and 2) and new (page 3) together, everywhere.
+    assert summary["review_count"] == len(listed) == 23
+    assert qa.stats(ReviewFilter()) == summary
+    assert {r["source_review_id"] for r in listed} >= {f"older-{i}" for i in range(5)}
+    found = qa.search(ReviewFilter(keywords="much better"), order="relevance")
+    assert [r["review_text"] for r in found] == [EDITED_TEXT]
+
+
+# --- S3-012: a failed refresh changes nothing -----------------------------------------
+
+
+def test_a_refresh_that_fails_while_saving_changes_no_review(conn, target, first_run):
+    before = dataset(conn, target)
+    refresh = queue_run(conn, target)
+
+    run_once(conn, place(page_1=page_1_with_an_edit())[0], reviews=SaveThenFail(conn))
+
+    row = run_row(conn, refresh["id"])
+    assert (row["status"], row["error_code"]) == ("FAILED", "UNEXPECTED")
+    # Not one review added, updated or removed, and the cursor did not move.
+    assert dataset(conn, target) == before
+    assert cursor(conn, target) == {
+        "older_page_token": TOKEN_AFTER_PAGE_2,
+        "all_reviews_collected": False,
+    }

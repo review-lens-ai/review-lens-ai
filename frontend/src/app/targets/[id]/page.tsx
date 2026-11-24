@@ -216,6 +216,7 @@ function TargetWorkspace({
         target={target}
         run={run}
         reviewsKept={reviews.total}
+        reviewTotal={reviews.reviews === null ? null : reviews.total}
         ingest={ingest}
         qa={qa}
       />
@@ -376,12 +377,15 @@ function TargetContextHeader({
   target,
   run,
   reviewsKept,
+  reviewTotal,
   ingest,
   qa,
 }: {
   target: Target;
   run: IngestionRun | null;
   reviewsKept: number;
+  // Every review the target has, or null until the reviews have loaded (S3-010).
+  reviewTotal: number | null;
   ingest: IngestAction;
   qa: QaToggle;
 }) {
@@ -442,7 +446,7 @@ function TargetContextHeader({
       >
         <StatusBadge status={status} />
         <span>
-          {runDetail(run)}
+          {runDetail(run, reviewTotal)}
           {run?.status === "FAILED" &&
             reviewsKept > 0 &&
             ` · Showing ${reviewCount(reviewsKept)} from earlier runs`}
@@ -564,6 +568,8 @@ function IngestionPanel({
     ["Started", startedText(run)],
     ["Finished", run.finished_at ? formatRunTime(run.finished_at) : "Not finished yet"],
     ["Reviews saved", run.reviews_ingested],
+    // S3-010: saved earlier, edited on the source since, and updated by this run.
+    ["Updated (edited since)", run.reviews_updated ?? 0],
     ["Skipped as unusable", run.reviews_rejected],
     // S3-009: saved or skipped by an earlier run, so not counted again.
     ["Seen in an earlier run", run.reviews_duplicate],

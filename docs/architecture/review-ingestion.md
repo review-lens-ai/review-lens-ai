@@ -42,7 +42,7 @@ Rules the worker keeps:
 | The run's status matches the saved reviews | step 6, step 7 and NORMALIZATION's COMPLETED mark share one commit |
 | A retry skips finished work | `requeue` keeps the stage rows; a COMPLETED INGESTION is skipped, so normalizing again costs no searches. A failed stage restarts from its beginning, replacing that run's earlier raw pages |
 | No search spent on a duplicate place | the place id is resolved and saved (and committed) **before** the first search; if the owner already has a target for that place (`analysis_targets_owner_place_key`), the run fails with `SOURCE_UNREACHABLE` and no search is made |
-| Counts add up | reviews an earlier run already saved (skipped by `bulk_insert`) or already rejected (e.g. rating-only, S3-009) count as duplicates, so fetched = saved + rejected + duplicates |
+| Counts add up | reviews an earlier run already saved, unchanged, or already rejected (e.g. rating-only, S3-009) count as duplicates; edited ones count as updated (S3-010), so fetched = saved + updated + rejected + duplicates |
 | A failed refresh changes nothing | the older-review cursor moves in the NORMALIZATION commit with the reviews (S3-009), so a failed run leaves the reviews and the cursor as they were |
 | Nothing internal leaks | only the `ErrorCode` is stored; the technical detail goes to the server log, scrubbed by `mark_failed` |
 | One bad run never stops the worker | each pass opens its own connection; an error is logged and the loop goes on |
@@ -117,6 +117,9 @@ Rules:
 - **A refused or empty answer to the saved token** (expired, unknown) does not fail the run: it walks down from page 1 instead (`resume_rejected`), past the seen pages, and saves the new cursor where it stops. `MAX_SEARCHES_PER_RUN` caps how far one walk goes; the next refresh continues from there.
 - **Overlap is harmless.** New reviews push older ones down, so a saved token can re-read a few seen reviews. They are duplicates.
 - **Nothing is deleted.** A review missing from a later response stays: SerpApi never confirms a complete dataset (S3-BR-015).
+- **Duplicates (S3-011).** A review is the same source review when it has the same `review_id` within the target (unique key `reviews_target_id_source_review_id_key`), so a review returned by several refreshes has one row. A review without a `review_id` is always kept: nothing proves it is a duplicate, and SerpApi sends one with every review.
+- **Edits (S3-010).** A saved review that comes back with new text, rating or edit date (`edited_at`) is updated in place, re-embedded, and counted in `ingestion_runs.reviews_updated`; `run_id` keeps the run that first saw it. Only reviews on the pages a refresh reads are checked, so an edit to an older review deeper down is not picked up.
+- **Failures (S3-012).** A refresh saves its reviews, moves the cursor and finishes the run in one commit. If anything fails, all of it rolls back: the run is FAILED with an `ErrorCode`, and the reviews, the summary and the cursor are exactly as before. The workspace says "Your existing N reviews are unchanged."
 - Targets ingested before S3-009 get a cursor from their newest finished run's last page (migration `20261123120000_add_older_review_cursor.sql`).
 
 ## 4. What a fetch returns (`FetchResult`)
@@ -197,4 +200,4 @@ A place with no reviews is **not** an error: the result has no pages. The worker
 - The spike's plan of several sort orders per run (lowest-rated, newest, most relevant).
 - Not yet confirmed against live SerpApi: short-link redirects, the last page having no next-page token, `review_id` staying the same across runs, and a `next_page_token` still working days later (section 3a falls back to walking down if it does not).
 - More than `MAX_REVIEWS_PER_RUN` new reviews between two refreshes: the refresh stops at the cap before reaching seen reviews, leaving a gap between them that no run fills.
-- Edited reviews (S3-010): a review already saved keeps its first version.
+- Edits to reviews on pages a refresh does not read (section 3a).

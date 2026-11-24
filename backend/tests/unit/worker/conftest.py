@@ -15,6 +15,7 @@ import pytest
 from app.adapters.serpapi import SerpApiReviewSource
 from app.repositories.ingestion_runs import ErrorCode
 from app.repositories.ingestion_stages import StageStatus
+from app.repositories.reviews import SavedCounts
 from app.repositories.targets import DuplicatePlaceError
 from app.worker import Pipeline
 from tests.conftest import FakeEmbedder
@@ -92,9 +93,10 @@ class FakeRuns:
     def source_metadata(self, run_id):
         return self.metadata
 
-    def mark_succeeded(self, run_id, saved, rejected=0, duplicates=0):
+    def mark_succeeded(self, run_id, saved, rejected=0, duplicates=0, updated=0):
         self.log.append("mark_succeeded")
         self.result = ("SUCCEEDED", saved, rejected, duplicates)
+        self.updated = updated
 
     def mark_failed(self, run_id, error_code, detail=None):
         self.log.append("mark_failed")
@@ -186,20 +188,21 @@ class FakeTargets:
 
 
 class FakeReviews:
-    def __init__(self, log, already_saved=0, broken=False, seen=()):
+    def __init__(self, log, already_saved=0, broken=False, seen=(), edited=0):
         self.log = log
         self.already_saved = already_saved
+        self.edited = edited  # of the already-saved ones, how many changed (S3-010)
         self.broken = broken
         self.seen = set(seen)  # review ids earlier runs saved or rejected
         self.reviews = None
         self.rejected = None
 
-    def bulk_insert(self, run_id, target_id, owner_id, reviews):
+    def save_reviews(self, run_id, target_id, owner_id, reviews):
         if self.broken:
             raise RuntimeError("database went away")
         self.log.append(f"save {len(reviews)} reviews")
         self.reviews = list(reviews)
-        return len(reviews) - self.already_saved
+        return SavedCounts(len(reviews) - self.already_saved, self.edited)
 
     def save_rejections(self, run_id, target_id, owner_id, rejected):
         self.rejected = list(rejected)
