@@ -297,7 +297,7 @@ function TargetWorkspace({
         <div
           id={qaPanelId}
           hidden={!qaOpen}
-          className="h-[75dvh] min-h-[28rem] lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)]"
+          className="h-[75dvh] min-h-112 lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)]"
         >
           <ReviewQaPanel
             target={target}
@@ -309,7 +309,7 @@ function TargetWorkspace({
         <div
           className={
             qaOpen
-              ? "hidden min-h-[28rem] flex-col overflow-hidden rounded-xl border bg-card lg:sticky lg:top-4 lg:flex lg:h-[calc(100dvh-8rem)]"
+              ? "hidden min-h-112 flex-col overflow-hidden rounded-xl border bg-card lg:sticky lg:top-4 lg:flex lg:h-[calc(100dvh-8rem)]"
               : "flex flex-col"
           }
         >
@@ -662,7 +662,7 @@ function ReviewsPanel({
   failed: boolean;
   pageLoading: boolean;
   pageFailed: boolean;
-  onPage: (page: number) => void;
+  onPage: (page: number) => Promise<void>;
   highlightId: string | null;
 }) {
   const firstReviewRef = useRef<HTMLDivElement>(null);
