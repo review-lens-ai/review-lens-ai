@@ -47,7 +47,7 @@ The API never calls SerpApi. It only queues a run, and the worker does the fetch
 | 4 | Identity provider | Supabase Auth | The frontend signs users in. The backend checks every token (RS256/ES256, audience, issuer, expiry) and takes the user id only from it. |
 | 5 | Review ingestion | SerpApi Google Maps reviews, run by a background worker | One run per target at a time. Stages: INGESTION, then NORMALIZATION. See [019-ingestion-pipeline.md](019-ingestion-pipeline.md) and [review-ingestion.md](review-ingestion.md). |
 | 6 | LLM provider | OpenRouter, through LangChain (`langchain-openai`); the model is set by `QA_MODEL` | It sits behind one backend boundary (`backend/app/llm/`), and summary numbers come from stored data, not from the model. The Q&A tool loop, its contracts and its test harness are in [qa-harness.md](qa-harness.md). |
-| 7 | Deployment | **Not decided** (README mentions Vercel for the frontend and Render for the backend) | Sprint 3. CI today: GitHub Actions runs `scripts/check.sh` against a Postgres 17 service. |
+| 7 | Deployment | Vercel (frontend), Render (API web service and ingestion worker), Supabase (database and auth) | A push to `main` deploys. Migrations are run by hand. See [deployment.md](deployment.md). CI: GitHub Actions runs `scripts/check.sh` against a Postgres 17 service. |
 | 8 | Domain entities | See section 3 | |
 | 9 | API boundaries | See section 4 | |
 | 10 | Screens | See section 5 | |
@@ -265,7 +265,8 @@ The session transcripts live at the repository root in `ai-transcripts/` (added 
 | [019-ingestion-pipeline.md](019-ingestion-pipeline.md) | How a run moves from QUEUED to a result (still marked Draft) |
 | [review-ingestion.md](review-ingestion.md) | Why SerpApi, the worker's steps and rules, and the adapter that fetches Google Maps reviews |
 | [qa-harness.md](qa-harness.md) | How a question reaches the model, the answer contract, and the deterministic test harness (S2-003) |
+| [deployment.md](deployment.md) | Where the app is deployed, its settings, and what a deploy does not do |
 
 ## 8. Keeping this current
 
-Change this file in the same PR as any change to a technology above, a table or an API route. Fill in the two **Not decided** rows when the choice is made. Significant changes from this baseline should say why in the PR.
+Change this file in the same PR as any change to a technology above, a table or an API route. Significant changes from this baseline should say why in the PR.
