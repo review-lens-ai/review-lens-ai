@@ -5,6 +5,7 @@
 - Frontend: Next.js, React 19, Tailwind 4
 - Backend: FastAPI, managed with [uv](https://docs.astral.sh/uv/)
 - Database and auth: Supabase
+- Hosting: Vercel (frontend), Render (API and worker). Live at https://review-lens-ai-roan.vercel.app. See [Deployment](docs/architecture/deployment.md).
 
 Folder layout and conventions: [Coding Standards](docs/standards/coding-standards.md).
 
@@ -31,7 +32,7 @@ Where to find values:
 - Supabase dashboard → Project Settings → Database: connection string (`DATABASE_URL`).
 - Review provider's dashboard: `REVIEW_PROVIDER_API_KEY`.
 
-Production secrets go in the Vercel / Render environment settings. CI secrets go in GitHub Actions secrets. The Supabase service-role key is not used (it bypasses RLS).
+Production secrets go in the Vercel / Render environment settings ([Deployment](docs/architecture/deployment.md)). CI secrets go in GitHub Actions secrets. The Supabase service-role key is not used (it bypasses RLS).
 
 The backend fails at startup with `Missing required setting: <NAME>` if `SUPABASE_URL` or `DATABASE_URL` is missing.
 
