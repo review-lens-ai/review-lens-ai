@@ -1,7 +1,8 @@
 """Review Q&A endpoint (S2-009, S2-010), mounted under /api/v1/targets.
 
     POST   /api/v1/targets/{target_id}/questions   {"question": "..."}  -> AnswerResponse
-    GET    /api/v1/targets/{target_id}/questions   -> QuestionList, oldest first (S3-006)
+    GET    /api/v1/targets/{target_id}/questions?limit=&offset=
+                                                   -> QuestionList, oldest first (S3-006)
     DELETE /api/v1/targets/{target_id}/questions   -> 204, clears only the Q&A (S3-006)
 
 The router is mounted on api_router, so every request comes from a verified user.
@@ -25,7 +26,7 @@ from typing import Annotated
 from uuid import UUID
 
 import psycopg
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 
 from app.auth import OwnerId
 from app.core.config import Settings, get_settings
@@ -42,6 +43,11 @@ from app.services.qa import QAConfig, answer_question
 from app.services.qa.prompt import clean_question
 
 router = APIRouter(prefix="/targets", tags=["questions"])
+
+# GET /questions paging: the latest 100 by default (more than a typical history).
+QUESTION_PAGE_SIZE = 100
+MAX_QUESTION_PAGE_SIZE = 200
+MAX_QUESTION_OFFSET = 100_000
 
 # One embedder for the process: the model loads on first use, so a question that
 # never searches by meaning pays nothing. It embeds only the phrase the model asks for.
@@ -102,10 +108,27 @@ def ask_question(
     response_model=QuestionList,
     responses=error_responses(404),
 )
-def list_questions(target_id: UUID, owner_id: OwnerId, conn: Conn) -> dict:
-    """S3-006, S3-007: the target's saved questions and responses, oldest first.
+def list_questions(
+    target_id: UUID,
+    owner_id: OwnerId,
+    conn: Conn,
+    limit: Annotated[int, Query(ge=1, le=MAX_QUESTION_PAGE_SIZE)] = QUESTION_PAGE_SIZE,
+    offset: Annotated[int, Query(ge=0, le=MAX_QUESTION_OFFSET)] = 0,
+) -> dict:
+    """S3-006, S3-007: one page of the target's saved questions and responses,
+    oldest first. Paging counts back from the newest question, like a chat:
+    offset 0 is the latest `limit` questions, offset=limit the ones before them.
+    total is every saved question, so the caller knows if there are earlier ones.
     Another user's target is a 404, indistinguishable from one that does not exist."""
-    return {"items": QuestionRepository(conn).list_for_target(target_id, owner_id)}
+    questions = QuestionRepository(conn)
+    return {
+        "items": questions.list_for_target(
+            target_id, owner_id, limit=limit, offset=offset
+        ),
+        "total": questions.count_for_target(target_id, owner_id),
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.delete(

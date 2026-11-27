@@ -99,6 +99,10 @@ class QuestionResponse(BaseModel):
 
 
 class QuestionList(BaseModel):
-    """A target's Q&A history, oldest first. Not paginated (known limit)."""
+    """One page of a target's Q&A history, oldest first. offset counts back from
+    the newest question, so offset 0 is the latest `limit` questions."""
 
     items: list[QuestionResponse]
+    total: int  # every saved question of the target, not just this page
+    limit: int
+    offset: int

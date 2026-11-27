@@ -712,7 +712,7 @@
           "questions"
         ],
         "summary": "List Questions",
-        "description": "S3-006, S3-007: the target's saved questions and responses, oldest first.\nAnother user's target is a 404, indistinguishable from one that does not exist.",
+        "description": "S3-006, S3-007: one page of the target's saved questions and responses,\noldest first. Paging counts back from the newest question, like a chat:\noffset 0 is the latest `limit` questions, offset=limit the ones before them.\ntotal is every saved question, so the caller knows if there are earlier ones.\nAnother user's target is a 404, indistinguishable from one that does not exist.",
         "operationId": "list_questions",
         "security": [
           {
@@ -728,6 +728,30 @@
               "type": "string",
               "format": "uuid",
               "title": "Target Id"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
             }
           }
         ],
@@ -1231,14 +1255,29 @@
             },
             "type": "array",
             "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "limit": {
+            "type": "integer",
+            "title": "Limit"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
           }
         },
         "type": "object",
         "required": [
-          "items"
+          "items",
+          "total",
+          "limit",
+          "offset"
         ],
         "title": "QuestionList",
-        "description": "A target's Q&A history, oldest first. Not paginated (known limit)."
+        "description": "One page of a target's Q&A history, oldest first. offset counts back from\nthe newest question, so offset 0 is the latest `limit` questions."
       },
       "QuestionResponse": {
         "properties": {

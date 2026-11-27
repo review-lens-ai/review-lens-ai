@@ -191,10 +191,14 @@ export interface QuestionResponse {
 }
 
 /**
- * A target's Q&A history, oldest first. Not paginated (known limit).
+ * One page of a target's Q&A history, oldest first. offset counts back from
+ * the newest question, so offset 0 is the latest `limit` questions.
  */
 export interface QuestionList {
   items: QuestionResponse[];
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 /**
@@ -289,6 +293,19 @@ export type ListTargetReviewsParams = {
    */
   offset?: number;
   around?: string | null;
+};
+
+export type ListQuestionsParams = {
+  /**
+   * @minimum 1
+   * @maximum 200
+   */
+  limit?: number;
+  /**
+   * @minimum 0
+   * @maximum 100000
+   */
+  offset?: number;
 };
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
@@ -1439,22 +1456,34 @@ export const useAskQuestion = <TError = ErrorType<ErrorResponse>,
       return useMutation(getAskQuestionMutationOptions(options), queryClient);
     }
 
-export const getListQuestionsUrl = (targetId: string,) => {
+export const getListQuestionsUrl = (targetId: string,
+    params?: ListQuestionsParams,) => {
+  const normalizedParams = new URLSearchParams();
 
+  Object.entries(params || {}).forEach(([key, value]) => {
 
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : String(value))
+    }
+  });
 
+  const stringifiedParams = normalizedParams.toString();
 
-  return `/api/v1/targets/${targetId}/questions`
+  return stringifiedParams.length > 0 ? `/api/v1/targets/${targetId}/questions?${stringifiedParams}` : `/api/v1/targets/${targetId}/questions`
 }
 
 /**
- * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * S3-006, S3-007: one page of the target's saved questions and responses,
+ * oldest first. Paging counts back from the newest question, like a chat:
+ * offset 0 is the latest `limit` questions, offset=limit the ones before them.
+ * total is every saved question, so the caller knows if there are earlier ones.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  * @summary List Questions
  */
-export const listQuestions = async (targetId: string, options?: Parameters<typeof apiFetch>[1]): Promise<QuestionList> => {
+export const listQuestions = async (targetId: string,
+    params?: ListQuestionsParams, options?: Parameters<typeof apiFetch>[1]): Promise<QuestionList> => {
 
-  return apiFetch<QuestionList>(getListQuestionsUrl(targetId),
+  return apiFetch<QuestionList>(getListQuestionsUrl(targetId,params),
   {
     ...options,
     method: 'GET'
@@ -1467,23 +1496,25 @@ export const listQuestions = async (targetId: string, options?: Parameters<typeo
 
 
 
-export const getListQuestionsQueryKey = (targetId: string,) => {
+export const getListQuestionsQueryKey = (targetId: string,
+    params?: ListQuestionsParams,) => {
     return [
-    `/api/v1/targets/${targetId}/questions`
+    `/api/v1/targets/${targetId}/questions`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getListQuestionsQueryOptions = <TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+export const getListQuestionsQueryOptions = <TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(targetId: string,
+    params?: ListQuestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getListQuestionsQueryKey(targetId);
+  const queryKey =  queryOptions?.queryKey ?? getListQuestionsQueryKey(targetId,params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuestions>>> = ({ signal }) => listQuestions(targetId, { signal, ...requestOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listQuestions>>> = ({ signal }) => listQuestions(targetId,params, { signal, ...requestOptions });
 
 
 
@@ -1497,12 +1528,16 @@ export type ListQuestionsQueryError = ErrorType<ErrorResponse>
 
 
 /**
- * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * S3-006, S3-007: one page of the target's saved questions and responses,
+ * oldest first. Paging counts back from the newest question, like a chat:
+ * offset 0 is the latest `limit` questions, offset=limit the ones before them.
+ * total is every saved question, so the caller knows if there are earlier ones.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  * @summary List Questions
  */
 export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(
- targetId: string, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>> & Pick<
+ targetId: string,
+    params: undefined |  ListQuestionsParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>> & Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof listQuestions>>,
           TError,
@@ -1512,12 +1547,16 @@ export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions
  , queryClient?: QueryClient
   ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * S3-006, S3-007: one page of the target's saved questions and responses,
+ * oldest first. Paging counts back from the newest question, like a chat:
+ * offset 0 is the latest `limit` questions, offset=limit the ones before them.
+ * total is every saved question, so the caller knows if there are earlier ones.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  * @summary List Questions
  */
 export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(
- targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>> & Pick<
+ targetId: string,
+    params?: ListQuestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>> & Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof listQuestions>>,
           TError,
@@ -1527,25 +1566,33 @@ export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * S3-006, S3-007: one page of the target's saved questions and responses,
+ * oldest first. Paging counts back from the newest question, like a chat:
+ * offset 0 is the latest `limit` questions, offset=limit the ones before them.
+ * total is every saved question, so the caller knows if there are earlier ones.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  * @summary List Questions
  */
 export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(
- targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ targetId: string,
+    params?: ListQuestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
   ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 /**
- * S3-006, S3-007: the target's saved questions and responses, oldest first.
+ * S3-006, S3-007: one page of the target's saved questions and responses,
+ * oldest first. Paging counts back from the newest question, like a chat:
+ * offset 0 is the latest `limit` questions, offset=limit the ones before them.
+ * total is every saved question, so the caller knows if there are earlier ones.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  * @summary List Questions
  */
 export function useListQuestions<TData = Awaited<ReturnType<typeof listQuestions>>, TError = ErrorType<ErrorResponse>>(
- targetId: string, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
+ targetId: string,
+    params?: ListQuestionsParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof listQuestions>>, TError, TData>>, request?: SecondParameter<typeof apiFetch>}
  , queryClient?: QueryClient
  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
 
-  const queryOptions = getListQuestionsQueryOptions(targetId,options)
+  const queryOptions = getListQuestionsQueryOptions(targetId,params,options)
 
   const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 

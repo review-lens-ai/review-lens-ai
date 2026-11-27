@@ -87,8 +87,8 @@ def ask(api, make_token, owner, target_id, question="What do people like?"):
     )
 
 
-def history(api, make_token, owner, target_id):
-    return api.get(_url(target_id), headers=auth(make_token(str(owner))))
+def history(api, make_token, owner, target_id, **paging):
+    return api.get(_url(target_id), params=paging, headers=auth(make_token(str(owner))))
 
 
 def clear(api, make_token, owner, target_id):
@@ -273,7 +273,8 @@ def test_clearing_history_keeps_target_reviews_and_runs(
     response = clear(api, make_token, owner, target_id)
 
     assert response.status_code == 204
-    assert history(api, make_token, owner, target_id).json() == {"items": []}
+    after = history(api, make_token, owner, target_id).json()
+    assert (after["items"], after["total"]) == ([], 0)
     assert api.get(f"/api/v1/targets/{target_id}", headers=headers).status_code == 200
     summary_after = api.get(f"/api/v1/targets/{target_id}/summary", headers=headers)
     assert summary_after.json() == summary_before.json()
@@ -343,3 +344,77 @@ def test_clearing_an_empty_history_returns_204(
     target_id = make_target(owner)
 
     assert clear(api, make_token, owner, target_id).status_code == 204
+
+
+# --- Paging: counts back from the newest question, each page oldest first ----------
+
+
+@pytest.fixture
+def five_questions(api, use_model, make_user, make_target, make_token):
+    """A target with Q1 (oldest) to Q5 (newest) saved. Returns (owner, target_id)."""
+    owner = make_user()
+    target_id = make_target(owner)
+    questions = [f"Q{n}?" for n in range(1, 6)]
+    use_model(*(turn for q in questions for turn in answered(f"About {q}")))
+    for question in questions:
+        assert ask(api, make_token, owner, target_id, question).status_code == 200
+    return owner, target_id
+
+
+def page(api, make_token, owner, target_id, **paging):
+    body = history(api, make_token, owner, target_id, **paging).json()
+    return [item["question"] for item in body["items"]], body
+
+
+def test_the_first_page_is_the_newest_questions_oldest_first(
+    api, make_token, five_questions
+):
+    owner, target_id = five_questions
+
+    questions, body = page(api, make_token, owner, target_id, limit=2)
+
+    assert questions == ["Q4?", "Q5?"]
+    assert (body["total"], body["limit"], body["offset"]) == (5, 2, 0)
+
+
+def test_later_pages_go_back_to_earlier_questions(api, make_token, five_questions):
+    owner, target_id = five_questions
+
+    pages = [
+        page(api, make_token, owner, target_id, limit=2, offset=o)[0] for o in (0, 2, 4)
+    ]
+
+    assert pages == [["Q4?", "Q5?"], ["Q2?", "Q3?"], ["Q1?"]]
+
+
+def test_an_offset_past_the_oldest_question_is_an_empty_page(
+    api, make_token, five_questions
+):
+    owner, target_id = five_questions
+
+    questions, body = page(api, make_token, owner, target_id, limit=2, offset=10)
+
+    assert (questions, body["total"]) == ([], 5)
+
+
+def test_without_paging_the_whole_short_history_comes_back(
+    api, make_token, five_questions
+):
+    owner, target_id = five_questions
+
+    questions, body = page(api, make_token, owner, target_id)
+
+    assert questions == ["Q1?", "Q2?", "Q3?", "Q4?", "Q5?"]
+    assert (body["total"], body["limit"], body["offset"]) == (5, 100, 0)
+
+
+@pytest.mark.parametrize(
+    "paging", [{"limit": 0}, {"limit": 201}, {"offset": -1}, {"limit": "many"}]
+)
+def test_bad_paging_is_a_422(api, make_user, make_target, make_token, paging):
+    owner = make_user()
+    target_id = make_target(owner)
+
+    response = history(api, make_token, owner, target_id, **paging)
+
+    assert response.status_code == 422
