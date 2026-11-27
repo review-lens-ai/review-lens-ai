@@ -86,3 +86,23 @@ class AnswerResponse(BaseModel):
     steps: list[ToolStep] = Field(default_factory=list)
     refusal_reason: RefusalReason | None = None
     suggestions: list[str] = Field(default_factory=list)
+
+
+class QuestionResponse(BaseModel):
+    """S3-006: one saved question and the response the user saw, evidence read
+    back from the target's reviews (QuestionRepository.list_for_target)."""
+
+    id: UUID
+    question: str
+    created_at: datetime
+    response: AnswerResponse
+
+
+class QuestionList(BaseModel):
+    """One page of a target's Q&A history, oldest first. offset counts back from
+    the newest question, so offset 0 is the latest `limit` questions."""
+
+    items: list[QuestionResponse]
+    total: int  # every saved question of the target, not just this page
+    limit: int
+    offset: int
