@@ -78,6 +78,24 @@ model ──submit_answer(status, answer, cited, refusal_reason, suggestions)─
 - **Plain text for the user.** The prompt asks for two to four plain sentences, without Markdown or review labels (labels go only in `cited`; the UI shows the cited reviews under the answer). `tidy_answer` backs it up: it removes bracketed label lists like "(R4, R16)" and `**` markers from the model's text.
 - **Counts come from the database**, never from the model: the facts and `context` use the summary and the tools' SQL (techspecs 7.3). `context.reviews_considered` is how many reviews the model was shown.
 
+## Supporting evidence (S3-013)
+
+A grounded answer shows the reviews that support it, under **Evidence** in the Q&A panel. Rules S3-BR-020 to S3-BR-022: the evidence comes from the active target's stored reviews only, and nothing in it is made up.
+
+**How the reviews are selected.** The model picks them. It reads reviews through the tools (`search_reviews`, `get_reviews`), and every review a tool shows it gets a label for this question, R1, R2, … (`LabelBook`, `tools/labels.py`). When it finishes, `submit_answer.cited` lists the labels its answer relies on. Usually that is a few representative reviews; the prompt asks for at least one when it answers.
+
+**How they are tied to the active target.** Three checks, all in code:
+
+1. Only labels count. A label no tool handed out in this question, or anything else (such as another review's id), maps to no review and is dropped.
+2. The labelled reviews are read again with `ReviewSearchRepository.get_many`, whose query is `where target_id = <active target> and id = any(...)`. The repository is made by `for_owner`, which checks the owner first.
+3. `require_in_scope` stops the whole answer if a row from another target ever comes back.
+
+**How the review's identity is kept.** A label points to the stored review's `id`. The evidence the user sees is that row as stored (`id`, `rating`, `review_text`, `reviewed_at`), never text from the model, so a misquote in the answer cannot change it. "Open in Reviews" uses the same `id` to open the review in the Reviews tab. No reviewer details exist to show: names, profiles and photos are never stored.
+
+**Limits.** Duplicates are removed, the order follows `cited`, and at most `MAX_CITATIONS` (10) are kept, so the list stays readable. An answer with no valid evidence is shown as "not enough evidence", and refusals never carry evidence. ReviewLens shows no confidence score (S3-BR-025).
+
+**Tests.** `tests/db/test_supporting_evidence.py` runs these rules through `POST /questions` on real Postgres: each piece of evidence is a stored review of the active target with its stored text, rating and date; the citation order is kept; only review fields are returned; a misquote does not change the evidence; unknown labels are dropped; a review of the user's other target or of another user is never evidence; an uncited answer and a refusal carry none; and at most 10 are shown. The unit tests for the same rules are in `tests/unit/qa/test_answer.py`.
+
 ## Context and its limits (S2-010)
 
 - **Tools mode (default).** The model starts with about 1,500 tokens: the scope prompt, the facts (count, average, stars, dates) and the tool menu. Review text arrives only in tool results: `search_reviews` returns up to 10 excerpts of 300 characters, `get_reviews` up to 10 full texts of 2,000 characters. So a question sends at most a few dozen reviews, whatever the target's size, and counts cover every review because SQL computes them.
