@@ -4,6 +4,7 @@ import { Suspense, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import {
+  ArrowLeftIcon,
   CircleAlertIcon,
   CircleCheckIcon,
   ExternalLinkIcon,
@@ -46,8 +47,14 @@ import { ReviewQaPanel } from "./_components/review-qa-panel";
 // S2-009: the header button that opens and closes the docked Q&A panel.
 type QaToggle = { open: boolean; panelId: string; buttonId: string; onToggle: () => void };
 
-// S1-019: what the ingest buttons need to start a run.
-type IngestAction = { onStart: () => void; starting: boolean; disabled: boolean };
+// S1-019: what the ingest buttons need to start a run. S3-009: `refresh` once the target
+// has reviews, so the same button reads "Refresh reviews" and adds to what is there.
+type IngestAction = {
+  onStart: () => void;
+  starting: boolean;
+  disabled: boolean;
+  refresh: boolean;
+};
 
 function IngestButton({ ingest }: { ingest: IngestAction }) {
   return (
@@ -57,7 +64,7 @@ function IngestButton({ ingest }: { ingest: IngestAction }) {
       ) : (
         <RefreshCwIcon aria-hidden="true" />
       )}
-      {ingest.starting ? "Starting…" : "Ingest reviews"}
+      {ingest.starting ? "Starting…" : ingest.refresh ? "Refresh reviews" : "Ingest reviews"}
     </Button>
   );
 }
@@ -177,12 +184,14 @@ function TargetWorkspace({
       : null;
 
   // One active run per target, so the buttons are off while one is queued or running.
-  // They are also off once a run found nothing new (see isUpToDate).
+  // S3-009: they stay on after a run that found nothing new. A refresh of an up-to-date
+  // target costs one search, and new reviews can appear on the source at any time.
+  const latestStatus = run?.status ?? target.ingestion_status;
   const ingest: IngestAction = {
     onStart: latest.start,
     starting: latest.starting,
-    disabled:
-      latest.starting || isActive(run?.status ?? target.ingestion_status) || isUpToDate(run),
+    disabled: latest.starting || isActive(latestStatus),
+    refresh: reviews.total > 0 || latestStatus === "COMPLETED" || latestStatus === "PARTIAL",
   };
 
   // A never-ingested target opens on Ingestion, the first step of the flow (§1);
@@ -207,6 +216,7 @@ function TargetWorkspace({
         target={target}
         run={run}
         reviewsKept={reviews.total}
+        reviewTotal={reviews.reviews === null ? null : reviews.total}
         ingest={ingest}
         qa={qa}
       />
@@ -287,7 +297,7 @@ function TargetWorkspace({
         <div
           id={qaPanelId}
           hidden={!qaOpen}
-          className="h-[75dvh] min-h-[28rem] lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)]"
+          className="h-[75dvh] min-h-112 lg:sticky lg:top-4 lg:h-[calc(100dvh-8rem)]"
         >
           <ReviewQaPanel
             target={target}
@@ -299,7 +309,7 @@ function TargetWorkspace({
         <div
           className={
             qaOpen
-              ? "hidden min-h-[28rem] flex-col overflow-hidden rounded-xl border bg-card lg:sticky lg:top-4 lg:flex lg:h-[calc(100dvh-8rem)]"
+              ? "hidden min-h-112 flex-col overflow-hidden rounded-xl border bg-card lg:sticky lg:top-4 lg:flex lg:h-[calc(100dvh-8rem)]"
               : "flex flex-col"
           }
         >
@@ -367,12 +377,15 @@ function TargetContextHeader({
   target,
   run,
   reviewsKept,
+  reviewTotal,
   ingest,
   qa,
 }: {
   target: Target;
   run: IngestionRun | null;
   reviewsKept: number;
+  // Every review the target has, or null until the reviews have loaded (S3-010).
+  reviewTotal: number | null;
   ingest: IngestAction;
   qa: QaToggle;
 }) {
@@ -414,8 +427,13 @@ function TargetContextHeader({
             onClick={qa.onToggle}
             className="aria-expanded:border-primary aria-expanded:bg-primary/10 aria-expanded:text-primary"
           >
-            <MessageSquareTextIcon aria-hidden="true" />
-            Ask about reviews
+            {/* While the panel is open the same button closes it, so it says where it goes. */}
+            {qa.open ? (
+              <ArrowLeftIcon aria-hidden="true" />
+            ) : (
+              <MessageSquareTextIcon aria-hidden="true" />
+            )}
+            {qa.open ? "Back to all reviews" : "Ask about reviews"}
           </Button>
           <IngestButton ingest={ingest} />
         </div>
@@ -428,7 +446,7 @@ function TargetContextHeader({
       >
         <StatusBadge status={status} />
         <span>
-          {runDetail(run)}
+          {runDetail(run, reviewTotal)}
           {run?.status === "FAILED" &&
             reviewsKept > 0 &&
             ` · Showing ${reviewCount(reviewsKept)} from earlier runs`}
@@ -456,17 +474,11 @@ function WorkspaceTabs({ className = "" }: { className?: string }) {
 function completedMessage(run: IngestionRun, platform: string, total: number | null): string {
   if (run.reviews_ingested === 0) {
     return run.reviews_duplicate > 0
-      ? `Already up to date: all ${reviewCount(run.reviews_duplicate)} from ${platform} were already saved.`
+      ? `Up to date: no new reviews on ${platform}.`
       : "No reviews added.";
   }
   const added = `${reviewCount(run.reviews_ingested)} added from ${platform}`;
   return total === null ? `${added}.` : `${added} · ${total} in total saved.`;
-}
-
-// S2-005: a run that found only reviews we already hold. Running it again would only spend
-// provider searches to learn the same thing, so the ingest buttons stay off.
-function isUpToDate(run: IngestionRun | null): boolean {
-  return run?.status === "COMPLETED" && run.reviews_ingested === 0 && run.reviews_duplicate > 0;
 }
 
 // S2-005: a partial run saved reviews but skipped some records. Say how many of each,
@@ -556,9 +568,23 @@ function IngestionPanel({
     ["Started", startedText(run)],
     ["Finished", run.finished_at ? formatRunTime(run.finished_at) : "Not finished yet"],
     ["Reviews saved", run.reviews_ingested],
+    // S3-010: saved earlier, edited on the source since, and updated by this run.
+    ["Updated (edited since)", run.reviews_updated ?? 0],
     ["Skipped as unusable", run.reviews_rejected],
-    ["Already saved earlier", run.reviews_duplicate],
+    // S3-009: saved or skipped by an earlier run, so not counted again.
+    ["Seen in an earlier run", run.reviews_duplicate],
   ];
+  // S3-009: how much of the place a refresh can still add. The provider's count includes
+  // rating-only reviews, which are skipped, so it is shown on its own, not as "x of y".
+  if (target.place_review_count != null) {
+    rows.push([`Reviews on ${platformLabel(target.platform)}`, target.place_review_count]);
+  }
+  rows.push([
+    "Older reviews",
+    target.all_reviews_collected
+      ? "All collected. Refresh looks for new ones."
+      : "More to collect. Refresh adds the next batch.",
+  ]);
 
   return (
     <section className="flex flex-col gap-4">
@@ -636,7 +662,7 @@ function ReviewsPanel({
   failed: boolean;
   pageLoading: boolean;
   pageFailed: boolean;
-  onPage: (page: number) => void;
+  onPage: (page: number) => Promise<void>;
   highlightId: string | null;
 }) {
   const firstReviewRef = useRef<HTMLDivElement>(null);

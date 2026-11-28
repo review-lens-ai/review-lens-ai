@@ -2,6 +2,7 @@
 
 import json
 import logging
+from collections.abc import Collection
 from typing import Any, Self
 
 import httpx
@@ -19,6 +20,7 @@ from app.adapters.serpapi.results import (
     LANGUAGE,
     PAGE_SIZE,
     FetchResult,
+    OlderCursor,
     RawPage,
     StopReason,
 )
@@ -83,12 +85,34 @@ class SerpApiReviewSource:
         *,
         data_id: str | None = None,
         sort_by: str = DEFAULT_SORT,
+        known_review_ids: Collection[str] = frozenset(),
+        older_page_token: str | None = None,
+        all_collected: bool = False,
+        max_searches: int | None = None,
     ) -> FetchResult:
-        """Fetch review pages for the place behind source_url, up to max_reviews.
+        """Fetch review pages for the place behind source_url, newest first,
+        until max_reviews NEW reviews (review_ids not in known_review_ids).
 
         data_id skips looking up the place: pass analysis_targets.source_place_id
         when it is known. Each request costs one SerpApi search: 10 reviews on the
         first page, up to 20 on each later page (see pages_planned).
+
+        A first ingestion (known_review_ids empty) reads from the top until the
+        cap or the last page.
+
+        A refresh (S3-009, known_review_ids = every review_id the target has seen)
+        does two things in one run:
+        1. New reviews: read from the top until a page on which every review is
+           already known (caught_up). A page that mixes new and known reviews
+           does not count: that one extra page is a margin for reviews Google
+           publishes late or out of date order.
+        2. Older reviews: jump to older_page_token, where the deepest earlier run
+           stopped, and keep reading until the cap. If SerpApi refuses that token,
+           or there is none, walk on down from the top instead (resume_rejected).
+           If all_collected, there is nothing older and the run ends (CAUGHT_UP).
+
+        max_searches caps the searches of one run, whatever it finds. The result's
+        older_cursor says where the next run should continue.
         """
         if max_reviews < 1:
             raise ValueError("max_reviews must be at least 1.")
@@ -96,12 +120,25 @@ class SerpApiReviewSource:
             raise ValueError(f"sort_by must be one of {', '.join(SORT_ORDERS)}.")
         data_id = data_id or self.resolve_place(source_url)
 
+        seen = set(known_review_ids)
+        refresh = bool(seen)
         pages: list[RawPage] = []
-        fetched = 0
-        searches = 0
+        fetched = new = searches = 0
         token: str | None = None
-        stopped = StopReason.CAP_REACHED
-        while fetched < max_reviews:
+        stopped: StopReason | None = None
+        caught_up = resumed = resume_rejected = False
+        older_pages = 0  # pages read past the reviews the target already had
+        walk_token: str | None = None  # where to walk on from if the jump fails
+        used_tokens: set[str] = set()  # a token seen twice would loop for ever
+        resuming = False  # the next request is the jump to older_page_token
+
+        while stopped is None:
+            if new >= max_reviews:
+                stopped = StopReason.CAP_REACHED
+                break
+            if max_searches is not None and searches >= max_searches:
+                stopped = StopReason.SEARCH_LIMIT
+                break
             params = {
                 "engine": ENGINE,
                 "data_id": data_id,
@@ -111,36 +148,81 @@ class SerpApiReviewSource:
             if token:
                 # SerpApi refuses `num` on the first page.
                 params["next_page_token"] = token
-                params["num"] = min(PAGE_SIZE, max_reviews - fetched)
+                params["num"] = min(PAGE_SIZE, max_reviews - new)
             try:
                 payload = self._get_page(params)
             except ReviewFetchError as error:
+                if resuming and type(error) is ReviewProviderError:
+                    # Most likely an expired or unknown token: walk down instead.
+                    logger.info("SerpApi refused the saved older-review token")
+                    resuming, resumed, resume_rejected = False, False, True
+                    token = walk_token
+                    if token is None:
+                        stopped = StopReason.NO_MORE_PAGES
+                    continue
                 error.pages = pages
                 raise
             searches += 1
 
-            if payload is None:
-                stopped = StopReason.NO_RESULTS
-                break
-            reviews = payload.get("reviews")
+            reviews = payload.get("reviews") if payload is not None else None
             if not isinstance(reviews, list) or not reviews:
-                stopped = StopReason.EMPTY_PAGE
+                if resuming:
+                    # An empty answer to the jump says nothing about the place:
+                    # treat it like a refused token and walk down instead.
+                    resuming, resumed, resume_rejected = False, False, True
+                    token = walk_token
+                    if token is None:
+                        stopped = StopReason.NO_MORE_PAGES
+                    continue
+                stopped = (
+                    StopReason.NO_RESULTS if payload is None else StopReason.EMPTY_PAGE
+                )
                 break
 
             next_token = _next_page_token(payload)
+            ids = [_review_id(review) for review in reviews]
+            page_new = sum(1 for i in ids if i is None or i not in seen)
+            seen.update(i for i in ids if i is not None)
             pages.append(RawPage(len(pages) + 1, payload, next_token))
             fetched += len(reviews)
+            new += page_new
+            if caught_up:
+                older_pages += 1
+            resuming = False
+            if token:
+                used_tokens.add(token)
 
+            if refresh and not caught_up and page_new == 0:
+                caught_up = True
+                if all_collected:
+                    stopped = StopReason.CAUGHT_UP
+                    break
+                walk_token = next_token
+                if older_page_token:
+                    token, resumed, resuming = older_page_token, True, True
+                    continue
+                # No saved cursor: walk on down from here.
             if not next_token:
                 stopped = StopReason.NO_MORE_PAGES
                 break
-            if next_token == token:
+            if next_token in used_tokens:
                 stopped = StopReason.REPEATED_TOKEN
                 break
             token = next_token
 
         return FetchResult(
-            data_id, sort_by, max_reviews, pages, fetched, searches, stopped
+            data_id,
+            sort_by,
+            max_reviews,
+            pages,
+            fetched,
+            searches,
+            stopped,
+            new_reviews=new,
+            caught_up=caught_up,
+            resumed_older=resumed,
+            resume_rejected=resume_rejected,
+            older_cursor=_older_cursor(stopped, pages, refresh, older_pages),
         )
 
     def _get_page(self, params: dict) -> dict | None:
@@ -198,6 +280,38 @@ def _json_object(response: httpx.Response) -> dict | None:
     except ValueError:
         return None
     return body if isinstance(body, dict) else None
+
+
+_END_OF_REVIEWS = (
+    StopReason.NO_MORE_PAGES,
+    StopReason.EMPTY_PAGE,
+    StopReason.NO_RESULTS,
+)
+
+
+def _review_id(review: Any) -> str | None:
+    """A review's SerpApi review_id, or None. A review without one always counts
+    as new, so it can never end a refresh early."""
+    if isinstance(review, dict):
+        value = review.get("review_id")
+        if isinstance(value, str) and value:
+            return value
+    return None
+
+
+def _older_cursor(
+    stopped: StopReason, pages: list[RawPage], refresh: bool, older_pages: int
+) -> OlderCursor | None:
+    """Where the next run continues collecting older reviews; None to keep the
+    saved cursor. It only moves when this run read older reviews: every page of a
+    first ingestion, or the pages a refresh read past what the target had."""
+    if stopped in _END_OF_REVIEWS:
+        return OlderCursor(page_token=None, all_collected=True)
+    if refresh and older_pages == 0:
+        return None
+    if stopped in (StopReason.CAP_REACHED, StopReason.SEARCH_LIMIT) and pages:
+        return OlderCursor(page_token=pages[-1].next_page_token, all_collected=False)
+    return OlderCursor(page_token=None, all_collected=False)
 
 
 def _next_page_token(page: dict) -> str | None:

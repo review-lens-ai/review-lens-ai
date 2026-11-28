@@ -17,6 +17,7 @@ export function ingestionRun(overrides: Partial<IngestionRun> = {}): IngestionRu
     reviews_ingested: 0,
     reviews_rejected: 0,
     reviews_duplicate: 0,
+    reviews_updated: 0,
     error_code: null,
     ...overrides,
   };

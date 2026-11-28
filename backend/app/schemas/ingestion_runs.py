@@ -24,6 +24,8 @@ class IngestionRunResponse(BaseModel):
     reviews_ingested: int
     reviews_rejected: int
     reviews_duplicate: int
+    # S3-010: saved reviews this run updated because they were edited on the source.
+    reviews_updated: int = 0
     # A short code from ErrorCode when status is "FAILED"; never raw error text.
     error_code: str | None
 

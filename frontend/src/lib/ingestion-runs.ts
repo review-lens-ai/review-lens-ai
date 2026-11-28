@@ -102,7 +102,10 @@ export function reviewCount(n: number): string {
 }
 
 // The detail line next to the status badge (ui-ux-standards.md §7.3).
-export function runDetail(run: IngestionRun | null): string {
+// S3-010: total is every review the target has now. With it, a finished run reads
+// "55 reviews · 5 added · <when>", so a refresh that added nothing never reads as
+// "0 reviews". Without it (still loading), the run's own count is shown.
+export function runDetail(run: IngestionRun | null, total: number | null = null): string {
   if (!run) return "No reviews collected yet.";
   const when = formatRunTime(run.finished_at ?? run.started_at ?? run.queued_at);
   const skipped = run.reviews_rejected > 0 ? ` · ${run.reviews_rejected} skipped` : "";
@@ -112,8 +115,12 @@ export function runDetail(run: IngestionRun | null): string {
     case "RUNNING":
       return "Collecting reviews from Google Maps. This can take up to a minute.";
     case "COMPLETED":
-    case "PARTIAL":
-      return `${reviewCount(run.reviews_ingested)}${skipped} · ${when}`;
+    case "PARTIAL": {
+      if (total === null) return `${reviewCount(run.reviews_ingested)}${skipped} · ${when}`;
+      const added = run.reviews_ingested > 0 ? `${run.reviews_ingested} added` : "no new";
+      const updated = run.reviews_updated ? ` · ${run.reviews_updated} updated` : "";
+      return `${reviewCount(total)} · ${added}${updated}${skipped} · ${when}`;
+    }
     case "FAILED":
       return `Latest run failed ${when}`;
     default:

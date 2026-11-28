@@ -42,7 +42,8 @@ Rules the worker keeps:
 | The run's status matches the saved reviews | step 6, step 7 and NORMALIZATION's COMPLETED mark share one commit |
 | A retry skips finished work | `requeue` keeps the stage rows; a COMPLETED INGESTION is skipped, so normalizing again costs no searches. A failed stage restarts from its beginning, replacing that run's earlier raw pages |
 | No search spent on a duplicate place | the place id is resolved and saved (and committed) **before** the first search; if the owner already has a target for that place (`analysis_targets_owner_place_key`), the run fails with `SOURCE_UNREACHABLE` and no search is made |
-| Counts add up | reviews `bulk_insert` skips because an earlier run already saved them count as duplicates, so fetched = saved + rejected + duplicates |
+| Counts add up | reviews an earlier run already saved, unchanged, or already rejected (e.g. rating-only, S3-009) count as duplicates; edited ones count as updated (S3-010), so fetched = saved + updated + rejected + duplicates |
+| A failed refresh changes nothing | the older-review cursor moves in the NORMALIZATION commit with the reviews (S3-009), so a failed run leaves the reviews and the cursor as they were |
 | Nothing internal leaks | only the `ErrorCode` is stored; the technical detail goes to the server log, scrubbed by `mark_failed` |
 | One bad run never stops the worker | each pass opens its own connection; an error is logged and the loop goes on |
 
@@ -75,10 +76,12 @@ A failure raises a `ReviewFetchError`. Its `error_code` goes to `mark_failed`, a
 
    | Reason | When |
    |---|---|
-   | `CAP_REACHED` | `MAX_REVIEWS_PER_RUN` reviews fetched. The last request asks only for the reviews still needed, so the cap is exact |
+   | `CAP_REACHED` | `MAX_REVIEWS_PER_RUN` **new** reviews fetched (not seen by an earlier run). The last request asks only for the reviews still needed |
+   | `SEARCH_LIMIT` | `MAX_SEARCHES_PER_RUN` searches used, whatever they found |
+   | `CAUGHT_UP` | a refresh reached reviews the target has, and every older review was collected before (section 3a) |
    | `NO_MORE_PAGES` | the last page had no next-page token |
    | `EMPTY_PAGE` | a page came back with no reviews |
-   | `REPEATED_TOKEN` | SerpApi repeated a token, which would loop forever |
+   | `REPEATED_TOKEN` | SerpApi gave a token already used in this run, which would loop forever |
    | `NO_RESULTS` | SerpApi says the place has no reviews |
 
 4. **Clean every page before returning it:**
@@ -88,7 +91,36 @@ A failure raises a `ReviewFetchError`. Its `error_code` goes to `mark_failed`, a
 
    Each review keeps its `review_id`, `rating`, `snippet`, `extracted_snippet` (original and translated text), date and other fields, so normalizing a stored page gives the same reviews as normalizing it straight away.
 
-**No resume.** A failed stage restarts from its beginning (pipeline design), so a retried INGESTION stage fetches from page 1 again. The worker replaces that run's earlier raw pages: `(run_id, page_number)` is unique.
+**No resume within a run.** A failed stage restarts from its beginning (pipeline design), so a retried INGESTION stage fetches from page 1 again. The worker replaces that run's earlier raw pages: `(run_id, page_number)` is unique.
+
+## 3a. Refresh (S3-009)
+
+A run on a target that already has reviews is a refresh. Same button, same endpoint, same target, a new `ingestion_runs` row. It does two things:
+
+1. **New reviews.** Read newest first from page 1 until a page on which **every** review was seen before (saved or rejected). A page that mixes new and seen reviews does not count: that one extra page is a margin for reviews Google publishes late or out of date order.
+2. **Older reviews.** Jump to `analysis_targets.older_page_token`, the token for the page after the oldest one any earlier run read, and keep reading until the cap.
+
+Example, a place with 500 reviews and a cap of 100:
+
+| Run | Reads | Searches | Dataset |
+|---|---|---|---|
+| First ingestion | reviews 1–100 | 6 | 100 |
+| Refresh, nothing new | page 1 (all seen), then 101–200 | 6 | 200 |
+| Refresh, 4 new | page 1 (4 new), page 2 (all seen), then the next older ones | 7 | 300 |
+| … | until the last page; then `all_reviews_collected` | | 500 |
+| Refresh after that | page 1 only (`CAUGHT_UP`) | 1 | 500 + new |
+
+Rules:
+
+- **Seen = saved or rejected.** `ReviewRepository.seen_review_ids_for_target` reads both `reviews` and `ingestion_rejections`. Rating-only reviews are rejected on every run, so without them a page holding one would never count as seen. A review without a `review_id` always counts as new.
+- **The cursor** (`older_page_token`, `all_reviews_collected`) moves only when a run read older reviews, and only in the NORMALIZATION commit, with the reviews. A refresh that hits the cap before it reaches seen reviews leaves it alone.
+- **A refused or empty answer to the saved token** (expired, unknown) does not fail the run: it walks down from page 1 instead (`resume_rejected`), past the seen pages, and saves the new cursor where it stops. `MAX_SEARCHES_PER_RUN` caps how far one walk goes; the next refresh continues from there.
+- **Overlap is harmless.** New reviews push older ones down, so a saved token can re-read a few seen reviews. They are duplicates.
+- **Nothing is deleted.** A review missing from a later response stays: SerpApi never confirms a complete dataset (S3-BR-015).
+- **Duplicates (S3-011).** A review is the same source review when it has the same `review_id` within the target (unique key `reviews_target_id_source_review_id_key`), so a review returned by several refreshes has one row. A review without a `review_id` is always kept: nothing proves it is a duplicate, and SerpApi sends one with every review.
+- **Edits (S3-010).** A saved review that comes back with new text, rating or edit date (`edited_at`) is updated in place, re-embedded, and counted in `ingestion_runs.reviews_updated`; `run_id` keeps the run that first saw it. Only reviews on the pages a refresh reads are checked, so an edit to an older review deeper down is not picked up.
+- **Failures (S3-012).** A refresh saves its reviews, moves the cursor and finishes the run in one commit. If anything fails, all of it rolls back: the run is FAILED with an `ErrorCode`, and the reviews, the summary and the cursor are exactly as before. The workspace says "Your existing N reviews are unchanged."
+- Targets ingested before S3-009 get a cursor from their newest finished run's last page (migration `20261123120000_add_older_review_cursor.sql`).
 
 ## 4. What a fetch returns (`FetchResult`)
 
@@ -99,8 +131,9 @@ A failure raises a `ReviewFetchError`. Its `error_code` goes to `mark_failed`, a
 | `payloads` | the page payloads, for `normalize_pages` |
 | `review_records` | every review across the pages, each identified by `review_id` |
 | `place_details` | from page 1's `place_info`: `title`, `address`, `category`, `rating`, `review_count` |
-| `run_details` | provider, engine, sort, language, `max_reviews`, `pages_planned`, `pages_fetched`, `searches_used`, `reviews_fetched`, `stopped_because` |
+| `run_details` | provider, engine, sort, language, `max_reviews`, `pages_planned`, `pages_fetched`, `searches_used`, `reviews_fetched`, `new_reviews_fetched`, `stopped_because`, `caught_up`, `resumed_older`, `resume_rejected`. The worker adds `known_reviews_before` and, when the cursor moves, `older_cursor` |
 | `reviews_fetched`, `searches_used`, `stopped_because` | counts and stop reason |
+| `new_reviews`, `caught_up`, `resumed_older`, `resume_rejected`, `older_cursor` | S3-009: what a refresh found, and where the next run continues (`None` = keep the saved cursor) |
 
 `pages_planned` vs `pages_fetched` shows what a run is missing, as the `ingestion_runs.source_metadata` migration asks.
 
@@ -114,12 +147,14 @@ Searches per run = `pages_planned(cap)` = 1 + ⌈(cap − 10) / 20⌉:
 
 | `MAX_REVIEWS_PER_RUN` | Searches per run | Runs per month (one free account) |
 |---|---|---|
-| 100 | 6 | 41 |
+| 100 (default) | 6 | 41 |
 | 200 | 11 | 22 |
 | 500 | 26 | 9 |
-| 1000 (current default) | 51 | 4 |
+| 1000 | 51 | 4 |
 
-At the default of 1000, one run needs more searches than the hourly limit allows, so it fails partway with `QUOTA_EXCEEDED`. A run of 51 slow requests could also outlast the 10-minute stale-run limit (`STALE_RUN_AFTER`): if the owner then queues the same target again, `create_run` marks the slow run FAILED (`TIMEOUT`) and the worker's late `mark_succeeded` is refused and rolled back. Set a lower value in `backend/.env` for development.
+A refresh costs the same at most, and 1 search when the target is fully collected and nothing is new (section 3a). `MAX_SEARCHES_PER_RUN` (default 15) caps any one run.
+
+At 1000, one run needs more searches than the hourly limit allows, so it fails partway with `QUOTA_EXCEEDED`. A run of 51 slow requests could also outlast the 10-minute stale-run limit (`STALE_RUN_AFTER`): if the owner then queues the same target again, `create_run` marks the slow run FAILED (`TIMEOUT`) and the worker's late `mark_succeeded` is refused and rolled back. Set a lower value in `backend/.env` for development.
 
 ## 6. Failures
 
@@ -163,4 +198,6 @@ A place with no reviews is **not** an error: the result has no pages. The worker
 - Deploying the worker (section 2).
 - Google's cookie-consent redirect, which servers in the EU can get when following short links.
 - The spike's plan of several sort orders per run (lowest-rated, newest, most relevant).
-- Not yet confirmed against live SerpApi: short-link redirects, the last page having no next-page token, and `review_id` staying the same across runs.
+- Not yet confirmed against live SerpApi: short-link redirects, the last page having no next-page token, `review_id` staying the same across runs, and a `next_page_token` still working days later (section 3a falls back to walking down if it does not).
+- More than `MAX_REVIEWS_PER_RUN` new reviews between two refreshes: the refresh stops at the cap before reaching seen reviews, leaving a gap between them that no run fills.
+- Edits to reviews on pages a refresh does not read (section 3a).

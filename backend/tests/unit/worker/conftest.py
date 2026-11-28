@@ -15,6 +15,7 @@ import pytest
 from app.adapters.serpapi import SerpApiReviewSource
 from app.repositories.ingestion_runs import ErrorCode
 from app.repositories.ingestion_stages import StageStatus
+from app.repositories.reviews import SavedCounts
 from app.repositories.targets import DuplicatePlaceError
 from app.worker import Pipeline
 from tests.conftest import FakeEmbedder
@@ -89,9 +90,13 @@ class FakeRuns:
     def record_source_metadata(self, run_id, details):
         self.metadata = details
 
-    def mark_succeeded(self, run_id, saved, rejected=0, duplicates=0):
+    def source_metadata(self, run_id):
+        return self.metadata
+
+    def mark_succeeded(self, run_id, saved, rejected=0, duplicates=0, updated=0):
         self.log.append("mark_succeeded")
         self.result = ("SUCCEEDED", saved, rejected, duplicates)
+        self.updated = updated
 
     def mark_failed(self, run_id, error_code, detail=None):
         self.log.append("mark_failed")
@@ -136,13 +141,24 @@ class FakeRawPages:
 
 
 class FakeTargets:
-    def __init__(self, log, place_id=None, duplicate=False, missing=False):
+    def __init__(
+        self,
+        log,
+        place_id=None,
+        duplicate=False,
+        missing=False,
+        older_page_token=None,
+        all_reviews_collected=False,
+    ):
         self.log = log
         self.place_id = place_id
         self.duplicate = duplicate
         self.missing = missing
+        self.older_page_token = older_page_token
+        self.all_reviews_collected = all_reviews_collected
         self.saved_place_id = None
         self.details = None
+        self.saved_cursor = None
 
     def get_for_run(self, run_id):
         if self.missing:
@@ -153,6 +169,8 @@ class FakeTargets:
             "platform": "google_maps",
             "source_url": SHORT_URL,
             "source_place_id": self.place_id,
+            "older_page_token": self.older_page_token,
+            "all_reviews_collected": self.all_reviews_collected,
         }
 
     def save_place_id(self, target_id, owner_id, place_id):
@@ -164,24 +182,33 @@ class FakeTargets:
     def save_place_details(self, target_id, owner_id, details):
         self.details = details
 
+    def save_older_cursor(self, target_id, owner_id, page_token, all_collected):
+        self.log.append("save older cursor")
+        self.saved_cursor = (page_token, all_collected)
+
 
 class FakeReviews:
-    def __init__(self, log, already_saved=0, broken=False):
+    def __init__(self, log, already_saved=0, broken=False, seen=(), edited=0):
         self.log = log
         self.already_saved = already_saved
+        self.edited = edited  # of the already-saved ones, how many changed (S3-010)
         self.broken = broken
+        self.seen = set(seen)  # review ids earlier runs saved or rejected
         self.reviews = None
         self.rejected = None
 
-    def bulk_insert(self, run_id, target_id, owner_id, reviews):
+    def save_reviews(self, run_id, target_id, owner_id, reviews):
         if self.broken:
             raise RuntimeError("database went away")
         self.log.append(f"save {len(reviews)} reviews")
         self.reviews = list(reviews)
-        return len(reviews) - self.already_saved
+        return SavedCounts(len(reviews) - self.already_saved, self.edited)
 
     def save_rejections(self, run_id, target_id, owner_id, rejected):
         self.rejected = list(rejected)
+
+    def seen_review_ids_for_target(self, target_id, owner_id):
+        return set(self.seen)
 
     def without_embedding(self, *, limit, target_id=None, after=None):
         return []

@@ -1177,6 +1177,11 @@
             "type": "integer",
             "title": "Reviews Duplicate"
           },
+          "reviews_updated": {
+            "type": "integer",
+            "title": "Reviews Updated",
+            "default": 0
+          },
           "error_code": {
             "anyOf": [
               {
@@ -1618,6 +1623,22 @@
               }
             ],
             "title": "Ingestion Status"
+          },
+          "place_review_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Place Review Count"
+          },
+          "all_reviews_collected": {
+            "type": "boolean",
+            "title": "All Reviews Collected",
+            "default": false
           },
           "created_at": {
             "type": "string",

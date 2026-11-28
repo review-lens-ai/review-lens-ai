@@ -40,6 +40,28 @@ describe("runDetail (S1-023 status line)", () => {
     ).toMatch(/^38 reviews · 4 skipped · /);
   });
 
+  // S3-010: with the target's total, a refresh that added nothing never reads "0 reviews".
+  it("shows the target's total and what the run added", () => {
+    expect(runDetail(ingestionRun({ reviews_ingested: 5 }), 55)).toMatch(
+      /^55 reviews · 5 added · /,
+    );
+  });
+
+  it("says no new when a refresh added nothing", () => {
+    expect(runDetail(ingestionRun({ reviews_ingested: 0, reviews_duplicate: 10 }), 55)).toMatch(
+      /^55 reviews · no new · /,
+    );
+  });
+
+  it("adds the updated count when a refresh updated edited reviews", () => {
+    expect(
+      runDetail(
+        ingestionRun({ reviews_ingested: 0, reviews_duplicate: 8, reviews_updated: 2 }),
+        55,
+      ),
+    ).toMatch(/^55 reviews · no new · 2 updated · /);
+  });
+
   it("never crashes on a status it does not know", () => {
     const unknown = ingestionRun({ status: "archived" as IngestionRun["status"] });
     expect(runDetail(unknown)).toBe("No reviews collected yet.");

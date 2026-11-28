@@ -21,6 +21,7 @@ from app.repositories.ingestion_runs import IngestionRunRepository
 from app.repositories.ingestion_stages import (
     IngestionStageRepository,
 )
+from app.repositories.reviews import SavedCounts
 from app.repositories.targets import TargetRepository
 from app.worker import Pipeline
 from tests.conftest import FakeEmbedder
@@ -65,14 +66,17 @@ class FakeReviewStore:
         self.saved = []
         self.rejected = []
 
-    def bulk_insert(self, run_id, target_id, owner_id, reviews):
+    def save_reviews(self, run_id, target_id, owner_id, reviews):
         if self.broken:
             raise RuntimeError("simulated save failure")
         self.saved = list(reviews)
-        return len(reviews)
+        return SavedCounts(inserted=len(reviews), updated=0)
 
     def save_rejections(self, run_id, target_id, owner_id, rejected):
         self.rejected = list(rejected)
+
+    def seen_review_ids_for_target(self, target_id, owner_id):
+        return set()
 
     def without_embedding(self, *, limit, target_id=None, after=None):
         return []
@@ -139,7 +143,8 @@ def make_pipeline(conn, open_source, reviews=None, embedder=None):
 def run_row(conn, run_id):
     return conn.execute(
         "select status::text as status, error_code, reviews_ingested, "
-        "reviews_rejected, reviews_duplicate, source_metadata, started_at, finished_at "
+        "reviews_rejected, reviews_duplicate, reviews_updated, source_metadata, "
+        "started_at, finished_at "
         "from public.ingestion_runs where id = %s",
         (run_id,),
     ).fetchone()

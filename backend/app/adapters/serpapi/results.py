@@ -28,6 +28,19 @@ class StopReason(StrEnum):
     EMPTY_PAGE = "EMPTY_PAGE"  # a page came back with no reviews
     REPEATED_TOKEN = "REPEATED_TOKEN"  # the provider repeated a token (would loop)
     NO_RESULTS = "NO_RESULTS"  # SerpApi: the place has no reviews
+    # S3-009: a refresh reached reviews the target already has, and every older
+    # review was collected before, so there is nothing left to fetch.
+    CAUGHT_UP = "CAUGHT_UP"
+    SEARCH_LIMIT = "SEARCH_LIMIT"  # used max_searches searches (MAX_SEARCHES_PER_RUN)
+
+
+@dataclass(frozen=True)
+class OlderCursor:
+    """S3-009: where the next run continues collecting older reviews
+    (analysis_targets.older_page_token and all_reviews_collected)."""
+
+    page_token: str | None  # SerpApi's token for the next older page, if any
+    all_collected: bool  # the last page was reached: there are no older reviews
 
 
 @dataclass(frozen=True)
@@ -48,6 +61,16 @@ class FetchResult:
     reviews_fetched: int
     searches_used: int  # SerpApi requests that cost a search
     stopped_because: StopReason
+    # S3-009 (refresh). Reviews whose review_id the target had not seen before.
+    new_reviews: int = 0
+    # The fetch reached reviews the target already has, at the top of the list.
+    caught_up: bool = False
+    # It then jumped to the saved older-review cursor ...
+    resumed_older: bool = False
+    # ... which SerpApi refused, so it walked down from the top instead.
+    resume_rejected: bool = False
+    # Where the next run continues, or None to leave the saved cursor as it is.
+    older_cursor: OlderCursor | None = None
 
     @property
     def payloads(self) -> list[dict]:
@@ -99,7 +122,11 @@ class FetchResult:
             "pages_fetched": len(self.pages),
             "searches_used": self.searches_used,
             "reviews_fetched": self.reviews_fetched,
+            "new_reviews_fetched": self.new_reviews,
             "stopped_because": self.stopped_because.value,
+            "caught_up": self.caught_up,
+            "resumed_older": self.resumed_older,
+            "resume_rejected": self.resume_rejected,
         }
 
 

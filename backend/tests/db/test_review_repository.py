@@ -229,7 +229,7 @@ def test_another_users_finished_run_is_not_found_rather_than_revealing_its_state
         repo.bulk_insert(run_id, target["id"], user_b, [_review()])
 
 
-def test_duplicate_source_review_is_skipped_and_the_first_copy_is_kept(
+def test_unchanged_duplicate_source_review_is_skipped_and_left_as_it_was(
     repo, make_user, make_target, make_run, finish_run
 ):
     owner = make_user()
@@ -241,21 +241,115 @@ def test_duplicate_source_review_is_skipped_and_the_first_copy_is_kept(
     finish_run(first_run)
     later_run = make_run(target["id"])
 
-    saved = repo.bulk_insert(
+    counts = repo.save_reviews(
         later_run,
         target["id"],
         owner,
         [
-            _review("Second", source_review_id="r1"),
+            _review("First", source_review_id="r1"),
             _review("New", source_review_id="r2"),
         ],
     )
 
-    assert saved == 1
+    assert (counts.inserted, counts.updated) == (1, 0)
     rows = {r["source_review_id"]: r for r in repo.list_for_target(target["id"], owner)}
     assert rows["r1"]["review_text"] == "First"
     assert rows["r1"]["run_id"] == first_run
     assert rows["r2"]["run_id"] == later_run
+
+
+# S3-011: however many refreshes return a review, it has one row.
+def test_the_same_review_in_several_refresh_batches_is_saved_once(
+    repo, make_user, make_target, make_run, finish_run
+):
+    owner = make_user()
+    target = make_target(owner)
+    batch = [
+        _review("Great", source_review_id="r1"),
+        _review("Ok", 3, source_review_id="r2"),
+    ]
+
+    inserted = []
+    for _ in range(3):
+        run_id = make_run(target["id"])
+        inserted.append(repo.save_reviews(run_id, target["id"], owner, batch).inserted)
+        finish_run(run_id)
+
+    assert inserted == [2, 0, 0]
+    assert repo.count_for_target(target["id"], owner) == 2
+
+
+# S3-010: a review edited on the source is updated, not skipped and not duplicated.
+def test_an_edited_review_is_updated_in_place_and_queued_for_embedding(
+    conn, repo, make_user, make_target, make_run, finish_run
+):
+    owner = make_user()
+    target = make_target(owner)
+    first_run = make_run(target["id"])
+    repo.bulk_insert(
+        first_run,
+        target["id"],
+        owner,
+        [_review("Cold fries", 2, source_review_id="r1")],
+    )
+    conn.execute(
+        "update public.reviews set embedding = array_fill(0.1, array[384])::vector "
+        "where target_id = %s",
+        (target["id"],),
+    )
+    finish_run(first_run)
+    later_run = make_run(target["id"])
+
+    counts = repo.save_reviews(
+        later_run,
+        target["id"],
+        owner,
+        [
+            _review(
+                "Came back, fries were hot this time",
+                4,
+                source_review_id="r1",
+                source_metadata={"edited_at": "2026-11-20T10:00:00+00:00"},
+            )
+        ],
+    )
+
+    assert (counts.inserted, counts.updated) == (0, 1)
+    [row] = repo.list_for_target(target["id"], owner)
+    assert (row["review_text"], row["rating"]) == (
+        "Came back, fries were hot this time",
+        4,
+    )
+    assert row["source_metadata"]["edited_at"] == "2026-11-20T10:00:00+00:00"
+    assert row["run_id"] == first_run  # still the run that first saw it
+    embedding = conn.execute(
+        "select embedding from public.reviews where id = %s", (row["id"],)
+    ).fetchone()["embedding"]
+    assert embedding is None  # the EMBED step redoes it
+
+
+def test_an_edited_review_of_another_target_is_not_touched(
+    repo, make_user, make_target, make_run
+):
+    owner = make_user()
+    target_a, target_b = make_target(owner, "A"), make_target(owner, "B")
+    repo.bulk_insert(
+        make_run(target_a["id"]),
+        target_a["id"],
+        owner,
+        [_review("A's", source_review_id="r1")],
+    )
+
+    counts = repo.save_reviews(
+        make_run(target_b["id"]),
+        target_b["id"],
+        owner,
+        [_review("B's", source_review_id="r1")],
+    )
+
+    assert (counts.inserted, counts.updated) == (1, 0)
+    [a_row] = repo.list_for_target(target_a["id"], owner)
+    assert a_row["review_text"] == "A's"
 
 
 def test_same_source_review_can_be_saved_under_two_targets(

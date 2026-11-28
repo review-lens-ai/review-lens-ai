@@ -96,7 +96,8 @@ class InvalidRunTransitionError(ConflictError):
 _RUN_COLUMNS = """
     id, target_id, job_type::text as job_type, status::text as status,
     queued_at, started_at, finished_at,
-    reviews_ingested, reviews_rejected, reviews_duplicate, error_code
+    reviews_ingested, reviews_rejected, reviews_duplicate, reviews_updated,
+    error_code
 """
 
 _ALREADY_ACTIVE = (
@@ -219,11 +220,15 @@ class IngestionRunRepository:
         reviews_ingested: int,
         reviews_rejected: int = 0,
         reviews_duplicate: int = 0,
+        reviews_updated: int = 0,
     ) -> dict:
         """Finish a RUNNING run using the result rule in the module docstring:
-        COMPLETED, PARTIAL (some skipped) or FAILED (nothing saved)."""
-        _check_counts(reviews_ingested, reviews_rejected, reviews_duplicate)
-        if reviews_ingested == 0 and reviews_duplicate == 0:
+        COMPLETED, PARTIAL (some skipped) or FAILED (nothing saved).
+        reviews_updated (S3-010): saved reviews that were edited on the source."""
+        _check_counts(
+            reviews_ingested, reviews_rejected, reviews_duplicate, reviews_updated
+        )
+        if reviews_ingested == 0 and reviews_duplicate == 0 and reviews_updated == 0:
             return self._finish(
                 run_id,
                 status="FAILED",
@@ -241,6 +246,7 @@ class IngestionRunRepository:
             reviews_ingested=reviews_ingested,
             reviews_rejected=reviews_rejected,
             reviews_duplicate=reviews_duplicate,
+            reviews_updated=reviews_updated,
             error_code=None,
         )
 
@@ -315,6 +321,15 @@ class IngestionRunRepository:
                 "Only a failed ingestion run can be retried."
             )
         return row
+
+    def source_metadata(self, run_id: UUID | str) -> dict | None:
+        """What record_source_metadata stored for the run, or None. Worker only,
+        like TargetRepository.get_for_run: the run id never comes from a request."""
+        row = self._conn.execute(
+            "select source_metadata from public.ingestion_runs where id = %s",
+            (run_id,),
+        ).fetchone()
+        return None if row is None else row["source_metadata"]
 
     def latest_for_target(
         self, target_id: UUID | str, owner_id: UUID | str
@@ -421,6 +436,7 @@ class IngestionRunRepository:
         reviews_rejected: int,
         reviews_duplicate: int,
         error_code: str | None,
+        reviews_updated: int = 0,
     ) -> dict:
         # Only a run in an allowed state can be finished, so a finished run's
         # result can never be overwritten later.
@@ -432,6 +448,7 @@ class IngestionRunRepository:
                    reviews_ingested = %s,
                    reviews_rejected = %s,
                    reviews_duplicate = %s,
+                   reviews_updated = %s,
                    error_code = %s
              where id = %s and status::text = any(%s)
             returning {_RUN_COLUMNS}
@@ -441,6 +458,7 @@ class IngestionRunRepository:
                 reviews_ingested,
                 reviews_rejected,
                 reviews_duplicate,
+                reviews_updated,
                 error_code,
                 run_id,
                 list(allowed_from),

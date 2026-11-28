@@ -30,7 +30,19 @@ _LATEST_STATUS = """
       limit 1) as ingestion_status
 """
 
-_COLUMNS = f"t.id, t.name, t.platform, t.source_url, t.created_at, t.updated_at, {_LATEST_STATUS}"
+# S3-009: how many reviews the provider lists for the place (from the place details
+# the first page brought), and whether every older review has been collected.
+_COVERAGE = """
+    case when jsonb_typeof(t.source_metadata -> 'review_count') = 'number'
+         then (t.source_metadata ->> 'review_count')::numeric::integer
+    end as place_review_count,
+    t.all_reviews_collected
+"""
+
+_COLUMNS = (
+    "t.id, t.name, t.platform, t.source_url, t.created_at, t.updated_at, "
+    f"{_LATEST_STATUS}, {_COVERAGE}"
+)
 
 
 class DuplicatePlaceError(ConflictError):
@@ -121,7 +133,8 @@ class TargetRepository:
         see the module docstring. NotFoundError if the run does not exist."""
         row = self._conn.execute(
             """
-            select t.id, t.owner_id, t.platform, t.source_url, t.source_place_id
+            select t.id, t.owner_id, t.platform, t.source_url, t.source_place_id,
+                   t.older_page_token, t.all_reviews_collected
               from public.ingestion_runs r
               join public.analysis_targets t on t.id = r.target_id
              where r.id = %s
@@ -167,6 +180,28 @@ class TargetRepository:
             returning id
             """,
             (Jsonb(details), target_id, owner_id),
+        ).fetchone()
+        if row is None:
+            raise NotFoundError("Target not found.")
+
+    def save_older_cursor(
+        self,
+        target_id: UUID | str,
+        owner_id: UUID | str,
+        page_token: str | None,
+        all_collected: bool,
+    ) -> None:
+        """S3-009: where the next refresh continues collecting older reviews
+        (older_page_token), and whether there are none left (all_reviews_collected).
+        The worker writes it with the run's reviews, in one transaction."""
+        row = self._conn.execute(
+            """
+            update public.analysis_targets
+               set older_page_token = %s, all_reviews_collected = %s
+             where id = %s and owner_id = %s
+            returning id
+            """,
+            (page_token, all_collected, target_id, owner_id),
         ).fetchone()
         if row is None:
             raise NotFoundError("Target not found.")
