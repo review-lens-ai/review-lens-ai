@@ -309,6 +309,7 @@ Build these once in the shared folder `frontend/src/app/_components/` (shadcn pr
 | Ingestion succeeded | Badge → "Ingested", banner "42 reviews collected.", Reviews tab shows data |
 | Ingestion failed | Badge → "Failed", danger banner with message + [Try again] |
 | Target deleted | Navigate to target list + toast "Target deleted." |
+| Target renamed | Header and sidebar show the new name + toast "Target renamed." |
 | Signed out | Navigate to `/login` |
 
 The user should never click a button and see nothing change.

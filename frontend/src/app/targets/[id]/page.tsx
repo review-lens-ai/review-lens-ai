@@ -42,6 +42,7 @@ import {
 import { REVIEWS_PAGE_SIZE, type Review } from "@/lib/reviews";
 import { platformLabel, shortSource, type Target } from "@/lib/targets";
 import { ReviewQaPanel } from "./_components/review-qa-panel";
+import { TargetNameEditor } from "./_components/target-name-editor";
 
 // S2-009: the header button that opens and closes the docked Q&A panel.
 type QaToggle = { open: boolean; panelId: string; buttonId: string; onToggle: () => void };
@@ -390,7 +391,7 @@ function TargetContextHeader({
               Switch target
             </Link>
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight">{target.name}</h1>
+          <TargetNameEditor target={target} />
           <div className="flex flex-wrap items-center gap-3">
             <PlatformBadge platform={target.platform} />
             <a
