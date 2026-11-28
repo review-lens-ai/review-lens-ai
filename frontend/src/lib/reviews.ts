@@ -5,6 +5,7 @@ import type {
   ReviewPage as GeneratedReviewPage,
   ReviewResponse,
 } from "@/lib/generated/api";
+import { filterParams, NO_FILTERS, type ReviewFilters } from "@/lib/review-filters";
 
 export type Review = ReviewResponse;
 // One page of a target's reviews. The endpoint is paginated (coding-standards.md §5):
@@ -20,11 +21,17 @@ const LONG_REVIEW_LENGTH = 280;
 // page is 0 for the first page; the server skips page * REVIEWS_PAGE_SIZE reviews.
 // around: a review id. The server then returns the page that holds that review, so a
 // link to one review (e.g. from a Q&A source) opens on the right page.
-export function reviewPageParams(page: number, around?: string): ListTargetReviewsParams {
+// filters (S3-016): only the matching reviews; pages and total then follow the filter.
+export function reviewPageParams(
+  page: number,
+  around?: string,
+  filters: ReviewFilters = NO_FILTERS,
+): ListTargetReviewsParams {
   return {
     limit: REVIEWS_PAGE_SIZE,
     offset: page * REVIEWS_PAGE_SIZE,
     ...(around ? { around } : {}),
+    ...filterParams(filters),
   };
 }
 

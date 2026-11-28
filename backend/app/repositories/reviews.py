@@ -38,11 +38,47 @@ from app.repositories.ingestion_runs import InvalidRunTransitionError
 from app.repositories.targets import TargetRepository
 from app.schemas.reviews import ReviewCreate
 from app.services.normalize_reviews import RejectedRecord
+from app.services.qa.tools.review_filter import ReviewFilter
 
 # The order of a target's reviews: newest first. The list and page_offset_of both use
 # it, so a link to a review opens on the page the list would show it on.
 # id last: pages never overlap or skip a review.
 NEWEST_FIRST = "reviewed_at desc nulls last, created_at desc, id"
+
+# No filter: every review of the target.
+_ALL = ReviewFilter()
+
+
+def where_clause(
+    target_id: UUID | str, review_filter: ReviewFilter
+) -> tuple[str, list]:
+    """SQL after "where", and its parameters, for one target and one filter.
+
+    The one definition of a filter, shared by the reviews list (S3-016) and the
+    Q&A tools (review_search), so both mean the same thing by "1 to 2 stars" or
+    "reviewed since". target_id is always the first condition and is never taken
+    from the filter. Every condition is ANDed. A review with no date never matches
+    a date condition (reviewed_at is NULL, and NULL >= x is not true).
+    """
+    conditions = ["target_id = %s"]
+    params: list = [target_id]
+    if review_filter.keywords is not None:
+        # websearch_to_tsquery accepts any text: it never raises on odd input.
+        conditions.append("search_vector @@ websearch_to_tsquery('english', %s)")
+        params.append(review_filter.keywords)
+    if review_filter.min_rating is not None:
+        conditions.append("rating >= %s")
+        params.append(review_filter.min_rating)
+    if review_filter.max_rating is not None:
+        conditions.append("rating <= %s")
+        params.append(review_filter.max_rating)
+    if review_filter.since is not None:
+        conditions.append("reviewed_at >= %s")
+        params.append(review_filter.since)
+    if review_filter.until is not None:
+        conditions.append("reviewed_at < %s")
+        params.append(review_filter.until)
+    return " and ".join(conditions), params
 
 
 def aggregate(conn: psycopg.Connection, where: str, params: list | tuple) -> dict:
@@ -50,7 +86,7 @@ def aggregate(conn: psycopg.Connection, where: str, params: list | tuple) -> dic
 
     The one place these numbers are calculated. The summary card and the briefing
     call it for a whole target (summary_for_target); the Q&A tools call it for a
-    filtered subset (review_search.where_clause). So a tool's numbers for "every
+    filtered subset (where_clause). So a tool's numbers for "every
     review" always match the screen.
 
     `where` is SQL written by our code, never by a user or the model; values go in
@@ -158,21 +194,24 @@ class ReviewRepository:
         *,
         limit: int | None = None,
         offset: int = 0,
+        review_filter: ReviewFilter = _ALL,
     ) -> list[dict]:
         """Reviews of a target the user owns, newest first; otherwise NotFoundError.
-        limit=None returns them all."""
+        limit=None returns them all. review_filter (S3-016) keeps only the matching
+        reviews; it only reads, never changes a review."""
         self._targets.get_owned(target_id, owner_id)
+        where, params = where_clause(target_id, review_filter)
         return self._conn.execute(
             f"""
             select id, target_id, run_id, rating, review_text, mapping_version,
                    reviewed_at, source_review_id, source_url, source_metadata,
                    created_at
               from public.reviews
-             where target_id = %s
+             where {where}
              order by {NEWEST_FIRST}
              limit %s offset %s
             """,
-            (target_id, limit, offset),
+            [*params, limit, offset],
         ).fetchall()
 
     def page_offset_of(
@@ -182,33 +221,43 @@ class ReviewRepository:
         review_id: UUID | str,
         *,
         limit: int,
+        review_filter: ReviewFilter = _ALL,
     ) -> int:
         """Offset of the page that holds one review, in the same order as
-        list_for_target. NotFoundError if the target is not the user's or the
-        review is not in it (the two look the same to the caller)."""
+        list_for_target with the same filter. NotFoundError if the target is not the
+        user's or the review is not in it, or does not match the filter (the cases
+        look the same to the caller)."""
         self._targets.get_owned(target_id, owner_id)
+        where, params = where_clause(target_id, review_filter)
         row = self._conn.execute(
             f"""
             select position from (
               select id,
                      row_number() over (order by {NEWEST_FIRST}) - 1 as position
                 from public.reviews
-               where target_id = %s
+               where {where}
             ) ranked
              where id = %s
             """,
-            (target_id, review_id),
+            [*params, review_id],
         ).fetchone()
         if row is None:
             raise NotFoundError("Review not found.")
         return row["position"] // limit * limit
 
-    def count_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> int:
-        """How many reviews a target the user owns has; otherwise NotFoundError."""
+    def count_for_target(
+        self,
+        target_id: UUID | str,
+        owner_id: UUID | str,
+        review_filter: ReviewFilter = _ALL,
+    ) -> int:
+        """How many reviews a target the user owns has, or how many match
+        review_filter; otherwise NotFoundError."""
         self._targets.get_owned(target_id, owner_id)
+        where, params = where_clause(target_id, review_filter)
         return self._conn.execute(
-            "select count(*) as total from public.reviews where target_id = %s",
-            (target_id,),
+            f"select count(*) as total from public.reviews where {where}",
+            params,
         ).fetchone()["total"]
 
     def summary_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> dict:

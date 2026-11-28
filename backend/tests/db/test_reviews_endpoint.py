@@ -215,3 +215,43 @@ def test_around_a_review_of_another_target_is_the_same_404_as_an_unknown_one(
 
     assert wrong_target.status_code == 404
     assert wrong_target.json() == unknown.json()
+
+
+def test_the_list_is_every_saved_review_from_every_run(
+    api, conn, make_user, make_token, make_target_with_review
+):
+    # S3-015: the Reviews tab shows the complete current dataset, not only the
+    # latest run's reviews. A later run adds one; both runs' reviews are listed.
+    owner = make_user()
+    target_id = make_target_with_review(owner, text="From the first run", count=2)
+    run_id = conn.execute(
+        """
+        insert into public.ingestion_runs (target_id, status, started_at)
+        values (%s, 'RUNNING', now())
+        returning id
+        """,
+        (target_id,),
+    ).fetchone()["id"]
+    ReviewRepository(conn).bulk_insert(
+        run_id,
+        target_id,
+        owner,
+        [
+            ReviewCreate(
+                rating=3, review_text="From the second run", mapping_version="serpapi@1"
+            )
+        ],
+    )
+
+    body = api.get(
+        f"/api/v1/targets/{target_id}/reviews?limit={MAX_REVIEW_PAGE_SIZE}",
+        headers=auth(make_token(str(owner))),
+    ).json()
+
+    assert body["total"] == 3
+    assert sorted(review["review_text"] for review in body["items"]) == [
+        "From the first run",
+        "From the first run",
+        "From the second run",
+    ]
+    assert len({review["run_id"] for review in body["items"]}) == 2  # two runs

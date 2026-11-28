@@ -293,6 +293,11 @@ export type ListTargetReviewsParams = {
    */
   offset?: number;
   around?: string | null;
+  min_rating?: number | null;
+  max_rating?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
+  timezone?: string | null;
 };
 
 export type ListQuestionsParams = {
@@ -852,9 +857,13 @@ export const getListTargetReviewsUrl = (targetId: string,
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  *
+ * S3-016: min_rating, max_rating, start_date and end_date (see review_filter)
+ * keep only the matching reviews. total then counts the matches, so pages and
+ * "12 of 739" follow the filter. No filter returns every review, as before.
+ *
  * around: the id of one review. The page that holds it is returned (offset is
  * ignored), so a link to a review can open on the right page. A review that is
- * not in this target is a 404 too.
+ * not in this target, or does not match the filter, is a 404 too.
  *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
@@ -916,9 +925,13 @@ export type ListTargetReviewsQueryError = ErrorType<ErrorResponse>
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  *
+ * S3-016: min_rating, max_rating, start_date and end_date (see review_filter)
+ * keep only the matching reviews. total then counts the matches, so pages and
+ * "12 of 739" follow the filter. No filter returns every review, as before.
+ *
  * around: the id of one review. The page that holds it is returned (offset is
  * ignored), so a link to a review can open on the right page. A review that is
- * not in this target is a 404 too.
+ * not in this target, or does not match the filter, is a 404 too.
  *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
@@ -944,9 +957,13 @@ export function useListTargetReviews<TData = Awaited<ReturnType<typeof listTarge
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  *
+ * S3-016: min_rating, max_rating, start_date and end_date (see review_filter)
+ * keep only the matching reviews. total then counts the matches, so pages and
+ * "12 of 739" follow the filter. No filter returns every review, as before.
+ *
  * around: the id of one review. The page that holds it is returned (offset is
  * ignored), so a link to a review can open on the right page. A review that is
- * not in this target is a 404 too.
+ * not in this target, or does not match the filter, is a 404 too.
  *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
@@ -972,9 +989,13 @@ export function useListTargetReviews<TData = Awaited<ReturnType<typeof listTarge
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  *
+ * S3-016: min_rating, max_rating, start_date and end_date (see review_filter)
+ * keep only the matching reviews. total then counts the matches, so pages and
+ * "12 of 739" follow the filter. No filter returns every review, as before.
+ *
  * around: the id of one review. The page that holds it is returned (offset is
  * ignored), so a link to a review can open on the right page. A review that is
- * not in this target is a 404 too.
+ * not in this target, or does not match the filter, is a 404 too.
  *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
@@ -994,9 +1015,13 @@ export function useListTargetReviews<TData = Awaited<ReturnType<typeof listTarge
  * S1-022: one page of a target's saved reviews, through its owner only.
  * Another user's target is a 404, indistinguishable from one that does not exist.
  *
+ * S3-016: min_rating, max_rating, start_date and end_date (see review_filter)
+ * keep only the matching reviews. total then counts the matches, so pages and
+ * "12 of 739" follow the filter. No filter returns every review, as before.
+ *
  * around: the id of one review. The page that holds it is returned (offset is
  * ignored), so a link to a review can open on the right page. A review that is
- * not in this target is a 404 too.
+ * not in this target, or does not match the filter, is a 404 too.
  *
  * Known limits, accepted for now:
  * - items and total are two queries. A run that commits between them makes
