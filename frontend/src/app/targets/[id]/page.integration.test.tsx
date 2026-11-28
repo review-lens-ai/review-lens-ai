@@ -115,9 +115,12 @@ async function openWorkspace(expectedStatus: string) {
   });
 }
 
-// The "Ingest reviews" button(s) on the page (the header has the only one today).
+// The ingest button(s) on the page (the header has the only one today). S3-009: it reads
+// "Refresh reviews" once the target has reviews.
 function ingestButtons() {
-  return screen.getAllByRole<HTMLButtonElement>("button", { name: "Ingest reviews" });
+  return screen.getAllByRole<HTMLButtonElement>("button", {
+    name: /^(Ingest|Refresh) reviews$/,
+  });
 }
 
 function expectAllDisabled(buttons: HTMLButtonElement[]) {
@@ -384,6 +387,7 @@ describe("workspace layout", () => {
     await openWorkspace("Not ingested");
 
     expect(ingestButtons()).toHaveLength(1);
+    expect(ingestButtons()[0].textContent).toBe("Ingest reviews");
   });
 
   it("shows the Ingestion and Reviews tabs", async () => {
@@ -661,24 +665,35 @@ describe("reviews list", () => {
     await screen.findByText("3 reviews added from Google Maps · 8 in total saved.");
   });
 
-  it("the success banner says when every review was already saved", async () => {
+  it("the success banner says when a refresh found nothing new", async () => {
     backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 0, reviews_duplicate: 5 }));
     backendHoldsReviews(5);
 
     await openWorkspace("Ingested");
 
-    await screen.findByText(
-      "Already up to date: all 5 reviews from Google Maps were already saved.",
-    );
+    await screen.findByText("Up to date: no new reviews on Google Maps.");
   });
 
-  it("the ingest button is off when the last run found only reviews already saved", async () => {
+  // S3-009: new reviews can appear at any time, and an up-to-date refresh costs one search.
+  it("the refresh button stays on after a run that found nothing new", async () => {
     backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 0, reviews_duplicate: 5 }));
     backendHoldsReviews(5);
 
     await openWorkspace("Ingested");
 
-    expectAllDisabled(ingestButtons());
+    for (const button of ingestButtons()) {
+      expect(button.disabled).toBe(false);
+    }
+  });
+
+  it("the button reads Refresh reviews once the target has reviews", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    backendHoldsReviews(3);
+
+    await openWorkspace("Ingested");
+
+    expect(screen.getByRole("button", { name: "Refresh reviews" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Ingest reviews" })).toBeNull();
   });
 
   it("the ingest button stays on after a run that added reviews", async () => {
@@ -846,6 +861,49 @@ describe("reviews list", () => {
 
     await screen.findByText("Latest run");
     expect(screen.queryByText("Why records were skipped")).toBeNull();
+  });
+
+  // S3-009: how much of the place a refresh can still add.
+  it("the Ingestion tab says how many reviews the place lists and that more are left", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    server.use(
+      http.get(TARGET_URL, () =>
+        jsonResponse(
+          target({
+            id: TARGET_ID,
+            ingestion_status: "COMPLETED",
+            place_review_count: 338,
+            all_reviews_collected: false,
+          }),
+        ),
+      ),
+    );
+    backendHoldsReviews(3);
+    await openWorkspace("Ingested");
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("Reviews on Google Maps");
+    expect(screen.getByText("338")).toBeTruthy();
+    expect(screen.getByText("More to collect. Refresh adds the next batch.")).toBeTruthy();
+  });
+
+  it("the Ingestion tab says when every older review was collected", async () => {
+    backendHas(ingestionRun({ target_id: TARGET_ID, reviews_ingested: 3 }));
+    server.use(
+      http.get(TARGET_URL, () =>
+        jsonResponse(
+          target({ id: TARGET_ID, ingestion_status: "COMPLETED", all_reviews_collected: true }),
+        ),
+      ),
+    );
+    backendHoldsReviews(3);
+    await openWorkspace("Ingested");
+
+    fireEvent.mouseDown(screen.getByRole("tab", { name: "Ingestion" }));
+
+    await screen.findByText("All collected. Refresh looks for new ones.");
+    expect(screen.queryByText("Reviews on Google Maps")).toBeNull();
   });
 
   it("shows Ingested for a completed run even when the target has no review rows", async () => {

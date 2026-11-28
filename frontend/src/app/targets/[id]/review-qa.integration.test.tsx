@@ -125,9 +125,12 @@ async function openQaPanel(name = "Joe's Pizza") {
   return page;
 }
 
-// The header button that opens and closes the Q&A panel.
+// The header button that opens and closes the Q&A panel. It reads "Ask about reviews"
+// while the panel is closed and "Back to all reviews" while it is open.
 function qaButton() {
-  return screen.getByRole<HTMLButtonElement>("button", { name: "Ask about reviews" });
+  return screen.getByRole<HTMLButtonElement>("button", {
+    name: /^(Ask about reviews|Back to all reviews)$/,
+  });
 }
 
 // The panel, named after the target it answers about (S2-BR-014).
@@ -422,6 +425,18 @@ describe("Review Q&A panel", () => {
     fireEvent.keyDown(questionBox(), { key: "Escape" });
 
     expect(screen.queryByRole("region", { name: "Ask Joe's Pizza" })).toBeNull();
+  });
+
+  it("the header button says Back to all reviews while the panel is open", async () => {
+    backendHas(5);
+    await openQaPanel();
+
+    expect(qaButton().textContent).toBe("Back to all reviews");
+
+    fireEvent.click(qaButton());
+
+    expect(qaButton().getAttribute("aria-expanded")).toBe("false");
+    expect(qaButton().textContent).toBe("Ask about reviews");
   });
 
   it("keeps the conversation when the panel is closed and opened again", async () => {

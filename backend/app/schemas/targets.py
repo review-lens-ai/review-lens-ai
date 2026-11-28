@@ -49,6 +49,12 @@ class TargetResponse(BaseModel):
     source_url: str
     # Status of the newest ingestion run; None means "no ingestion yet".
     ingestion_status: IngestionStatus | None
+    # S3-009: how many reviews the provider lists for the place; None until the
+    # first ingestion brings the place details.
+    place_review_count: int | None = None
+    # S3-009: a run reached the last page, so every older review was collected.
+    # A refresh still looks for new ones.
+    all_reviews_collected: bool = False
     created_at: datetime
     updated_at: datetime
 

@@ -83,10 +83,12 @@ def test_run_status_is_committed_together_with_normalization(log):
 
     process_next_run(pipeline)
 
-    # Saving reviews, finishing the run and completing the stage share one commit,
-    # so a crash can never leave NORMALIZATION done but the run still RUNNING.
-    assert log[-4:] == [
+    # Saving reviews, moving the older-review cursor (S3-009), finishing the run and
+    # completing the stage share one commit, so a crash can never leave
+    # NORMALIZATION done but the run still RUNNING, or the cursor past unsaved reviews.
+    assert log[-5:] == [
         "save 18 reviews",
+        "save older cursor",
         "mark_succeeded",
         f"complete {Stage.NORMALIZATION}",
         "commit",

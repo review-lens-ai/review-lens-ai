@@ -130,7 +130,11 @@ def test_run_details_record_what_was_asked_and_what_happened():
         "pages_fetched": 2,
         "searches_used": 3,  # the third request returned an empty page
         "reviews_fetched": 30,
+        "new_reviews_fetched": 30,
         "stopped_because": "EMPTY_PAGE",
+        "caught_up": False,
+        "resumed_older": False,
+        "resume_rejected": False,
     }
 
 

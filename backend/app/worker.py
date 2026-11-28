@@ -10,12 +10,14 @@ once. This process does the slow part, one run at a time:
     claim the oldest QUEUED run              -> RUNNING        (ingestion_runs)
     INGESTION stage                                            (ingestion_stages)
         find the place, save its id          -> analysis_targets.source_place_id
+        load the review ids already seen     (S3-009: makes the run a refresh)
         fetch pages through SerpApi          (app/adapters/serpapi/)
         save the pages                       -> ingestion_raw_pages
         save place details and run details   -> *.source_metadata
     NORMALIZATION stage
         normalize the stored pages           (app/services/normalize_reviews.py)
         save reviews and rejections          (S1-022's ReviewRepository)
+        save where older reviews continue    -> analysis_targets.older_page_token
         finish the run                       -> COMPLETED / PARTIAL / FAILED
     EMBED step (after a finished run)
         embed the target's new reviews       -> reviews.embedding
@@ -32,6 +34,12 @@ Rules:
   to the server log, scrubbed by mark_failed.
 - NO CREDITS FOR DUPLICATES: the place id is resolved (free) and saved before any
   SerpApi search, so a place the owner already has fails without spending one.
+- REFRESH (S3-009): a run on a target that already has reviews fetches the new
+  ones, then continues collecting older ones from older_page_token. The cursor
+  moves in the NORMALIZATION commit, with the reviews, so a failed run never
+  moves it past reviews it did not save.
+- SEEN BEFORE IS A DUPLICATE: a review an earlier run already saved OR rejected
+  (e.g. rating-only) is counted as a duplicate, not saved or rejected again.
 - EMBEDDINGS NEVER FAIL A RUN: the run is already finished and its reviews saved
   when the EMBED step starts. If it fails, it is logged, and the next run of this
   target or ./scripts/embed-reviews.sh embeds what is left.
@@ -88,6 +96,12 @@ class ReviewStore(EmbeddingStore, Protocol):
         """Save reviews; return how many were new (already-saved ones are skipped)."""
         ...
 
+    def seen_review_ids_for_target(
+        self, target_id: UUID | str, owner_id: UUID | str
+    ) -> set[str]:
+        """Every source review_id the target has saved or rejected (S3-009)."""
+        ...
+
     def save_rejections(
         self,
         run_id: UUID | str,
@@ -107,6 +121,11 @@ class _MissingReviewStore:
         )
 
     def save_rejections(self, *args: Any) -> None:
+        raise RuntimeError(
+            "Saving reviews (S1-022, app/repositories/reviews.py) is not available."
+        )
+
+    def seen_review_ids_for_target(self, *args: Any) -> set[str]:
         raise RuntimeError(
             "Saving reviews (S1-022, app/repositories/reviews.py) is not available."
         )
@@ -137,6 +156,7 @@ class Pipeline:
     open_source: Callable[[], SerpApiReviewSource]
     max_reviews: int
     embedder: Embedder
+    max_searches: int | None = None  # S3-009: MAX_SEARCHES_PER_RUN
 
     @classmethod
     def for_connection(cls, conn: Any, settings: Any, embedder: Embedder) -> "Pipeline":
@@ -150,6 +170,7 @@ class Pipeline:
             open_source=lambda: SerpApiReviewSource.from_settings(settings),
             max_reviews=settings.max_reviews_per_run,
             embedder=embedder,
+            max_searches=settings.max_searches_per_run,
         )
 
 
@@ -270,7 +291,10 @@ def _run_stage(
 
 
 def _ingest(pipeline: Pipeline, run_id: UUID | str, target: dict) -> None:
-    """INGESTION: find the place, fetch and store its pages."""
+    """INGESTION: find the place, fetch and store its pages. A target that has
+    reviews already is refreshed: new reviews first, then older ones from where
+    the deepest earlier run stopped (S3-009)."""
+    seen = pipeline.reviews.seen_review_ids_for_target(target["id"], target["owner_id"])
     with pipeline.open_source() as source:
         place_id = target["source_place_id"]
         if not place_id:
@@ -278,18 +302,32 @@ def _ingest(pipeline: Pipeline, run_id: UUID | str, target: dict) -> None:
             pipeline.targets.save_place_id(target["id"], target["owner_id"], place_id)
             pipeline.conn.commit()  # remembered even if fetching fails below
         result = source.fetch_reviews(
-            target["source_url"], pipeline.max_reviews, data_id=place_id
+            target["source_url"],
+            pipeline.max_reviews,
+            data_id=place_id,
+            known_review_ids=seen,
+            older_page_token=target["older_page_token"],
+            all_collected=target["all_reviews_collected"],
+            max_searches=pipeline.max_searches,
         )
     pipeline.raw_pages.replace_for_run(run_id, result.pages)
     if result.place_details:
         pipeline.targets.save_place_details(
             target["id"], target["owner_id"], result.place_details
         )
-    pipeline.runs.record_source_metadata(run_id, result.run_details)
+    details = {**result.run_details, "known_reviews_before": len(seen)}
+    if result.older_cursor is not None:
+        # Saved on the target by NORMALIZATION, together with the reviews.
+        details["older_cursor"] = {
+            "page_token": result.older_cursor.page_token,
+            "all_collected": result.older_cursor.all_collected,
+        }
+    pipeline.runs.record_source_metadata(run_id, details)
     logger.info(
-        "Run %s fetched %s reviews in %s searches (%s)",
+        "Run %s fetched %s reviews (%s new) in %s searches (%s)",
         run_id,
         result.reviews_fetched,
+        result.new_reviews,
         result.searches_used,
         result.stopped_because,
     )
@@ -298,17 +336,37 @@ def _ingest(pipeline: Pipeline, run_id: UUID | str, target: dict) -> None:
 def _normalize_and_finish(pipeline: Pipeline, run_id: UUID | str, target: dict) -> None:
     """NORMALIZATION: turn the stored pages into reviews, save them, and finish
     the run with the counts (COMPLETED, PARTIAL, or FAILED if nothing saved)."""
+    seen_before = pipeline.reviews.seen_review_ids_for_target(
+        target["id"], target["owner_id"]
+    )
     result = normalize_pages(pipeline.raw_pages.payloads_for_run(run_id))
+    # A record an earlier run already rejected (e.g. rating-only) is a duplicate
+    # now: it is not stored or counted as rejected a second time.
+    rejected = [
+        record
+        for record in result.rejected
+        if _review_id(record.raw_record) not in seen_before
+    ]
     saved = pipeline.reviews.bulk_insert(
         run_id, target["id"], target["owner_id"], result.reviews
     )
-    pipeline.reviews.save_rejections(
-        run_id, target["id"], target["owner_id"], result.rejected
-    )
+    pipeline.reviews.save_rejections(run_id, target["id"], target["owner_id"], rejected)
     # Reviews an earlier run already saved are skipped by bulk_insert; they are
     # duplicates, so fetched = saved + rejected + duplicates still holds.
-    duplicates = result.duplicates + (len(result.reviews) - saved)
-    pipeline.runs.mark_succeeded(run_id, saved, len(result.rejected), duplicates)
+    duplicates = (
+        result.duplicates
+        + (len(result.reviews) - saved)
+        + (len(result.rejected) - len(rejected))
+    )
+    cursor = (pipeline.runs.source_metadata(run_id) or {}).get("older_cursor")
+    if cursor is not None:
+        pipeline.targets.save_older_cursor(
+            target["id"],
+            target["owner_id"],
+            cursor["page_token"],
+            cursor["all_collected"],
+        )
+    pipeline.runs.mark_succeeded(run_id, saved, len(rejected), duplicates)
 
 
 def _embed(pipeline: Pipeline, run_id: UUID | str, target: dict) -> None:
@@ -345,6 +403,15 @@ def _fail_run(
             run_id,
             scrub_detail(_describe(error)),
         )
+
+
+def _review_id(raw_record: Any) -> str | None:
+    """The SerpApi review_id of a raw record, or None."""
+    if isinstance(raw_record, dict):
+        value = raw_record.get("review_id")
+        if isinstance(value, str) and value:
+            return value
+    return None
 
 
 def _describe(error: Exception) -> str:

@@ -17,7 +17,8 @@ def test_settings_load_with_required_vars(required_env):
 
     assert settings.supabase_url == SUPABASE_URL
     assert settings.database_url.get_secret_value() == DATABASE_URL
-    assert settings.max_reviews_per_run == 1000
+    assert settings.max_reviews_per_run == 100
+    assert settings.max_searches_per_run == 15
 
 
 def test_missing_required_var_fails_with_clear_message(required_env, monkeypatch):

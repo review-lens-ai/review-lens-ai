@@ -203,6 +203,32 @@ class ReviewRepository:
             raise NotFoundError("Review not found.")
         return row["position"] // limit * limit
 
+    def seen_review_ids_for_target(
+        self, target_id: UUID | str, owner_id: UUID | str
+    ) -> set[str]:
+        """S3-009: every source review_id this target has seen, saved or rejected,
+        so a refresh knows where the reviews it already has begin. A rating-only
+        review is rejected on every run; without the rejections here, a page that
+        holds one would never count as already seen. NotFoundError if the user
+        does not own the target."""
+        self._targets.get_owned(target_id, owner_id)
+        rows = self._conn.execute(
+            """
+            select source_review_id as review_id
+              from public.reviews
+             where target_id = %(target)s and source_review_id is not null
+            union
+            select j.raw_record ->> 'review_id'
+              from public.ingestion_rejections j
+              join public.ingestion_runs r on r.id = j.run_id
+             where r.target_id = %(target)s
+               and jsonb_typeof(j.raw_record) = 'object'
+               and j.raw_record ->> 'review_id' is not null
+            """,
+            {"target": target_id},
+        ).fetchall()
+        return {row["review_id"] for row in rows}
+
     def count_for_target(self, target_id: UUID | str, owner_id: UUID | str) -> int:
         """How many reviews a target the user owns has; otherwise NotFoundError."""
         self._targets.get_owned(target_id, owner_id)
