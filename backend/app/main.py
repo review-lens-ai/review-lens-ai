@@ -23,6 +23,8 @@ app.add_middleware(
     allow_origins=settings.cors_origins.split(","),
     allow_methods=["*"],
     allow_headers=["Authorization", "Content-Type"],
+    # The browser can only read the saved file name from an export if it is exposed.
+    expose_headers=["Content-Disposition"],
 )
 
 app.include_router(api_router)

@@ -46,23 +46,47 @@ export function isNotFound(error: unknown): boolean {
 }
 
 // Every backend call sends the Supabase access token; the backend verifies it.
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function authHeaders(): Promise<Record<string, string>> {
   const { data } = await createClient().auth.getSession();
+  return data.session ? { Authorization: `Bearer ${data.session.access_token}` } : {};
+}
+
+type ErrorBody = {
+  error?: { code?: string; message?: string; details?: FieldIssue[] };
+} | null;
+
+// The error the backend's error body describes (see ApiError).
+function apiErrorFrom(status: number, body: ErrorBody): ApiError {
+  return new ApiError(
+    status,
+    body?.error?.code ?? "UNKNOWN",
+    body?.error?.message ?? "Something went wrong. Please try again.",
+    body?.error?.details ?? [],
+  );
+}
+
+export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: {
-      ...init.headers,
-      ...(data.session ? { Authorization: `Bearer ${data.session.access_token}` } : {}),
-    },
+    headers: { ...init.headers, ...(await authHeaders()) },
   });
-  const body = await res.json().catch(() => null);
+  const body: ErrorBody = await res.json().catch(() => null);
   if (!res.ok) {
-    throw new ApiError(
-      res.status,
-      body?.error?.code ?? "UNKNOWN",
-      body?.error?.message ?? "Something went wrong. Please try again.",
-      body?.error?.details ?? [],
-    );
+    throw apiErrorFrom(res.status, body);
   }
   return body as T;
+}
+
+// A file the backend sends, such as a CSV or Markdown export (src/lib/exports.ts): the
+// body, and the file name the backend chose (null if it sent none).
+export async function apiFetchFile(path: string): Promise<{ blob: Blob; filename: string | null }> {
+  const res = await fetch(`${API_URL}${path}`, { headers: await authHeaders() });
+  if (!res.ok) {
+    throw apiErrorFrom(res.status, await res.json().catch(() => null));
+  }
+  const disposition = res.headers.get("Content-Disposition") ?? "";
+  return {
+    blob: await res.blob(),
+    filename: /filename="?([^";]+)"?/.exec(disposition)?.[1] ?? null,
+  };
 }
